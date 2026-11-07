@@ -8,7 +8,7 @@ Hướng dẫn cài đặt, publish và chạy sau Nginx trên Linux được vi
 
 ## Chạy nhanh
 
-1. Cài .NET 8 (SDK 8 trở lên), SQL Server 2019+ (bản Express được), Node.js LTS.
+1. Cài .NET 8 SDK (global.json ghim SDK 8.0.x), SQL Server 2019+ (bản Express được), Node.js LTS.
 2. Sửa chuỗi kết nối ở `src/FPolyCinema.Web/appsettings.Development.json` (khóa `ConnectionStrings:Default`)
    hoặc đặt biến môi trường `ConnectionStrings__Default`.
 3. Tạo DB, bảng, stored procedure và dữ liệu mẫu:

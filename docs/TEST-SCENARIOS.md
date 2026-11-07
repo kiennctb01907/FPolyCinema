@@ -5,7 +5,7 @@ Kết quả của unit test tự động (xUnit) xem bằng `dotnet test`; các 
 
 ## Phase 1
 
-Môi trường: Windows 11, SQL Server 2022 Developer (localhost), .NET SDK 10.0.301 với runtime 8.0.28 (người dùng chọn giữ SDK 10). Lần chạy cuối: sáng 07/11/2026 trên bản code mã băm 41bc72904895.
+Môi trường: Windows 11, SQL Server 2022 Developer (localhost), .NET SDK 8.0.427 (global.json ghim 8.0) với runtime 8.0.28. Lần chạy cuối: sáng 07/11/2026 (nạp dữ liệu lúc 07:26) trên bản code mã băm 41bc72904895.
 
 | Test case ID | Chức năng | Mô tả | Dữ liệu | Các bước | Kết quả mong đợi | Kết quả thực tế | Pass/Fail | Ghi chú |
 |---|---|---|---|---|---|---|---|---|

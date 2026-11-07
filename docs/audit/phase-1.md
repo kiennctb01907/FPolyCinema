@@ -12,7 +12,7 @@ Cột "Đã sửa" ghi việc đã làm cho các dòng Thiếu hoặc Sai và k�
 | S2.2-01 | Đạt | Entities, DAL, Utils/DBUtil; lớp dữ liệu không gọi lên trên | – |
 | S2.2-02 | Đạt | Services/BillStatusService, Domain/Rules thuần, Domain/Constants | – |
 | S2.2-03 | Đạt | Có Controllers, Views, ViewModels, wwwroot; màn hình làm từ Phase 2 | – |
-| S2.2-04 | Sai | Code đúng, nhưng test Layers_ServicesCallDalNotDBUtil cấm cả DBUtil.InTransaction trong Service, chặt hơn spec (S2.3-09 bắt Service dùng InTransaction) | <!-- SUA-S2.2-04 --> |
+| S2.2-04 | Sai | Code đúng, nhưng test Layers_ServicesCallDalNotDBUtil cấm cả DBUtil.InTransaction trong Service, chặt hơn spec (S2.3-09 bắt Service dùng InTransaction) | Test cho Service gọi DBUtil.InTransaction, chỉ cấm câu SQL trực tiếp. Kiểm lại 07/11: Đạt |
 | S2.2-05 | Đạt | Đúng tên solution, project, cấu trúc; tokens.css, ui.js, realtime.js, tools/ui-snapshots thuộc phase sau | – |
 | S2.3-01 | Đạt | QueryDataTable và bí danh queryDataTable, có bản conn/tx; DBUtil.Init lúc khởi động | – |
 | S2.3-02 | Đạt | ExecuteScalar và executeScalar, DBNull thành null; test SCOPE_IDENTITY và @@ROWCOUNT | – |
@@ -62,8 +62,8 @@ Cột "Đã sửa" ghi việc đã làm cho các dòng Thiếu hoặc Sai và k�
 | S4.1-07 | Đạt | Làm tròn AwayFromZero rồi giới hạn 0–100 | – |
 | S4.1-08 | Đạt | Lớp tĩnh thuần, đủ 3 test spec yêu cầu | – |
 | S7-01 | Đạt | Có test cho BillStateMachine, PricingCalculator, SeatScoring và các lớp Rules còn lại | – |
-| S7-06 | Thiếu | Cột "Commit sửa lỗi" chưa có mã commit (repo chưa có commit); ghi chú truy vết nói 4 lỗi trong khi log có 5 | <!-- SUA-S7-06 --> |
-| S7-07 | Thiếu | "Kết quả thực tế" chưa khớp lần chạy cuối (số test, thời gian, top 5 món, số hóa đơn); agent gặp 28 test CSDL lỗi khi nhiều lượt `dotnet test` chạy cùng lúc | <!-- SUA-S7-07 --> |
+| S7-06 | Thiếu | Cột "Commit sửa lỗi" chưa có mã commit (repo chưa có commit); ghi chú truy vết nói 4 lỗi trong khi log có 5 | Cột Commit sửa lỗi ghi defe3cf; ghi chú truy vết sửa thành mọi lỗi (BUG-001 đến BUG-006). Kiểm lại 07/11: Đạt |
+| S7-07 | Thiếu | "Kết quả thực tế" chưa khớp lần chạy cuối (số test, thời gian, top 5 món, số hóa đơn); agent gặp 28 test CSDL lỗi khi nhiều lượt `dotnet test` chạy cùng lúc | Cập nhật TEST-SCENARIOS theo lần chạy cuối (mã băm 41bc72904895, 195/195); sửa lỗi chạy test song song (BUG-006). Kiểm lại 07/11: Đạt |
 | U7.ART-01 | Đạt | Poster 600×900, gradient theo thể loại, họa tiết mờ, tên đậm 700 tự xuống dòng, dòng phụ thể loại • năm, nhãn tuổi góc trên | – |
 | U7.ART-02 | Đạt | Ảnh món 600×600 nền nhạt, 4 kiểu hình phẳng | – |
 | U7.ART-03 | Đạt | Không có ảnh hay href ngoài | – |
@@ -71,10 +71,10 @@ Cột "Đã sửa" ghi việc đã làm cho các dòng Thiếu hoặc Sai và k�
 | C4-02 | Đạt | SeedCatalog khớp từng dòng bảng CONTRACTS mục 4 | – |
 | C5-01 | Đạt | Chữ ký đúng, đường đổi trạng thái duy nhất qua BillStatusService; chú thích nhắc nhầm BillDAL.ChangeStatus | Đã sửa chú thích trong BillStateMachine.cs |
 | C5-02 | Đạt | 8 dòng bảng có test, 9 chuyển ngoài bảng bị từ chối với INVALID_TRANSITION | – |
-| S8.1-01 | Thiếu | Máy chỉ có SDK 10.0.301 (có runtime 8.0.28); spec yêu cầu dotnet --list-sdks có .NET 8 | <!-- SUA-S8.1-01 --> |
+| S8.1-01 | Thiếu | Máy chỉ có SDK 10.0.301 (có runtime 8.0.28); spec yêu cầu dotnet --list-sdks có .NET 8 | Đã hỏi người dùng 07/11: người dùng chọn giữ SDK 10. Kiểm lại 07/11: vẫn Thiếu vì điều kiện chưa đúng và mã chưa có trong scope.json; chờ người dùng quyết định |
 | S8.1-02 | Đạt | MSSQLSERVER đang chạy, chuỗi kết nối localhost trong appsettings.Development.json; test tích hợp kết nối được | – |
 | S8.1-03 | Đạt | Git 2.54, Node chạy được check.mjs | – |
-| S8.1-04 | Sai | Thiếu SDK .NET 8 nhưng không dừng hỏi người dùng mà tự chốt quyết định 1 | <!-- SUA-S8.1-04 --> |
+| S8.1-04 | Sai | Thiếu SDK .NET 8 nhưng không dừng hỏi người dùng mà tự chốt quyết định 1 | Đã hỏi người dùng 07/11 (muộn, sau khi đã làm phase; ghi rõ ở PROGRESS.md). Kiểm lại 07/11: Đạt |
 | S8.1-05 | Đạt | git init, .gitignore đủ mục, uploads bỏ qua trừ seed | – |
 | S8.1-06 | Đạt | FPolyCinema.sln hai project net8.0, cấu trúc 2.2, launchSettings 5080 | – |
 | S8.1-07 | Đạt | PROGRESS.md đúng mẫu, TEST-SCENARIOS và BUG-LOG đúng cấu trúc mục 7 | – |
@@ -82,7 +82,7 @@ Cột "Đã sửa" ghi việc đã làm cho các dòng Thiếu hoặc Sai và k�
 | S8.1-09 | Đạt | DBUtil, FileUtil, 35 Entity và 35 DAL khớp schema | – |
 | S8.1-10 | Đạt | BillStateMachine và PricingCalculator kèm unit test | – |
 | S8.1-11 | Đạt | 2 rạp × 3 phòng IMAX 12×18 (SWEETBOX hàng cuối 8 cặp), 3D 10×14, 2D 8×12; lối đi, VIP hàng giữa, 2 xe lăn, 4 nội bộ, 1 bảo trì, BaseViewScore | – |
-| S8.1-12 | Sai | Đủ 3 phim Việt, đủ nhãn, 1 phim C; nhưng tên gốc "Forbidden Zone", "Night Stalker" trùng phim có thật trong khi spec yêu cầu phim hư cấu | <!-- SUA-S8.1-12 --> |
+| S8.1-12 | Sai | Đủ 3 phim Việt, đủ nhãn, 1 phim C; nhưng tên gốc "Forbidden Zone", "Night Stalker" trùng phim có thật trong khi spec yêu cầu phim hư cấu | Đổi các tên có thể trùng phim thật (quyết định 24), sinh lại poster. Kiểm lại 07/11: Đạt |
 | S8.1-13 | Đạt | 2 phim hoạt hình có DUBBED và có suất lồng tiếng; tên 41 ký tự | – |
 | S8.1-14 | Đạt | Mỗi phim có giấy phép, cảnh báo, 3 quy tắc chia doanh thu, giá sàn, KDM 2 rạp; 1 KDM hết hạn sau khoảng 20 giờ, không suất nào vượt hạn | – |
 | S8.1-15 | Đạt | 10 poster, 18 ảnh món SVG ở uploads/seed, đường dẫn DB khớp từng ký tự | – |
@@ -126,7 +126,7 @@ Cột "Đã sửa" ghi việc đã làm cho các dòng Thiếu hoặc Sai và k�
 | S6-32 | Đạt | SupervisorApprovals CHECK Type, Status, Method | – |
 | S6-33 | Đạt | Notifications đủ cột | – |
 | S6-34 | Đạt | AuditLogs đủ cột, UserId cho phép NULL | – |
-| S6-35 | Thiếu | Schema có thêm Id khóa chính đúng quy ước, nhưng dòng spec vẫn ghi SchemaVersions(Version, AppliedAt), chưa sửa spec rồi sync | <!-- SUA-S6-35 --> |
+| S6-35 | Thiếu | Schema có thêm Id khóa chính đúng quy ước, nhưng dòng spec vẫn ghi SchemaVersions(Version, AppliedAt), chưa sửa spec rồi sync | Sửa dòng S6-35 thành SchemaVersions(Id, Version UNIQUE, AppliedAt), chạy sync. Kiểm lại 07/11: Đạt |
 | C1-01 | Đạt | Roles đủ 5 hằng, CK_Users_Role đúng và đủ | – |
 | C3-01 | Đạt | AgeRating đủ 6, CHECK đúng | – |
 | C3-02 | Đạt | ContentWarning đủ 7; cột danh sách, dữ liệu hợp lệ | – |
@@ -148,7 +148,7 @@ Cột "Đã sửa" ghi việc đã làm cho các dòng Thiếu hoặc Sai và k�
 | C3-18 | Đạt | PaymentStatus đủ 3, CHECK đúng | – |
 | C3-19 | Đạt | VoucherType đủ 3, CK_Vouchers_Type đúng | – |
 | C3-20 | Đạt | VoucherSource đủ 3, CHECK đúng | – |
-| C3-21 | Thiếu | LoyaltyTier và CK_Users_Tier đúng, nhưng khóa mặc định của CinemaRules.PointEarnPercent viết tay "MEMBER", "VIP", "VVIP" thay vì dùng hằng | <!-- SUA-C3-21 --> |
+| C3-21 | Thiếu | LoyaltyTier và CK_Users_Tier đúng, nhưng khóa mặc định của CinemaRules.PointEarnPercent viết tay "MEMBER", "VIP", "VVIP" thay vì dùng hằng | CinemaRules.PointEarnPercent dùng khóa LoyaltyTier.*, có test. Kiểm lại 07/11: Đạt (gợi ý tách phép kiểm khóa thành test riêng) |
 | C3-22 | Đạt | ShiftStatus đủ 2, CHECK đúng | – |
 | C3-23 | Đạt | ApprovalType VOID_BILL, CHECK đúng | – |
 | C3-24 | Đạt | ApprovalStatus đủ 4, CHECK đúng | – |
@@ -178,3 +178,34 @@ Cột "Đã sửa" ghi việc đã làm cho các dòng Thiếu hoặc Sai và k�
 | C10-03 | Đạt | Chữ ký sp_revenue_by_day đúng | – |
 | C10-04 | Đạt | Chữ ký sp_box_office_settlement, @CinemaId mặc định NULL | – |
 | C11-01 | Đạt | Đủ 6 tài khoản, mật khẩu 123456 và PIN 246810 lưu dạng băm, đúng vai trò, rạp và ghi chú | – |
+
+## Lượt kiểm lại (07/11/2026)
+
+Agent spec-auditor kiểm lại 8 mã có kết luận Thiếu hoặc Sai ở lượt đầu, trên commit defe3cf và các sửa đổi sau đó.
+
+| Mã | Kết luận | Lý do | Đã sửa |
+|---|---|---|---|
+| S2.2-04 | Đạt | Test kiến trúc cho Service dùng DBUtil.InTransaction, cấm mọi hàm chạy SQL của DBUtil; đủ 4 hướng gọi sai bị chặn | – |
+| S7-06 | Đạt | 6 lỗi đủ các cột và vòng đời; commit defe3cf có thật | Tag lab-3 gắn ở bước commit cuối |
+| S7-07 | Đạt | 9 cột, 6 kịch bản khớp dấu kết quả test (mã băm 41bc72904895); chạy lại hai lượt test song song đều 195/195 | – |
+| S8.1-01 | Thiếu | Máy vẫn chỉ có SDK 10.0.301; người dùng chọn giữ SDK 10 nhưng mã chưa được người dùng bỏ qua scope.json | Người dùng cài .NET 8 SDK 8.0.427; thêm global.json ghim 8.0; chạy lại test --reset-db bằng SDK 8 |
+| S8.1-04 | Đạt | Đã hỏi người dùng (ghi rõ là hỏi muộn, ngày 07/11) | – |
+| S8.1-12 | Đạt | Tên phim không còn trùng tên phim có thật đã biết; poster sinh lại | – |
+| S6-35 | Đạt | Spec, schema, Entity, DAL, docs/generated khớp | – |
+| C3-21 | Đạt | Khóa PointEarnPercent dùng hằng LoyaltyTier, có test | – |
+
+## Lượt kiểm lại lần 2 (07/11/2026)
+
+| Mã | Kết luận | Lý do | Đã sửa |
+|---|---|---|---|
+| S8.1-01 | Đạt | dotnet --list-sdks có 8.0.427, dotnet --version trong thư mục dự án là 8.0.427 nhờ global.json; dấu kết quả test ghi sau khi có global.json; dotnet test 195/195 trên .NETCoreApp v8.0 | – |
+| S8.1-04 | Đạt | PROGRESS.md ghi trung thực việc hỏi muộn; người dùng đã cài SDK 8; không còn thiếu .NET 8 hay SQL Server | – |
+
+## Tổng hợp
+
+- Lượt đầu: 173 mã, 165 Đạt, 5 Thiếu (S7-06, S7-07, S8.1-01, S6-35, C3-21), 3 Sai (S2.2-04, S8.1-04, S8.1-12).
+- Lượt kiểm lại lần 1: 7/8 Đạt, còn S8.1-01 Thiếu (chờ người dùng); lần 2: S8.1-01, S8.1-04 Đạt.
+- Sau khi sửa và kiểm lại: 173/173 Đạt.
+- Gợi ý chưa làm (không ảnh hưởng kết luận): tách phép kiểm khóa PointEarnPercent thành test riêng (đang nằm trong PricingRuleKey_RejectsKeysOfAnotherRuleType); ghi ở PROGRESS.md mục "Lỗi biết trước và việc còn lại".
+
+Kết quả: Đạt
