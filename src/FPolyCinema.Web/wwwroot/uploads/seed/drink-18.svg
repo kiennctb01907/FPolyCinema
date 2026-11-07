@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="600" viewBox="0 0 600 600" role="img" aria-label="Combo Gia đình">
+  <rect width="600" height="600" fill="#EDE9FE"/>
+  <ellipse cx="300" cy="520" rx="190" ry="26" fill="#000000" fill-opacity="0.08"/>
+  <g fill="#FFFBEB" stroke="#F59E0B" stroke-width="4">
+    <circle cx="139.3" cy="239.3" r="32.3"/>
+    <circle cx="181.8" cy="218" r="32.3"/>
+    <circle cx="224.3" cy="209.5" r="32.3"/>
+    <circle cx="266.8" cy="219.7" r="32.3"/>
+    <circle cx="305" cy="239.3" r="32.3"/>
+    <circle cx="160.5" cy="192.5" r="32.3"/>
+    <circle cx="211.5" cy="179.8" r="32.3"/>
+    <circle cx="262.5" cy="190.8" r="32.3"/>
+  </g>
+  <polygon points="109.5,252 330.5,252 305,490 135,490" fill="#FFFFFF" stroke="#B91C1C" stroke-width="6"/>
+  <polygon points="131.6,252 162.2,252 157.1,490 135,490" fill="#DC2626"/>
+  <polygon points="197.9,252 228.5,252 223.4,490 201.3,490" fill="#DC2626"/>
+  <polygon points="264.2,252 294.8,252 289.7,490 267.6,490" fill="#DC2626"/>
+  <rect x="101" y="239.3" width="238" height="22.1" rx="6.8" fill="#B91C1C"/>
+  <rect x="426" y="172" width="14.4" height="96" rx="4.8" fill="#F59E0B" transform="rotate(12 433.2 220)"/>
+  <rect x="314" y="248" width="192" height="28.8" rx="11.2" fill="#E5E7EB" stroke="#9CA3AF" stroke-width="4"/>
+  <polygon points="322,276 498,276 478,500 342,500" fill="#DC2626"/>
+  <polygon points="330,340 490,340 484.4,404 335.6,404" fill="#FFFFFF" fill-opacity="0.9"/>
+  <circle cx="410" cy="372" r="17.6" fill="#DC2626"/>
+</svg>

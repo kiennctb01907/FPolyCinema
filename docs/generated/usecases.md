@@ -1,0 +1,57 @@
+# Use case và bằng chứng trong code (sinh từ docs/trace)
+
+| Mã | Use case | Tác nhân | Quan hệ | Màn hình | Phase | Trạng thái | Bằng chứng |
+|---|---|---|---|---|---|---|---|
+| UC01 | Đăng nhập, đăng xuất | Khách hàng, mọi nhân viên |  | C6 | 2 | Chưa |  |
+| UC02 | Quên mật khẩu (OTP, cấp mật khẩu mới qua email) | Khách hàng, mọi nhân viên; Dịch vụ email | extend UC01 | C6 | 2 | Chưa |  |
+| UC03 | Đổi mật khẩu | Khách hàng, mọi nhân viên | include UC01 | C5, A9 | 2, 5 | Chưa |  |
+| UC04 | Cập nhật thông tin cá nhân | Khách hàng, mọi nhân viên | include UC01 | C5, A9 | 2, 5 | Chưa |  |
+| UC05 | Đăng ký tài khoản | Khách vãng lai |  | C6 | 2 | Chưa |  |
+| UC06 | Xem phim, lịch chiếu, thực đơn bắp nước | Khách vãng lai |  | C1, C2 | 5 | Chưa |  |
+| UC07 | Đặt vé online | Khách hàng | include UC08, UC09 | C3 | 5 | Chưa |  |
+| UC08 | Chọn ghế với gợi ý AI | Khách hàng, Thu ngân |  | C3, P1 | 4, 5 | Chưa |  |
+| UC09 | Thanh toán online | Khách hàng; Cổng thanh toán |  | C3 | 5 | Chưa |  |
+| UC10 | Xem vé điện tử, báo "Tôi đã tới rạp" | Khách hàng |  | C4 | 5, 6 | Chưa |  |
+| UC11 | Tự hủy vé | Khách hàng |  | C4, C5 | 5 | Chưa |  |
+| UC12 | Quản lý ví, điểm, voucher, thông báo | Khách hàng |  | C5 | 5 | Chưa |  |
+| UC13 | Đặt vé bằng trợ lý AI | Khách hàng | extend UC07 | C7 | 7 | Chưa |  |
+| UC14 | Mở ca, đóng ca mù | Thu ngân |  | P7 | 4 | Chưa |  |
+| UC15 | Bán vé và bắp nước tại quầy | Thu ngân | include UC08 | P1, P2 | 4 | Chưa |  |
+| UC16 | In vé, nhận đơn online tại quầy | Thu ngân |  | P1 | 4, 6 | Chưa |  |
+| UC17 | Đổi, nâng hạng ghế | Thu ngân |  | P1 | 6 | Chưa |  |
+| UC18 | Yêu cầu hủy hóa đơn đã thanh toán | Thu ngân | include UC24 | P1 | 4, 6 | Chưa |  |
+| UC19 | Xử lý đơn bắp nước tại bếp, gọi số | Thu ngân |  | P4, P5 | 6 | Chưa |  |
+| UC20 | Lập phiếu hủy hàng hỏng | Thu ngân |  | P4 | 6 | Chưa |  |
+| UC21 | Xem hóa đơn của tôi | Thu ngân |  | P1 | 4 | Chưa |  |
+| UC22 | Soát vé, check-in từng phần | Nhân viên soát vé |  | P3 | 6 | Chưa |  |
+| UC23 | Xác nhận dọn phòng xong | Nhân viên soát vé |  | P3, P6 | 6 | Chưa |  |
+| UC24 | Duyệt hủy hóa đơn (PIN hoặc từ xa) | Quản lý ca |  | P1, A7 | 4, 6 | Chưa |  |
+| UC25 | Giải phóng ghế nội bộ | Quản lý ca |  | A7 | 6 | Chưa |  |
+| UC26 | Duyệt phiếu hủy hàng | Quản lý ca |  | A7 | 6 | Chưa |  |
+| UC27 | Hủy suất do sự cố | Quản lý ca |  | A5 | 6 | Chưa |  |
+| UC28 | Quản lý loại đồ uống | Quản lý rạp |  | A2, A3 | 2 | Chưa |  |
+| UC29 | Quản lý đồ uống và định mức | Quản lý rạp |  | A2, A3 | 2 | Chưa |  |
+| UC30 | Quản lý nguyên liệu, nhập kho | Quản lý rạp |  | A2, A3 | 6 | Chưa |  |
+| UC31 | Quản lý phim, nhà phát hành, KDM, chia doanh thu | Quản lý rạp |  | A2, A3 | 3 | Chưa |  |
+| UC32 | Quản lý phòng chiếu và sơ đồ ghế | Quản lý rạp |  | A4 | 3 | Chưa |  |
+| UC33 | Quản lý bảng giá, đối tượng ưu đãi, ngày lễ | Quản lý rạp |  | A2, A3 | 3 | Chưa |  |
+| UC34 | Quản lý suất chiếu | Quản lý rạp |  | A5 | 3 | Chưa |  |
+| UC35 | Xếp lịch tự động bằng AI | Quản lý rạp | extend UC34 | A5 | 7 | Chưa |  |
+| UC36 | Quản lý nhân viên | Quản lý rạp |  | A2, A3 | 2 | Chưa |  |
+| UC37 | Quản lý hóa đơn | Quản lý rạp |  | A8 | 4 | Chưa |  |
+| UC38 | Thống kê, báo cáo | Quản lý rạp |  | A1, A6 | 4 | Chưa |  |
+| UC39 | Đối soát nhà phát hành | Quản lý rạp |  | A6 | 4 | Chưa |  |
+| UC40 | Bán vé doanh nghiệp | Quản lý rạp |  | A2, A3 | 6 | Chưa |  |
+
+## Tiến độ yêu cầu theo phase
+
+| Phase | Nội dung | Đã xong | Tự động |
+|---|---|---|---|
+| 1 | Nền tảng dữ liệu | 92/92 | 81 |
+| 2 | Giao diện nền, đăng nhập, CRUD cơ bản | 0/177 | 7 |
+| 3 | Phim, phòng chiếu, giá, suất chiếu | 0/53 | 1 |
+| 4 | POS, hóa đơn, thống kê | 0/142 | 2 |
+| 5 | Web khách và đặt vé online | 0/86 | 3 |
+| 6 | Vận hành thời gian thực | 0/95 | 7 |
+| 7 | AI xếp lịch và trợ lý đặt vé | 0/53 | 1 |
+| 8 | Hoàn thiện, demo, kiểm tra tổng thể | 0/15 | 0 |

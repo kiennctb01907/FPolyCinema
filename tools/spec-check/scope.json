@@ -1,0 +1,5 @@
+{
+  "ghiChu": "Chỉ người dùng sửa file này. skipPhases: các phase bỏ hẳn, ví dụ [7]. skipIds: các mã bỏ, có thể dùng dấu * ở cuối, ví dụ [\"S3.10-08\", \"S3.10-09\", \"UC40\"]. Mã bị bỏ thì script không đòi bằng chứng.",
+  "skipPhases": [],
+  "skipIds": []
+}

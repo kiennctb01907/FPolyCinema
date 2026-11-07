@@ -1,0 +1,11 @@
+# Dữ kiện sinh từ code
+
+Sinh bởi `node tools/spec-check/check.mjs facts` lúc 2026-11-07T00:07:38.017Z.
+Mã băm code: 41bc72904895
+
+Không sửa tay các file trong thư mục này. Tài liệu lab vẽ sơ đồ từ đây (xem LAB-PROMPT.md mục 2).
+
+- schema.md: bảng, cột, kiểu, khóa, CHECK, quan hệ khóa ngoại, stored procedure (Lab 2, Lab 3, Lab 8)
+- routes.md: controller, action, route, policy; màn hình và route (Lab 2 luồng giao diện, Lab 4, Lab 8)
+- usecases.md: use case, trạng thái, bằng chứng trong code; tiến độ (Lab 1, Lab 7)
+- tech.md: gói NuGet, thư viện giao diện, SignalR, test, cây thư mục (Lab 3, Lab 8)

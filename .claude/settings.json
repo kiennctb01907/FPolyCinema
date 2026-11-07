@@ -1,0 +1,40 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node tools/spec-check/check.mjs *)",
+      "Bash(node tools/ui-snapshots/snap.mjs *)",
+      "Bash(dotnet build *)",
+      "Bash(dotnet test *)",
+      "Bash(git status *)",
+      "Bash(git log *)",
+      "Bash(git diff *)",
+      "Bash(git add *)",
+      "Bash(git commit *)",
+      "Bash(git tag *)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/tools/spec-check/check.mjs\" hook-session",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$CLAUDE_PROJECT_DIR/tools/spec-check/check.mjs\" hook-stop",
+            "timeout": 120
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+# Build
+bin/
+obj/
+artifacts/
+TestResults/
+*.user
+*.suo
+.vs/
+.idea/
+node_modules/
+
+# Ảnh người dùng upload: không commit, trừ ảnh mẫu do DbSeeder sinh
+src/FPolyCinema.Web/wwwroot/uploads/*
+!src/FPolyCinema.Web/wwwroot/uploads/seed/
+
+# Cấu hình cục bộ và trạng thái của Claude Code
+appsettings.*.local.json
+.claude/state/
+.claude/settings.local.json
+
+# File tạm của Office
+~$*
