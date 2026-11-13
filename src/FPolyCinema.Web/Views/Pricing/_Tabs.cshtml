@@ -1,0 +1,17 @@
+@model string
+@* Tab của nhóm trang bảng giá (UC33): Bảng giá 6 chiều, Đối tượng ưu đãi, Ngày lễ, Thử tính giá. Model là khóa tab đang mở. *@
+@{
+    var tabs = new[]
+    {
+        ("rules", "/admin/pricing", "bi-tags", "Bảng giá 6 chiều"),
+        ("audiences", "/admin/pricing/audiences", "bi-people", "Đối tượng ưu đãi"),
+        ("holidays", "/admin/pricing/holidays", "bi-calendar-heart", "Ngày lễ"),
+        ("try", "/admin/pricing/try", "bi-calculator", "Thử tính giá"),
+    };
+}
+<nav class="page-tabs" aria-label="Các trang bảng giá">
+    @foreach (var (k, url, icon, label) in tabs)
+    {
+        <a href="@url" class="@(k == Model ? "active" : null)" aria-current="@(k == Model ? "page" : null)"><i class="bi @icon" aria-hidden="true"></i>@label</a>
+    }
+</nav>

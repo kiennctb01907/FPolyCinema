@@ -1,0 +1,80 @@
+@model PriceTryVm
+@* Trang thử tính giá (SPEC 8.3): chọn rạp, giờ bắt đầu suất, định dạng phòng, loại ghế, phim bom tấn, đối tượng;
+   hiện từng thành phần của giá theo PricingCalculator (BASE, DAY_TYPE, TIME_SLOT, SEAT_TYPE, FORMAT, BLOCKBUSTER, % giảm, làm tròn). *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Thử tính giá";
+    ViewData["Crumbs"] = new List<Crumb> { new("Rạp và phòng"), new("Bảng giá", "/admin/pricing"), new("Thử tính giá") };
+    var r = Model.Result;
+}
+<partial name="_PageHeader" model="@(new PageHeaderVm { Title = "Thử tính giá", Description = "Tính thử giá niêm yết một vé theo bảng giá, ngày lễ và mức giảm đối tượng đang lưu.", Crumbs = new() { new("Bảng giá", "/admin/pricing"), new("Thử tính giá") } })" />
+<partial name="_Tabs" model="@("try")" />
+<div class="row g-4">
+    <div class="col-12 col-lg-6">
+        <form method="get" action="/admin/pricing/try" class="card-ui card-ui-body" novalidate>
+            <h2 class="card-ui-title">Thông tin vé</h2>
+            <partial name="~/Views/Login/_FormErrors.cshtml" />
+            <div class="form-grid cols-2">
+                <div>
+                    <label class="form-label" for="t-cinema">Rạp</label>
+                    <select class="form-select" id="t-cinema" name="cinemaId">
+                        @foreach (var c in Model.Cinemas) { <option value="@c.Id" selected="@(c.Id == Model.CinemaId)">@c.Name</option> }
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label" for="t-start">Giờ bắt đầu suất</label>
+                    <div class="date-field"><input type="datetime-local" class="form-control" id="t-start" name="startTime" value="@Model.StartTime.ToString("yyyy-MM-ddTHH:mm", System.Globalization.CultureInfo.InvariantCulture)" /><span class="date-display" aria-hidden="true"></span></div>
+                    <div class="form-text">Khung giờ tính theo lúc phim bắt đầu (sau quảng cáo).</div>
+                </div>
+                <div>
+                    <label class="form-label" for="t-format">Định dạng phòng</label>
+                    <select class="form-select" id="t-format" name="format">
+                        @foreach (var f in AuditoriumFormat.All) { <option value="@f" selected="@(f == Model.Format)">@f</option> }
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label" for="t-seat">Loại ghế</label>
+                    <select class="form-select" id="t-seat" name="seatType">
+                        @foreach (var s in SeatType.All) { <option value="@s" selected="@(s == Model.SeatType)">@StatusDisplay.Of(StatusDisplay.Seat, s).Label</option> }
+                    </select>
+                </div>
+                <div>
+                    <label class="form-label" for="t-aud">Đối tượng</label>
+                    <select class="form-select" id="t-aud" name="audienceType">
+                        @foreach (var d in Model.Discounts) { <option value="@d.AudienceType" selected="@(d.AudienceType == Model.AudienceType)">@StatusDisplay.Of(StatusDisplay.Audience, d.AudienceType).Label (giảm @Fmt.Decimal(d.DiscountPercent)%)</option> }
+                    </select>
+                </div>
+                <div>
+                    <span class="form-label d-block">Phim</span>
+                    <label class="form-check form-switch active-switch"><input class="form-check-input" type="checkbox" role="switch" name="blockbuster" value="true" checked="@Model.IsBlockbuster" /><span>Phim bom tấn</span></label>
+                </div>
+            </div>
+            <button type="submit" class="btn btn-primary mt-4"><i class="bi bi-calculator" aria-hidden="true"></i>Tính giá</button>
+        </form>
+    </div>
+    <div class="col-12 col-lg-6">
+        <section class="card-ui card-ui-body" aria-labelledby="res-title" aria-live="polite">
+            <h2 class="card-ui-title" id="res-title">Kết quả</h2>
+            @if (r == null)
+            {
+                <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-calculator", Title = "Chưa tính giá", Text = "Chọn thông tin vé bên trái rồi bấm Tính giá." })" />
+            }
+            else
+            {
+                <p class="text-muted small">Ngày vận hành @Fmt.WeekdayDate(r.OperatingDate)/@r.OperatingDate.Year · @StatusDisplay.Of(StatusDisplay.DayTypes, r.DayType).Label · @StatusDisplay.Of(StatusDisplay.TimeSlots, r.TimeSlot).Label</p>
+                <dl class="price-breakdown">
+                    <dt>Giá gốc</dt><dd class="money">@Fmt.Money(r.BaseAmount)</dd>
+                    <dt>@StatusDisplay.Of(StatusDisplay.DayTypes, r.DayType).Label</dt><dd class="money">@Fmt.Money(r.DayTypeAmount)</dd>
+                    <dt>@StatusDisplay.Of(StatusDisplay.TimeSlots, r.TimeSlot).Label</dt><dd class="money">@Fmt.Money(r.TimeSlotAmount)</dd>
+                    <dt>@StatusDisplay.Of(StatusDisplay.Seat, Model.SeatType).Label</dt><dd class="money">@Fmt.Money(r.SeatTypeAmount)</dd>
+                    <dt>Phòng @Model.Format</dt><dd class="money">@Fmt.Money(r.FormatAmount)</dd>
+                    <dt>Phim bom tấn</dt><dd class="money">@Fmt.Money(r.BlockbusterAmount)</dd>
+                    <dt>Cộng</dt><dd class="money fw-semibold">@Fmt.Money(r.GrossAmount)</dd>
+                    <dt>Giảm theo đối tượng</dt><dd>@Fmt.Decimal(r.AudienceDiscountPercent)%</dd>
+                    <dt class="total">Giá vé</dt><dd class="money total">@Fmt.Money(r.ListPrice)</dd>
+                </dl>
+                <p class="form-text mb-0 mt-3">Đã làm tròn đến 1.000 ₫ gần nhất và đã gồm VAT.</p>
+            }
+        </section>
+    </div>
+</div>

@@ -1,0 +1,28 @@
+@model DistributorListVm
+@* A2. Danh sách nhà phát hành: tìm theo tên, lọc trạng thái; bảng, phân trang, trạng thái rỗng. *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Nhà phát hành";
+    ViewData["Crumbs"] = new List<Crumb> { new("Phim và lịch chiếu"), new("Nhà phát hành") };
+    var header = new PageHeaderVm
+    {
+        Title = "Nhà phát hành",
+        Description = "Đơn vị phát hành phim, dùng khi thêm phim và đối soát chia doanh thu.",
+        Crumbs = new() { new("Phim và lịch chiếu"), new("Nhà phát hành") },
+        Actions = @<a class="btn btn-primary" href="/admin/distributors/create"><i class="bi bi-plus-lg" aria-hidden="true"></i>Thêm nhà phát hành</a>,
+    };
+    var filter = new FilterBarVm
+    {
+        SearchValue = Model.Query, SearchLabel = "Tìm theo tên", SearchPlaceholder = "Ví dụ: Sao Mai",
+        Selects = new() { new FilterSelect("status", "Trạng thái", new List<(string, string)> { ("active", "Đang hợp tác"), ("inactive", "Ngưng") }, Model.Status) },
+        HasFilter = Model.HasFilter, ClearUrl = "/admin/distributors",
+    };
+}
+<partial name="_PageHeader" model="header" />
+<partial name="_FilterBar" model="filter" />
+<div data-region data-url="@QueryUrl.Current(Context.Request)">
+    <partial name="_TableSkeleton" model="@("distributor")" />
+    <div data-region-content>
+        <partial name="_Table" model="Model" />
+    </div>
+</div>

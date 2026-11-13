@@ -1,0 +1,52 @@
+@model DistributorFormVm
+@* A3. Form thêm, sửa nhà phát hành: thẻ rộng tối đa 960px, chia phần có tiêu đề; thanh nút dính chân form "Hủy" và "Lưu";
+   cảnh báo khi rời trang mà chưa lưu. *@
+@{
+    Layout = "_LayoutAdmin";
+    var isNew = Model.Id == null;
+    var title = isNew ? "Thêm nhà phát hành" : "Sửa nhà phát hành";
+    ViewData["Title"] = title;
+    ViewData["Crumbs"] = new List<Crumb> { new("Phim và lịch chiếu"), new("Nhà phát hành", "/admin/distributors"), new(isNew ? "Thêm mới" : Model.Name) };
+}
+<div class="form-card">
+    <partial name="_PageHeader" model="@(new PageHeaderVm { Title = title, Description = "Các ô có dấu * là bắt buộc.", Crumbs = new() { new("Nhà phát hành", "/admin/distributors"), new(isNew ? "Thêm mới" : Model.Name) } })" />
+    <form asp-antiforgery="true" method="post" action="@(isNew ? "/admin/distributors/create" : $"/admin/distributors/{Model.Id}/edit")" class="card-ui" novalidate data-dirty-guard>
+        <partial name="~/Views/Login/_FormErrors.cshtml" />
+        <section class="card-section" aria-labelledby="sec-info">
+            <h2 class="card-section-title" id="sec-info">Thông tin nhà phát hành</h2>
+            <p class="card-section-desc">Dùng để chọn khi thêm phim và để đối soát chia doanh thu.</p>
+            <div class="form-grid cols-2">
+                <div>
+                    <label asp-for="Name" class="form-label">Tên nhà phát hành <span class="req" aria-hidden="true">*</span></label>
+                    <input asp-for="Name" class="form-control" placeholder="Ví dụ: Công ty Phát hành Phim Sao Mai" autofocus />
+                    <span asp-validation-for="Name"></span>
+                </div>
+                <div>
+                    <span class="form-label d-block">Trạng thái</span>
+                    <label class="form-check form-switch active-switch">
+                        <input asp-for="Active" class="form-check-input" type="checkbox" role="switch" />
+                        <span>Đang hợp tác</span>
+                    </label>
+                    <div class="form-text">Tắt để ẩn khỏi ô chọn khi thêm phim mà vẫn giữ lịch sử.</div>
+                </div>
+                <div>
+                    <label asp-for="Email" class="form-label">Email liên hệ</label>
+                    <input asp-for="Email" type="email" class="form-control" placeholder="lienhe@congty.vn" />
+                    <span asp-validation-for="Email"></span>
+                </div>
+                <div>
+                    <label asp-for="Phone" class="form-label">Số điện thoại</label>
+                    <input asp-for="Phone" type="tel" class="form-control" placeholder="Ví dụ: 024 3333 8888" />
+                    <span asp-validation-for="Phone"></span>
+                </div>
+            </div>
+        </section>
+        <div class="form-actions-sticky">
+            <a class="btn btn-ghost" href="/admin/distributors">Hủy</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Lưu</button>
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

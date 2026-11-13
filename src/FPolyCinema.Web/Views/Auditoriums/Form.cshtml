@@ -1,0 +1,87 @@
+@model AuditoriumFormVm
+@* A3. Form thông tin phòng chiếu: rạp, tên, định dạng, tỷ lệ hàng lý tưởng, trạng thái; khi tạo có thêm số hàng, số cột của lưới.
+   Thanh nút dính chân form "Hủy" và "Lưu"; cảnh báo khi rời trang mà chưa lưu. *@
+@{
+    Layout = "_LayoutAdmin";
+    var isNew = Model.Id == null;
+    var title = isNew ? "Thêm phòng chiếu" : "Sửa thông tin phòng";
+    ViewData["Title"] = title;
+    ViewData["Crumbs"] = new List<Crumb> { new("Rạp và phòng"), new("Phòng chiếu", "/admin/auditoriums"), new(isNew ? "Thêm phòng" : Model.Name) };
+    var back = isNew ? "/admin/auditoriums" : $"/admin/auditoriums/{Model.Id}/design";
+}
+<div class="form-card">
+    <partial name="_PageHeader" model="@(new PageHeaderVm { Title = title, Description = isNew ? "Phòng mới có lưới đầy ghế thường; sau khi lưu bạn tô lối đi và các loại ghế ở công cụ thiết kế." : "Số hàng, số cột và ghế sửa ở công cụ thiết kế sơ đồ.", Crumbs = new() { new("Phòng chiếu", "/admin/auditoriums"), new(isNew ? "Thêm phòng" : Model.Name) } })" />
+    <form asp-antiforgery="true" method="post" action="@(isNew ? "/admin/auditoriums/create" : $"/admin/auditoriums/{Model.Id}/edit")" class="card-ui" novalidate data-dirty-guard>
+        <partial name="~/Views/Login/_FormErrors.cshtml" />
+        <section class="card-section" aria-labelledby="sec-info">
+            <h2 class="card-section-title" id="sec-info">Thông tin phòng</h2>
+            <p class="card-section-desc">Định dạng phòng quyết định phụ thu FORMAT trong bảng giá.</p>
+            <div class="form-grid cols-2">
+                <div>
+                    <label asp-for="CinemaId" class="form-label">Rạp <span class="req" aria-hidden="true">*</span></label>
+                    @if (isNew)
+                    {
+                        <select asp-for="CinemaId" class="form-select">
+                            @foreach (var c in Model.Cinemas) { <option value="@c.Id" selected="@(c.Id == Model.CinemaId)">@c.Name</option> }
+                        </select>
+                    }
+                    else
+                    {
+                        <input type="hidden" asp-for="CinemaId" />
+                        <input class="form-control" id="CinemaId" value="@Model.CinemaName" disabled aria-describedby="cinema-help" />
+                        <div class="form-text" id="cinema-help">Phòng không chuyển sang rạp khác được.</div>
+                    }
+                    <span asp-validation-for="CinemaId"></span>
+                </div>
+                <div>
+                    <label asp-for="Name" class="form-label">Tên phòng <span class="req" aria-hidden="true">*</span></label>
+                    <input asp-for="Name" class="form-control" placeholder="Ví dụ: Phòng 4" />
+                    <span asp-validation-for="Name"></span>
+                </div>
+                <div>
+                    <label asp-for="Format" class="form-label">Định dạng <span class="req" aria-hidden="true">*</span></label>
+                    <select asp-for="Format" class="form-select">
+                        @foreach (var f in AuditoriumFormat.All) { <option value="@f" selected="@(f == Model.Format)">@f</option> }
+                    </select>
+                    <span asp-validation-for="Format"></span>
+                </div>
+                <div>
+                    <label asp-for="IdealRowRatio" class="form-label">Tỷ lệ hàng lý tưởng</label>
+                    <input asp-for="IdealRowRatio" type="number" min="0.05" max="1" step="0.01" class="form-control text-end" aria-describedby="ratio-help" value="@Model.IdealRowRatio.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture)" />
+                    <span asp-validation-for="IdealRowRatio"></span>
+                    <div class="form-text" id="ratio-help">Vị trí hàng xem đẹp nhất tính từ màn hình, mặc định 0,65 (khoảng 2/3 phòng). Đổi tỷ lệ thì điểm góc nhìn của mọi ghế được tính lại.</div>
+                </div>
+                @if (isNew)
+                {
+                    <div>
+                        <label asp-for="TotalRows" class="form-label">Số hàng <span class="req" aria-hidden="true">*</span></label>
+                        <input asp-for="TotalRows" type="number" min="1" max="26" class="form-control text-end" />
+                        <span asp-validation-for="TotalRows"></span>
+                        <div class="form-text">Từ 1 đến 26 (hàng A đến Z, hàng A gần màn hình).</div>
+                    </div>
+                    <div>
+                        <label asp-for="TotalCols" class="form-label">Số cột <span class="req" aria-hidden="true">*</span></label>
+                        <input asp-for="TotalCols" type="number" min="1" max="40" class="form-control text-end" />
+                        <span asp-validation-for="TotalCols"></span>
+                        <div class="form-text">Từ 1 đến 40, tính cả cột lối đi.</div>
+                    </div>
+                }
+                <div>
+                    <span class="form-label d-block">Trạng thái</span>
+                    <label class="form-check form-switch active-switch">
+                        <input asp-for="Active" class="form-check-input" type="checkbox" role="switch" />
+                        <span>Đang hoạt động</span>
+                    </label>
+                    <div class="form-text">Phòng ngưng hoạt động không xếp được suất mới.</div>
+                </div>
+            </div>
+        </section>
+        <div class="form-actions-sticky">
+            <a class="btn btn-ghost" href="@back">Hủy</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Lưu</button>
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

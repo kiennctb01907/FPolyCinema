@@ -1,0 +1,53 @@
+@model AudienceDiscountsVm
+@* Màn hình cấu hình đối tượng ưu đãi (SPEC 3.1 mục 5, CONTRACTS mục 4): được tăng mức giảm nhưng không được lưu mức thấp hơn mức tối thiểu
+   theo luật (Điều 10 NĐ 131/2022). Các đối tượng giảm theo luật chỉ bán tại quầy để nhân viên kiểm tra giấy tờ. Lưu thì ghi AuditLogs. *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Đối tượng ưu đãi";
+    ViewData["Crumbs"] = new List<Crumb> { new("Rạp và phòng"), new("Bảng giá", "/admin/pricing"), new("Đối tượng ưu đãi") };
+}
+<partial name="_PageHeader" model="@(new PageHeaderVm { Title = "Đối tượng ưu đãi", Description = "Phần trăm giảm trên giá vé theo đối tượng, áp dụng cho mọi rạp. Không được thấp hơn mức tối thiểu theo Điều 10 Nghị định 131/2022/NĐ-CP.", Crumbs = new() { new("Bảng giá", "/admin/pricing"), new("Đối tượng ưu đãi") } })" />
+<partial name="_Tabs" model="@("audiences")" />
+<form asp-antiforgery="true" method="post" action="/admin/pricing/audiences" class="card-ui" novalidate data-dirty-guard>
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="card-ui-body pb-0"><partial name="~/Views/Login/_FormErrors.cshtml" /></div>
+    }
+    <div class="table-wrap">
+        <table class="data-table">
+            <caption class="visually-hidden">Mức giảm theo đối tượng</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Đối tượng</th>
+                    <th scope="col" class="num">Tối thiểu theo luật</th>
+                    <th scope="col" class="num">Mức giảm (%)</th>
+                    <th scope="col">Nơi bán</th>
+                    <th scope="col" class="col-opt">Kiểm tra giấy tờ</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var d in Model.Discounts)
+                {
+                    var field = $"Discounts[{d.AudienceType}]";
+                    var value = Model.Posted.TryGetValue(d.AudienceType, out var posted) ? posted : d.DiscountPercent;
+                    var id = "d-" + d.AudienceType.ToLowerInvariant().Replace("_", "-");
+                    <tr>
+                        <td class="cell-title"><label for="@id" class="cell-main mb-0">@StatusDisplay.Of(StatusDisplay.Audience, d.AudienceType).Label</label></td>
+                        <td class="num" data-label="Tối thiểu theo luật">@(d.LegalMinPercent > 0 ? Fmt.Decimal(d.LegalMinPercent) + "%" : "–")</td>
+                        <td class="num" data-label="Mức giảm (%)">
+                            <input type="number" class="form-control text-end @(ViewData.ModelState[field]?.Errors.Count > 0 ? "is-invalid" : null)" id="@id" name="discounts[@d.AudienceType]"
+                                   value="@value.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" min="@d.LegalMinPercent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)" max="100" step="0.5" />
+                            @Html.ValidationMessage(field)
+                        </td>
+                        <td data-label="Nơi bán">@(d.PosOnly ? "Chỉ tại quầy" : "Quầy và web")</td>
+                        <td class="col-opt" data-label="Kiểm tra giấy tờ">@(d.RequiresDocument ? "Có" : "Không")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <div class="form-actions-sticky">
+        <a class="btn btn-ghost" href="/admin/pricing/audiences">Hủy</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Lưu mức giảm</button>
+    </div>
+</form>

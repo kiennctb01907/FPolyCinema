@@ -40,4 +40,7 @@ public static class AuditAction
 {
     public const string UserLocked = "USER_LOCKED";
     public const string UserUnlocked = "USER_UNLOCKED";
+
+    /// <summary>Sửa bảng giá: các dòng PricingRules của một rạp hoặc mức giảm AudienceDiscounts (SPEC 2.7).</summary>
+    public const string PricingUpdated = "PRICING_UPDATED";
 }

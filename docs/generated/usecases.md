@@ -32,10 +32,10 @@
 | UC28 | Quản lý loại đồ uống | Quản lý rạp |  | A2, A3 | 2 | Xong | src/FPolyCinema.Web/Services/CatalogServices.cs#public class CategoryService; src/FPolyCinema.Web/Controllers/CategoriesController.cs#public class CategoriesController; test:Category_DeleteBlockedWhenHasDrinks_AllowedWhenEmpty; ui:A2 |
 | UC29 | Quản lý đồ uống và định mức | Quản lý rạp |  | A2, A3 | 2 | Xong | src/FPolyCinema.Web/Services/CatalogServices.cs#public class DrinkService; src/FPolyCinema.Web/Controllers/DrinksController.cs#public class DrinksController; test:Drink_SaveWithRecipesPerCinema_DeleteOnlyWhenNeverSold; ui:A3 |
 | UC30 | Quản lý nguyên liệu, nhập kho | Quản lý rạp |  | A2, A3 | 6 | Chưa |  |
-| UC31 | Quản lý phim, nhà phát hành, KDM, chia doanh thu | Quản lý rạp |  | A2, A3 | 3 | Chưa |  |
-| UC32 | Quản lý phòng chiếu và sơ đồ ghế | Quản lý rạp |  | A4 | 3 | Chưa |  |
-| UC33 | Quản lý bảng giá, đối tượng ưu đãi, ngày lễ | Quản lý rạp |  | A2, A3 | 3 | Chưa |  |
-| UC34 | Quản lý suất chiếu | Quản lý rạp |  | A5 | 3 | Chưa |  |
+| UC31 | Quản lý phim, nhà phát hành, KDM, chia doanh thu | Quản lý rạp |  | A2, A3 | 3 | Xong | src/FPolyCinema.Web/Controllers/MoviesController.cs#public class MoviesController; src/FPolyCinema.Web/Controllers/MoviesController.cs#public class DistributorsController; src/FPolyCinema.Web/Services/MovieService.cs#KdmLicenseDAL.Insert; route:/admin/movies; test:Movie_SaveWithRentalRulesAndKdm_DeleteBlockedWhenHasShowtimes |
+| UC32 | Quản lý phòng chiếu và sơ đồ ghế | Quản lý rạp |  | A4 | 3 | Xong | src/FPolyCinema.Web/Controllers/AuditoriumsController.cs#public class AuditoriumsController; src/FPolyCinema.Web/Services/AuditoriumService.cs#public bool SaveLayout; route:/admin/auditoriums; test:Auditorium_LayoutRescoresAndLocksStructureWhenFutureShowtimeSold |
+| UC33 | Quản lý bảng giá, đối tượng ưu đãi, ngày lễ | Quản lý rạp |  | A2, A3 | 3 | Xong | src/FPolyCinema.Web/Controllers/PricingController.cs#public class PricingController; route:/admin/pricing; test:Pricing_SaveWritesAuditLog_DiscountBelowLegalMinimumRejected_TryPrice |
+| UC34 | Quản lý suất chiếu | Quản lý rạp |  | A5 | 3 | Xong | src/FPolyCinema.Web/Controllers/SchedulerController.cs#public class SchedulerController; route:/scheduler; test:Schedule_SaveCreatesShowtimeSeats_BlocksOverlapAndLockedChanges |
 | UC35 | Xếp lịch tự động bằng AI | Quản lý rạp | extend UC34 | A5 | 7 | Chưa |  |
 | UC36 | Quản lý nhân viên | Quản lý rạp |  | A2, A3 | 2 | Xong | src/FPolyCinema.Web/Services/StaffService.cs#public class StaffService; src/FPolyCinema.Web/Controllers/UsersController.cs#public class UsersController; test:Staff_CreateEmailsPassword_SetActiveWritesAudit_DeleteRules; ui:A2 |
 | UC37 | Quản lý hóa đơn | Quản lý rạp |  | A8 | 4 | Chưa |  |
@@ -49,7 +49,7 @@
 |---|---|---|---|
 | 1 | Nền tảng dữ liệu | 92/92 | 81 |
 | 2 | Giao diện nền, đăng nhập, CRUD cơ bản | 177/177 | 9 |
-| 3 | Phim, phòng chiếu, giá, suất chiếu | 0/53 | 1 |
+| 3 | Phim, phòng chiếu, giá, suất chiếu | 53/53 | 1 |
 | 4 | POS, hóa đơn, thống kê | 0/142 | 2 |
 | 5 | Web khách và đặt vé online | 0/86 | 3 |
 | 6 | Vận hành thời gian thực | 0/95 | 7 |

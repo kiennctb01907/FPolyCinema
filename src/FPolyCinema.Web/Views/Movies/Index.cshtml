@@ -1,0 +1,35 @@
+@model MovieListVm
+@* A2. Danh sách phim: lọc theo trạng thái và nhãn tuổi, tìm theo tên (UI A2-03); bảng, phân trang, trạng thái rỗng. *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Phim";
+    ViewData["Crumbs"] = new List<Crumb> { new("Phim và lịch chiếu"), new("Phim") };
+    var header = new PageHeaderVm
+    {
+        Title = "Phim",
+        Description = "Hồ sơ phim kèm giấy phép phân loại, nhãn tuổi, cảnh báo nội dung, ngôn ngữ, chia doanh thu và KDM theo rạp.",
+        Crumbs = new() { new("Phim và lịch chiếu"), new("Phim") },
+    };
+    if (Model.CanManage)
+    {
+        header.Actions = @<a class="btn btn-primary" href="/admin/movies/create"><i class="bi bi-plus-lg" aria-hidden="true"></i>Thêm phim</a>;
+    }
+    var filter = new FilterBarVm
+    {
+        SearchValue = Model.Query, SearchLabel = "Tìm theo tên phim", SearchPlaceholder = "Ví dụ: mùa hè",
+        Selects = new()
+        {
+            new FilterSelect("status", "Trạng thái", new List<(string, string)> { ("active", "Đang chiếu"), ("inactive", "Ngưng chiếu") }, Model.Status),
+            new FilterSelect("rating", "Nhãn tuổi", AgeRating.All.Select(r => (r, StatusDisplay.AgeExplanation(r))).ToList(), Model.Rating, "Mọi nhãn"),
+        },
+        HasFilter = Model.HasFilter, ClearUrl = "/admin/movies",
+    };
+}
+<partial name="_PageHeader" model="header" />
+<partial name="_FilterBar" model="filter" />
+<div data-region data-url="@QueryUrl.Current(Context.Request)">
+    <partial name="_TableSkeleton" model="@("movie")" />
+    <div data-region-content>
+        <partial name="_Table" model="Model" />
+    </div>
+</div>

@@ -1,0 +1,82 @@
+@model AuditoriumListVm
+@* Danh sách phòng chiếu theo rạp: định dạng, lưới, số ghế, số suất, trạng thái; vào công cụ thiết kế sơ đồ (UI A4). *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Phòng chiếu";
+    ViewData["Crumbs"] = new List<Crumb> { new("Rạp và phòng"), new("Phòng chiếu") };
+    var header = new PageHeaderVm
+    {
+        Title = "Phòng chiếu",
+        Description = "Sơ đồ ghế của từng phòng: loại ghế, lối đi, ghế nội bộ, ghế bảo trì và điểm góc nhìn.",
+        Crumbs = new() { new("Rạp và phòng"), new("Phòng chiếu") },
+        Actions = @<a class="btn btn-primary" href="/admin/auditoriums/create@(Model.CinemaId is int c ? "?cinemaId=" + c : null)"><i class="bi bi-plus-lg" aria-hidden="true"></i>Thêm phòng</a>,
+    };
+}
+<partial name="_PageHeader" model="header" />
+@if (Model.Cinemas.Count > 1)
+{
+    <form class="filter-bar" method="get" data-filter aria-label="Lọc theo rạp">
+        <div class="filter-item">
+            <label class="form-label" for="f-cinema">Rạp</label>
+            <select class="form-select" id="f-cinema" name="cinemaId">
+                <option value="">Tất cả các rạp</option>
+                @foreach (var c in Model.Cinemas) { <option value="@c.Id" selected="@(c.Id == Model.CinemaId)">@c.Name</option> }
+            </select>
+        </div>
+    </form>
+}
+@if (Model.Rows.Count == 0)
+{
+    <div class="card-ui"><partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-grid-3x3-gap", Title = "Chưa có phòng chiếu", Text = "Thêm phòng đầu tiên rồi tô sơ đồ ghế để xếp lịch chiếu.", ActionLabel = "Thêm phòng", ActionUrl = "/admin/auditoriums/create" })" /></div>
+}
+else
+{
+    <div class="table-wrap">
+        <table class="data-table">
+            <caption class="visually-hidden">Danh sách phòng chiếu</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Phòng</th>
+                    <th scope="col">Rạp</th>
+                    <th scope="col" class="num col-opt">Lưới</th>
+                    <th scope="col" class="num">Số ghế</th>
+                    <th scope="col" class="num col-opt">Suất chiếu</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col" class="col-actions">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model.Rows)
+                {
+                    var a = row.Auditorium;
+                    var active = StatusDisplay.Of(StatusDisplay.Active, a.Active);
+                    <tr>
+                        <td class="cell-title">
+                            <a class="cell-main" href="/admin/auditoriums/@a.Id/design">@a.Name</a>
+                            <span class="outline-badge ms-2">@a.Format</span>
+                        </td>
+                        <td data-label="Rạp">@row.CinemaName</td>
+                        <td class="num col-opt" data-label="Lưới">@a.TotalRows × @a.TotalCols</td>
+                        <td class="num" data-label="Số ghế">@Fmt.Number(row.SeatCount)</td>
+                        <td class="num col-opt" data-label="Suất chiếu">@Fmt.Number(row.ShowtimeCount)</td>
+                        <td data-label="Trạng thái">
+                            <label class="form-check form-switch active-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" checked="@a.Active" data-active-url="/admin/auditoriums/@a.Id/set-active" data-on-done="Đã mở lại phòng" data-off-done="Đã ngưng phòng, không xếp suất mới vào phòng này" aria-label="Đang hoạt động: @a.Name" />
+                                <span data-active-label>@active.Label</span>
+                            </label>
+                        </td>
+                        <td class="col-actions">
+                            <a class="btn btn-ghost btn-icon btn-sm" href="/admin/auditoriums/@a.Id/design" aria-label="Thiết kế sơ đồ @a.Name" data-bs-toggle="tooltip" title="Thiết kế sơ đồ"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i></a>
+                            <a class="btn btn-ghost btn-icon btn-sm" href="/admin/auditoriums/@a.Id/edit" aria-label="Sửa thông tin @a.Name" data-bs-toggle="tooltip" title="Sửa thông tin"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                            <button type="button" class="btn btn-ghost btn-icon btn-sm" aria-label="Xóa @a.Name" data-bs-toggle="tooltip" title="Xóa"
+                                    data-name="@a.Name" data-check-url="/admin/auditoriums/@a.Id/delete-check" data-delete-url="/admin/auditoriums/@a.Id/delete" data-after-delete="/admin/auditoriums"
+                                    data-deactivate-url="/admin/auditoriums/@a.Id/set-active" data-deactivate-text="Ngưng hoạt động phòng" data-deactivate-done="Đã ngưng phòng">
+                                <i class="bi bi-trash" aria-hidden="true"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

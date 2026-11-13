@@ -75,7 +75,7 @@ Lưu trong DB đúng chuỗi ở đây. Trong C# khai báo ở Domain/Constants 
 - Cờ tính toán, không lưu DB:
   - [C3-37 P3] LOCKED_HAS_TICKETS: suất có ít nhất một ghế BOOKED hoặc HELD còn hạn.
   - [C3-38 P6] Hóa đơn "đã hoàn tất": Status finish, CheckInStatus là NONE hoặc FULLY_CHECKED_IN, FnbStatus là NONE hoặc FULFILLED.
-- [C3-39 P2 auto:enum] AuditAction: USER_LOCKED, USER_UNLOCKED (hằng AuditAction ghi vào AuditLogs.Action; mỗi phase thêm hành động của mình theo SPEC 2.7)
+- [C3-39 P2 auto:enum] AuditAction: USER_LOCKED, USER_UNLOCKED, PRICING_UPDATED (hằng AuditAction ghi vào AuditLogs.Action; mỗi phase thêm hành động của mình theo SPEC 2.7)
 
 ## 4. Đối tượng vé (AudienceType)
 
@@ -290,5 +290,21 @@ Lớp chính:
 - Infrastructure: `Fmt`, `StatusDisplay`, `QrSvg` (QRCoder SVG), `AuthOptions`, `EmailOptions`, `DemoOptions`, `UploadOptions`; Web: `ApiResponse`, `RequestKinds`, `ApiErrorMiddleware`, `AntiforgeryResultFilter`, `DemoToolsMiddleware`, `MustChangePasswordMiddleware`, `Flash`, `QueryUrl`.
 - DAL thêm: `UserDAL.SearchStaff, EmailExists, UpdatePassword, UpdateProfile, UpdateStaff, CountBillsCreated, CountOperationalReferences, DeleteDependents, MaxMemberSequence`; `CategoryDAL.Search, GetActive, CountDrinks, NameExists, SetActive`; `DrinkDAL.Search, CountBillLines, SetActive, CountByImage`; `ProductRecipeDAL.GetByDrink, DeleteByDrink, CountByDrink`; `RawMaterialDAL.GetActiveByCinema`; `CinemaDAL.GetActive`; `MovieDAL.CountByPoster, GetActive`; `PasswordResetOtpDAL.GetLatestForUser, ExpireAllForUser, IncrementFailed, MarkUsed`; `EmailOutboxDAL.GetLatest, Count, DeleteAll`; `SupervisorApprovalDAL.CountPending, ListPending`; `PosShiftDAL.GetOpenByUser`. Bản ghi đọc ở `Entities.ReadModels`.
 - Giao diện: tokens.css, app.css, 4 layout, partial `_PageHeader, _AgeBadge, _StatusBadge, _EmptyState, _Pagination, _FilterBar, _MoneySummary, _Stepper, _SeatMap` và các partial phụ; `ui.js` (toast, confirm, pin, api, loadRegion, busy, connection, holdTimer, money, dateTime, shake, status).
+
+Sự kiện SignalR: chưa phát sự kiện nào (realtime từ Phase 4).
+
+### Phase 3
+
+Route và quyền (bảng đầy đủ ở docs/generated/routes.md):
+- EmployeeOrManager: `/admin/movies` (nhận `?partial=1`), `/admin/movies/{id}`.
+- ManagerOnly: `/admin/movies/create`, `/{id}/edit` (GET, POST), `/{id}/delete-check` (GET JSON), `/{id}/delete`, `/{id}/set-active` (POST JSON); toàn bộ `/admin/distributors…` (cùng các action); `/admin/auditoriums` (`?cinemaId=`), `/create`, `/{id}/edit`, `/{id}/design` (UI A4), `/{id}/preview` và `/{id}/layout` (POST JSON, tham số `layout` là chuỗi JSON {rows, cols, cells:[{r, c, t, h, m}]}), `/{id}/delete-check`, `/{id}/delete`, `/{id}/set-active`; `/admin/pricing` (GET, POST, ô `amounts[RuleType.RuleKey]`), `/admin/pricing/audiences` (GET, POST, ô `discounts[AudienceType]`), `/admin/pricing/holidays` (GET, POST thêm), `/admin/pricing/holidays/{yyyy-MM-dd}/delete` (POST JSON), `/admin/pricing/try` (GET); `/scheduler` (UI A5, `?cinemaId=&date=yyyy-MM-dd`), `/scheduler/create`, `/scheduler/{id}/edit`, `/scheduler/check` và `/scheduler/save` (POST JSON: id, auditoriumId, movieId, startTime, languageFormat), `/scheduler/{id}/delete-check`, `/scheduler/{id}/delete`.
+
+Tên mới thêm vào hợp đồng: hành động nhật ký C3-39 `PRICING_UPDATED` (EntityType "PricingRules" với EntityId là rạp, hoặc "AudienceDiscounts"); hằng `ShowtimeLock.LockedHasTickets` cho cờ C3-37. Mã lỗi C8-06 có trong `ErrorCodes` (AGE_RESTRICTED, CHILD_CURFEW, GUARDIAN_REQUIRED dùng ở AgeRules, sẽ được POS gọi ở Phase 4). Lỗi chặn của suất trả mã của lỗi đầu tiên kèm `details.issues` [{severity, code, message, field}] và `details.fields`.
+
+Lớp chính:
+- Domain/Rules (có unit test): `AgeRules`, `ScheduleConstraintChecker` (kèm `ScheduleMovie`, `ScheduleSlot`, `KdmWindow`, `ScheduleContext`, `ScheduleIssue`, `ScheduleWarningCode`), `VietnameseFilmQuota`, `ShowtimeLock`, `AuditoriumLayout` (Validate, Build, SuggestHouseSeats, IsStructuralChange, Stats, HeatLevel), `DeleteRules.Movie/Distributor/Auditorium/Showtime`.
+- Services: `MovieService`, `DistributorService`, `AuditoriumService` (Create, UpdateInfo, Preview, SaveLayout, Delete), `PricingService` (Table, SaveTable ghi AuditLogs, Discounts, SaveDiscounts, Holidays, AddHoliday, DeleteHoliday, Try), `ScheduleService` (Day, Check, Save trong transaction có khóa, Delete).
+- DAL thêm (DAL/CatalogDAL.Phase3.cs): `MovieDAL.Search, GetActiveByTitle, CountShowtimes, CountTickets, SetActive`; `DistributorDAL.Search, GetActiveOrId, CountMovies, NameExists, SetActive`; `FilmRentalRuleDAL.GetByMovie, DeleteByMovie`; `KdmLicenseDAL.GetByMovie, GetByMovieCinema, DeleteByMovie`; `AuditoriumDAL.GetRows, GetActiveByCinema, GetByCinema, CountShowtimes, CountFutureShowtimesWithSales, NameExists, SetActive`; `SeatDAL.GetByAuditorium, IdsWithTickets, MaxPairGroupId, SetTemporaryLabels, SetMaintenance, DeleteByAuditorium`; `ShowtimeSeatDAL.DeleteForSeat, AddSeatToFutureShowtimes, SyncHouseSeatsForFutureShowtimes, DeleteByShowtime, CountLocking`; `ShowtimeDAL.ListForCinema, GetRow, ActiveNear, LockAuditoriumRange, UpcomingForMovie, CountVietnameseShare, CountTickets, CountCorporateBookings, AllRows`; `PricingRuleDAL.GetByCinema`; `HolidayDAL.GetByYear, Years`. Bản ghi đọc `MovieRow, DistributorRow, AuditoriumRow, KdmRow, ShowtimeRow`.
+- Giao diện: CSS heatmap `.heat-1…5`, `.page-tabs`, `.date-nav`, `.check-grid`, `.issue-list`, `.schedule-group`, `.sold-meter`, `.price-grid`, `.designer`, `.tool-btn`, `.dcell`; JS `pages/movie-form.js`, `auditorium-designer.js`, `showtime-form.js`, `pricing.js`; ô `date-field` hiển thị cả ngày giờ dd/MM/yyyy HH:mm; vùng kéo thả nhận `data-subject`, `data-noun`.
 
 Sự kiện SignalR: chưa phát sự kiện nào (realtime từ Phase 4).

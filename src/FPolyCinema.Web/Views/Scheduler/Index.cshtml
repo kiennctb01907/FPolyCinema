@@ -1,0 +1,161 @@
+@model SchedulerVm
+@inject CinemaRules Rules
+@* A5. Lịch chiếu /scheduler, chế độ Bảng (UI A5-01, A5-02, A5-04):
+   - Thanh trên: chọn rạp, chọn ngày (‹ Hôm nay ›). TODO(Phase 7): nút chuyển Bảng/Gantt và "AI tự động xếp lịch" (UI A5-03).
+   - Mỗi phòng một nhóm, các suất xếp theo giờ; mỗi dòng có giờ, phim, nhãn tuổi, ngôn ngữ, số ghế đã bán, thao tác.
+   - Lỗi chặn và cảnh báo của từng suất theo ScheduleConstraintChecker; tỷ lệ phim Việt của ngày, khung 18:00–22:00 và từ đầu năm. *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Lịch chiếu";
+    ViewData["Crumbs"] = new List<Crumb> { new("Phim và lịch chiếu"), new("Lịch chiếu") };
+    var d = Model.Date;
+    string Q(DateTime day) => $"/scheduler?cinemaId={Model.CinemaId}&date={day:yyyy-MM-dd}";
+    var cinemaName = Model.Cinemas.FirstOrDefault(c => c.Id == Model.CinemaId)?.Name ?? string.Empty;
+    var header = new PageHeaderVm
+    {
+        Title = "Lịch chiếu",
+        Description = $"{cinemaName} · {(d == Model.Today ? "Hôm nay, " : null)}{Fmt.WeekdayDate(d)}/{d.Year}. Suất bắt đầu trong khung {Rules.OperatingDayStart:hh\\:mm}–{Rules.LastShowStartLatest:hh\\:mm}.",
+        Crumbs = new() { new("Phim và lịch chiếu"), new("Lịch chiếu") },
+        Actions = @<a class="btn btn-primary" href="/scheduler/create?cinemaId=@Model.CinemaId&date=@d.ToString("yyyy-MM-dd")"><i class="bi bi-plus-lg" aria-hidden="true"></i>Thêm suất</a>,
+    };
+    var day = Model.Day;
+    string Pct(int vn, int total) => total == 0 ? "–" : VietnameseFilmQuota.Percent(VietnameseFilmQuota.Share(vn, total));
+    var yearLow = VietnameseFilmQuota.Applies(d) && day.YearTotal > 0 && !VietnameseFilmQuota.MeetsMinimum(day.YearVietnamese, day.YearTotal, Rules);
+}
+<partial name="_PageHeader" model="header" />
+<div class="filter-bar">
+    @if (Model.Cinemas.Count > 1)
+    {
+        <form method="get" data-filter class="filter-item" aria-label="Chọn rạp">
+            <label class="form-label" for="f-cinema">Rạp</label>
+            <select class="form-select" id="f-cinema" name="cinemaId">
+                @foreach (var c in Model.Cinemas) { <option value="@c.Id" selected="@(c.Id == Model.CinemaId)">@c.Name</option> }
+            </select>
+            <input type="hidden" name="date" value="@d.ToString("yyyy-MM-dd")" />
+        </form>
+    }
+    <div class="filter-item">
+        <span class="form-label d-block" id="date-nav-label">Ngày</span>
+        <div class="date-nav" role="group" aria-labelledby="date-nav-label">
+            <a class="btn btn-secondary btn-icon" href="@Q(d.AddDays(-1))" aria-label="Ngày trước" data-bs-toggle="tooltip" title="Ngày trước"><i class="bi bi-chevron-left" aria-hidden="true"></i></a>
+            <a class="btn btn-secondary @(d == Model.Today ? "active" : null)" href="@Q(Model.Today)" aria-current="@(d == Model.Today ? "date" : null)">Hôm nay</a>
+            <a class="btn btn-secondary btn-icon" href="@Q(d.AddDays(1))" aria-label="Ngày sau" data-bs-toggle="tooltip" title="Ngày sau"><i class="bi bi-chevron-right" aria-hidden="true"></i></a>
+            <span class="date-label">@Fmt.WeekdayDate(d)/@d.Year</span>
+        </div>
+    </div>
+    <form method="get" class="filter-item" aria-label="Chọn ngày cụ thể">
+        <input type="hidden" name="cinemaId" value="@Model.CinemaId" />
+        <label class="form-label" for="f-date">Chọn ngày</label>
+        <div class="d-flex gap-2">
+            <div class="date-field"><input type="date" class="form-control" id="f-date" name="date" value="@d.ToString("yyyy-MM-dd")" /><span class="date-display" aria-hidden="true"></span></div>
+            <button type="submit" class="btn btn-secondary">Xem</button>
+        </div>
+    </form>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-12 col-md-4"><div class="card-ui h-100"><partial name="_KpiCard" model="@(new KpiCardVm("bi-calendar-day", "Phim Việt trong ngày", Pct(day.DayVietnamese, day.DayTotal), null, "info"))" /></div></div>
+    <div class="col-12 col-md-4"><div class="card-ui h-100"><partial name="_KpiCard" model="@(new KpiCardVm("bi-moon-stars", $"Phim Việt khung {Rules.VietnameseFilmPriorityStart:hh\\:mm}–{Rules.VietnameseFilmPriorityEnd:hh\\:mm}", Pct(day.PriorityVietnamese, day.PriorityTotal), null, "info"))" /></div></div>
+    <div class="col-12 col-md-4"><div class="card-ui h-100"><partial name="_KpiCard" model="@(new KpiCardVm("bi-flag", $"Phim Việt từ đầu năm {d.Year} (tối thiểu {VietnameseFilmQuota.Percent(Rules.VietnameseFilmMinShare)})", Pct(day.YearVietnamese, day.YearTotal), null, yearLow ? "warning" : "success"))" /></div></div>
+</div>
+@if (yearLow)
+{
+    <div class="alert-ui tone-warning"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><div>Tỷ lệ suất phim Việt của rạp từ đầu năm đang dưới mức tối thiểu @VietnameseFilmQuota.Percent(Rules.VietnameseFilmMinShare). Bạn ưu tiên xếp thêm phim Việt, nhất là trong khung @($"{Rules.VietnameseFilmPriorityStart:hh\\:mm}–{Rules.VietnameseFilmPriorityEnd:hh\\:mm}").</div></div>
+}
+
+@if (day.Auditoriums.Count == 0)
+{
+    <div class="card-ui"><partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-grid-3x3-gap", Title = "Rạp chưa có phòng chiếu", Text = "Thêm phòng chiếu và sơ đồ ghế trước khi xếp lịch.", ActionLabel = "Thêm phòng", ActionUrl = "/admin/auditoriums/create" })" /></div>
+}
+@foreach (var g in day.Auditoriums)
+{
+    var a = g.Auditorium;
+    <section class="card-ui schedule-group" aria-labelledby="aud-@a.Id">
+        <div class="schedule-group-head">
+            <div>
+                <h2 id="aud-@a.Id">@a.Name <span class="outline-badge ms-1">@a.Format</span>@if (!a.Active) { <span class="status-badge tone-neutral ms-2">Ngưng hoạt động</span> }</h2>
+                <span class="meta">Sức chứa bán được @Fmt.Number(g.Capacity) ghế · @g.Showtimes.Count(s => s.Row.Showtime.OperationalStatus != OperationalStatus.Cancelled) suất</span>
+            </div>
+            @if (a.Active)
+            {
+                <a class="btn btn-secondary btn-sm" href="/scheduler/create?cinemaId=@Model.CinemaId&date=@d.ToString("yyyy-MM-dd")&auditoriumId=@a.Id"><i class="bi bi-plus-lg" aria-hidden="true"></i>Thêm suất vào @a.Name</a>
+            }
+        </div>
+        @if (g.Showtimes.Count == 0)
+        {
+            <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-calendar-x", Title = "Chưa có suất nào", Text = "Không có suất chiếu phù hợp – thử đổi ngày hoặc thêm suất cho phòng này." })" />
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table class="data-table">
+                    <caption class="visually-hidden">Các suất của @a.Name ngày @Fmt.Date(d)</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Giờ</th>
+                            <th scope="col">Phim</th>
+                            <th scope="col">Ngôn ngữ</th>
+                            <th scope="col" class="num">Đã bán</th>
+                            <th scope="col">Kiểm tra</th>
+                            <th scope="col" class="col-actions">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var s in g.Showtimes)
+                        {
+                            var st = s.Row.Showtime;
+                            var cancelled = st.OperationalStatus == OperationalStatus.Cancelled;
+                            var pct = g.Capacity == 0 ? 0 : Math.Min(100, s.Row.BookedSeats * 100 / g.Capacity);
+                            <tr class="@(cancelled ? "is-cancelled" : null)">
+                                <td class="cell-title">
+                                    <span class="schedule-time">@Fmt.Time(st.StartTime)–@AgeRules.EndText(st.StartTime, st.EndTime)<small>Phim bắt đầu @Fmt.Time(st.FeatureStartTime) · dọn xong @Fmt.Time(st.CleaningEndTime)</small></span>
+                                </td>
+                                <td data-label="Phim">
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <partial name="_AgeBadge" model="@(new AgeBadgeVm(s.Row.AgeRating))" />
+                                        <a class="cell-main" href="/admin/movies/@st.MovieId">@s.Row.MovieTitle</a>
+                                        @if (s.Row.IsVietnameseFilm) { <span class="outline-badge">Phim Việt</span> }
+                                        @if (s.IsLocked) { <span class="status-badge tone-info" title="Đã có khách mua vé hoặc đang giữ ghế: không đổi giờ, phòng, phim được"><i class="bi bi-lock" aria-hidden="true"></i>Đã bán vé</span> }
+                                    </div>
+                                </td>
+                                <td data-label="Ngôn ngữ">@StatusDisplay.Of(StatusDisplay.Language, st.LanguageFormat).Label</td>
+                                <td class="num" data-label="Đã bán">
+                                    <span class="sold-meter"><span>@Fmt.Number(s.Row.BookedSeats)/@Fmt.Number(g.Capacity)</span><span class="bar" aria-hidden="true"><span style="--pct: @(pct)%"></span></span></span>
+                                </td>
+                                <td data-label="Kiểm tra">
+                                    @if (cancelled)
+                                    {
+                                        <partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Showtime, st.OperationalStatus))" />
+                                    }
+                                    else if (s.Result.Issues.Count == 0)
+                                    {
+                                        <span class="status-badge tone-success">Hợp lệ</span>
+                                    }
+                                    else
+                                    {
+                                        <ul class="issue-list is-compact">
+                                            @foreach (var i in s.Result.Issues)
+                                            {
+                                                <li class="@(i.IsError ? "tone-danger" : "tone-warning")"><i class="bi @(i.IsError ? "bi-x-octagon" : "bi-exclamation-triangle")" aria-hidden="true"></i><span><span class="visually-hidden">@(i.IsError ? "Lỗi: " : "Cảnh báo: ")</span>@i.Message</span></li>
+                                            }
+                                        </ul>
+                                    }
+                                </td>
+                                <td class="col-actions">
+                                    @if (!cancelled)
+                                    {
+                                        <a class="btn btn-ghost btn-icon btn-sm" href="/scheduler/@st.Id/edit" aria-label="Sửa suất @Fmt.Time(st.StartTime) @a.Name" data-bs-toggle="tooltip" title="@(s.IsLocked ? "Sửa (đã bán vé nên chỉ đổi được ngôn ngữ)" : "Sửa suất")"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                                        <button type="button" class="btn btn-ghost btn-icon btn-sm" aria-label="Xóa suất @Fmt.Time(st.StartTime) @a.Name" data-bs-toggle="tooltip" title="Xóa suất"
+                                                data-name="Suất @Fmt.Time(st.StartTime) @s.Row.MovieTitle" data-check-url="/scheduler/@st.Id/delete-check" data-delete-url="/scheduler/@st.Id/delete" data-after-delete="@Q(d)">
+                                            <i class="bi bi-trash" aria-hidden="true"></i>
+                                        </button>
+                                    }
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+}

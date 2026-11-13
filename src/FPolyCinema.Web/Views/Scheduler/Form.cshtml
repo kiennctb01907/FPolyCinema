@@ -1,0 +1,77 @@
+@model ShowtimeFormVm
+@* Form thêm, sửa suất chiếu (UI A5, chế độ Bảng và form): phòng, phim, giờ bắt đầu, bản ngôn ngữ. Mỗi lần đổi, form gọi /scheduler/check
+   (ScheduleConstraintChecker và AgeRules) để hiện các mốc giờ, lỗi chặn và cảnh báo; Lưu gọi /scheduler/save. Suất đã bán vé
+   (LOCKED_HAS_TICKETS) không đổi được giờ, phòng hay phim. *@
+@{
+    Layout = "_LayoutAdmin";
+    var isNew = Model.Id == null;
+    var title = isNew ? "Thêm suất chiếu" : "Sửa suất chiếu";
+    ViewData["Title"] = title;
+    ViewData["Crumbs"] = new List<Crumb> { new("Phim và lịch chiếu"), new("Lịch chiếu", "/scheduler"), new(title) };
+    var back = $"/scheduler?cinemaId={Model.CinemaId}&date={Model.BackDate:yyyy-MM-dd}";
+    string? Why(Movie m) => m.AgeRating == AgeRating.C ? "phim C, chỉ lưu hồ sơ" : string.IsNullOrWhiteSpace(m.ClassificationLicenseNo) ? "chưa có giấy phép" : null;
+}
+<div class="form-card">
+    <partial name="_PageHeader" model="@(new PageHeaderVm { Title = title, Description = $"{Model.CinemaName}. Giờ bắt đầu là lúc mở cửa và bắt đầu quảng cáo; hệ thống tự làm tròn và tính giờ phim chiếu, kết thúc, dọn phòng.", Crumbs = new() { new("Lịch chiếu", back), new(title) } })" />
+    @if (Model.IsLocked)
+    {
+        <div class="alert-ui tone-info"><i class="bi bi-lock" aria-hidden="true"></i><div>Suất này đã có khách mua vé (@Fmt.Number(Model.BookedSeats) ghế) nên không đổi giờ, phòng hay phim được. Nếu cần, dùng chức năng Hủy suất do sự cố.</div></div>
+    }
+    <form class="card-ui" id="showtime-form" novalidate data-dirty-guard data-id="@Model.Id" data-back="@back">
+        <div class="form-grid cols-2 card-section">
+            <section aria-labelledby="sec-main">
+                <h2 class="card-section-title" id="sec-main">Thông tin suất</h2>
+                <p class="card-section-desc">Chỉ phim có giấy phép phân loại, nhãn khác C và KDM còn hiệu lực tại rạp mới xếp được.</p>
+                <div class="mb-3">
+                    <label class="form-label" for="AuditoriumId">Phòng chiếu <span class="req" aria-hidden="true">*</span></label>
+                    <select class="form-select" id="AuditoriumId" name="auditoriumId" disabled="@Model.IsLocked">
+                        <option value="0">Chọn phòng</option>
+                        @foreach (var a in Model.Auditoriums) { <option value="@a.Id" selected="@(a.Id == Model.AuditoriumId)">@a.Name (@a.Format)</option> }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="MovieId">Phim <span class="req" aria-hidden="true">*</span></label>
+                    <select class="form-select" id="MovieId" name="movieId" disabled="@Model.IsLocked">
+                        <option value="0">Chọn phim</option>
+                        @foreach (var m in Model.Movies)
+                        {
+                            var why = Why(m);
+                            <option value="@m.Id" selected="@(m.Id == Model.MovieId)" data-languages="@m.LanguageFormats">@m.AgeRating · @m.Title (@Fmt.Duration(m.DurationMinutes))@(why == null ? null : " – " + why)</option>
+                        }
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="StartTime">Giờ bắt đầu <span class="req" aria-hidden="true">*</span></label>
+                    <div class="date-field"><input type="datetime-local" class="form-control" id="StartTime" name="startTime" step="300" value="@Model.StartTime?.ToString("yyyy-MM-ddTHH:mm", System.Globalization.CultureInfo.InvariantCulture)" disabled="@Model.IsLocked" /><span class="date-display" aria-hidden="true"></span></div>
+                    <div class="form-text">Làm tròn tới bội số 5 phút.</div>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label" for="LanguageFormat">Bản ngôn ngữ <span class="req" aria-hidden="true">*</span></label>
+                    <select class="form-select" id="LanguageFormat" name="languageFormat">
+                        @foreach (var l in LanguageFormat.All) { <option value="@l" selected="@(l == Model.LanguageFormat)">@StatusDisplay.Of(StatusDisplay.Language, l).Label</option> }
+                    </select>
+                </div>
+            </section>
+            <section aria-labelledby="sec-check" aria-live="polite">
+                <h2 class="card-section-title" id="sec-check">Kiểm tra lịch</h2>
+                <p class="card-section-desc">Lỗi đỏ chặn việc lưu; cảnh báo vàng vẫn lưu được.</p>
+                <dl class="detail-list mb-3" id="check-times" hidden>
+                    <dt>Ngày</dt><dd class="num" data-t="date"></dd>
+                    <dt>Mở cửa, quảng cáo</dt><dd class="num" data-t="start"></dd>
+                    <dt>Phim bắt đầu</dt><dd class="num" data-t="feature"></dd>
+                    <dt>Kết thúc</dt><dd class="num" data-t="end"></dd>
+                    <dt>Dọn phòng xong</dt><dd class="num" data-t="cleaningEnd"></dd>
+                    <dt>Nhãn tuổi</dt><dd data-t="age"></dd>
+                </dl>
+                <div id="check-result"><p class="text-muted small mb-0">Chọn phòng, phim và giờ để kiểm tra.</p></div>
+            </section>
+        </div>
+        <div class="form-actions-sticky">
+            <a class="btn btn-ghost" href="@back">Hủy</a>
+            <button type="submit" class="btn btn-primary" id="showtime-save"><i class="bi bi-check2" aria-hidden="true"></i>Lưu suất</button>
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <script src="~/js/pages/showtime-form.js" asp-append-version="true"></script>
+}

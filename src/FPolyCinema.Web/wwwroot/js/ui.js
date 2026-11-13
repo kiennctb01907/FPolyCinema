@@ -399,13 +399,15 @@
     inp.addEventListener('input', fmt);
   }
 
-  // ---------------------------------------------------------------- ô ngày: input gốc, hiển thị dd/MM/yyyy
+  // ---------------------------------------------------------------- ô ngày: input gốc, hiển thị dd/MM/yyyy (ô ngày giờ: dd/MM/yyyy HH:mm, 24 giờ)
   function initDateField(wrap) {
     const inp = $('input', wrap), out = $('.date-display', wrap);
+    const withTime = inp.type === 'datetime-local';
     const sync = () => {
-      if (!inp.value) { out.textContent = 'dd/mm/yyyy'; out.classList.add('is-empty'); return; }
-      const [y, m, d] = inp.value.split('-');
-      out.textContent = `${d}/${m}/${y}`; out.classList.remove('is-empty');
+      if (!inp.value) { out.textContent = withTime ? 'dd/mm/yyyy --:--' : 'dd/mm/yyyy'; out.classList.add('is-empty'); return; }
+      const [date, time] = inp.value.split('T');
+      const [y, m, d] = date.split('-');
+      out.textContent = `${d}/${m}/${y}` + (withTime && time ? ' ' + time.slice(0, 5) : ''); out.classList.remove('is-empty');
     };
     inp.addEventListener('input', sync); inp.addEventListener('change', sync); sync();
   }
@@ -495,13 +497,15 @@
     const pickBtn = document.querySelector(`[data-dropzone-pick="${zone.id}"]`);
     const saved = hidden.value;           // ảnh đang lưu trong CSDL: chỉ xóa khi bấm Lưu (server tự xóa ảnh cũ)
     let session = null;                   // ảnh vừa tải lên trong lần sửa này (chưa lưu)
+    const subject = zone.dataset.subject || 'món';  // "món" hoặc "phim"
+    const noun = zone.dataset.noun || 'ảnh';         // "ảnh" hoặc "poster"
     const show = (src) => {
       zone.classList.toggle('has-image', !!src);
       if (src) { img.src = src; img.hidden = false; } else { img.removeAttribute('src'); img.hidden = true; }
       if (removeBtn) removeBtn.disabled = !src;
       const why = document.querySelector(`[data-dropzone-why="${zone.id}"]`);
-      if (why) why.textContent = src ? '' : 'Nút Xóa ảnh mở khi món đã có ảnh.';
-      if (removeBtn) removeBtn.title = src ? 'Gỡ ảnh khỏi món' : 'Chưa có ảnh nên chưa xóa được';
+      if (why) why.textContent = src ? '' : `Nút Xóa ${noun} mở khi ${subject} đã có ${noun}.`;
+      if (removeBtn) removeBtn.title = src ? `Gỡ ${noun} khỏi ${subject}` : `Chưa có ${noun} nên chưa xóa được`;
       hidden.value = src || '';
       hidden.dispatchEvent(new Event('change', { bubbles: true }));
     };
@@ -521,7 +525,7 @@
         await dropSession();
         session = data.path;
         show(data.path);
-        ui.toast.success('Đã tải ảnh lên. Bấm Lưu để áp dụng.');
+        ui.toast.success(`Đã tải ${noun} lên. Bấm Lưu để áp dụng.`);
       } catch { ui.shake(zone); }
       finally { zone.classList.remove('is-busy'); zone.removeAttribute('aria-busy'); input.value = ''; }
     }
@@ -535,7 +539,7 @@
     removeBtn?.addEventListener('click', async () => {
       if (session) await dropSession();
       show('');
-      if (saved) ui.toast.info('Ảnh sẽ được gỡ khỏi món khi bạn bấm Lưu.');
+      if (saved) ui.toast.info(`${noun[0].toUpperCase() + noun.slice(1)} sẽ được gỡ khỏi ${subject} khi bạn bấm Lưu.`);
     });
     show(hidden.value);
   }

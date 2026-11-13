@@ -1,0 +1,123 @@
+@model MovieDetailsVm
+@* Chi tiết phim: poster 2:3, nhãn tuổi kèm câu giải thích, cảnh báo nội dung, hồ sơ pháp lý, chia doanh thu theo tuần, KDM theo rạp. *@
+@{
+    Layout = "_LayoutAdmin";
+    var m = Model.Movie;
+    ViewData["Title"] = m.Title;
+    ViewData["Crumbs"] = new List<Crumb> { new("Phim và lịch chiếu"), new("Phim", "/admin/movies"), new(m.Title) };
+    var header = new PageHeaderVm { Title = m.Title, Description = string.Join(" · ", StatusDisplay.LabelsOfCsv(StatusDisplay.Genres, m.Genres)) + " · " + Fmt.Duration(m.DurationMinutes), Crumbs = new() { new("Phim", "/admin/movies"), new(m.Title) } };
+    if (Model.CanManage)
+    {
+        header.Actions = @<text>
+            <button type="button" class="btn btn-secondary" data-name="@m.Title" data-check-url="/admin/movies/@m.Id/delete-check" data-delete-url="/admin/movies/@m.Id/delete"
+                    data-deactivate-url="/admin/movies/@m.Id/set-active" data-deactivate-text="Ngưng chiếu phim này" data-deactivate-done="Đã ngưng chiếu phim" data-after-delete="/admin/movies"><i class="bi bi-trash" aria-hidden="true"></i>Xóa</button>
+            <a class="btn btn-primary" href="/admin/movies/@m.Id/edit"><i class="bi bi-pencil" aria-hidden="true"></i>Sửa</a>
+        </text>;
+    }
+    var warnings = StatusDisplay.LabelsOfCsv(StatusDisplay.Warning, m.ContentWarnings);
+    var showable = AgeRules.CanSchedule(m.AgeRating, m.ClassificationLicenseNo);
+}
+<partial name="_PageHeader" model="header" />
+<div class="row g-4">
+    <div class="col-12 col-lg-4">
+        <section class="card-ui card-ui-body" aria-labelledby="info">
+            <img class="img-fixed ratio-2x3 w-100 rounded-3 mb-4" src="@(m.PosterUrl ?? "/img/placeholder-poster.svg")" width="320" height="480" alt="Poster phim @m.Title" loading="lazy" onerror="this.onerror=null;this.src='/img/placeholder-poster.svg'" />
+            <h2 class="card-ui-title" id="info">Thông tin</h2>
+            <dl class="detail-list">
+                @if (!string.IsNullOrEmpty(m.OriginalTitle)) { <dt>Tên gốc</dt><dd>@m.OriginalTitle</dd> }
+                <dt>Khởi chiếu</dt><dd class="num">@Fmt.Date(m.ReleaseDate)</dd>
+                <dt>Thời lượng</dt><dd>@Fmt.Duration(m.DurationMinutes)</dd>
+                <dt>Ngôn ngữ</dt><dd>@string.Join(", ", StatusDisplay.LabelsOfCsv(StatusDisplay.Language, m.LanguageFormats))</dd>
+                <dt>Nhà phát hành</dt><dd>@(Model.DistributorName ?? "Chưa chọn")</dd>
+                <dt>Giá sàn</dt><dd class="money">@Fmt.Money(m.MinimumTicketPrice)</dd>
+                <dt>Phim Việt</dt><dd>@(m.IsVietnameseFilm ? "Có" : "Không")</dd>
+                <dt>Bom tấn</dt><dd>@(m.IsBlockbuster ? "Có" : "Không")</dd>
+                <dt>Trạng thái</dt><dd><partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Active, m.Active ? "true" : "false"))" /></dd>
+            </dl>
+            @if (!string.IsNullOrEmpty(m.Description))
+            {
+                <p class="mt-3 mb-0">@m.Description</p>
+            }
+        </section>
+    </div>
+    <div class="col-12 col-lg-8">
+        <section class="card-ui card-ui-body mb-4" aria-labelledby="legal">
+            <h2 class="card-ui-title" id="legal">Phân loại và pháp lý</h2>
+            <p class="mb-3"><partial name="_AgeBadge" model="@(new AgeBadgeVm(m.AgeRating, ShowExplanation: true))" /></p>
+            @if (warnings.Count > 0)
+            {
+                <div class="d-flex flex-wrap gap-2 mb-3" aria-label="Cảnh báo nội dung">
+                    @foreach (var w in warnings) { <span class="status-badge tone-warning">@w</span> }
+                </div>
+            }
+            <dl class="detail-list mb-3">
+                <dt>Số giấy phép</dt><dd class="num">@(m.ClassificationLicenseNo ?? "Chưa có")</dd>
+            </dl>
+            @if (showable.Ok)
+            {
+                <div class="alert-ui tone-success mb-0"><i class="bi bi-check-circle" aria-hidden="true"></i><div>Phim đủ điều kiện xếp suất chiếu ở các rạp có KDM còn hiệu lực.</div></div>
+            }
+            else
+            {
+                <div class="alert-ui tone-warning mb-0"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><div>@showable.Message</div></div>
+            }
+        </section>
+
+        <section class="mb-4" aria-labelledby="rental">
+            <h2 class="h5" id="rental">Chia doanh thu với nhà phát hành</h2>
+            @if (Model.RentalRules.Count == 0)
+            {
+                <div class="card-ui"><partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-percent", Title = "Chưa có quy tắc chia doanh thu", Text = "Thêm tỷ lệ theo tuần để đối soát với nhà phát hành.", ActionLabel = Model.CanManage ? "Nhập tỷ lệ" : null, ActionUrl = $"/admin/movies/{m.Id}/edit", ActionIcon = "bi-pencil" })" /></div>
+            }
+            else
+            {
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead><tr><th scope="col">Tuần chiếu</th><th scope="col" class="num">Trả nhà phát hành</th><th scope="col" class="num">Rạp giữ lại</th></tr></thead>
+                        <tbody>
+                            @foreach (var r in Model.RentalRules)
+                            {
+                                <tr>
+                                    <td class="cell-title">Tuần @r.WeekNumber</td>
+                                    <td class="num" data-label="Trả nhà phát hành">@Fmt.Decimal(r.DistributorSharePercent)%</td>
+                                    <td class="num" data-label="Rạp giữ lại">@Fmt.Decimal(100 - r.DistributorSharePercent)%</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+
+        <section aria-labelledby="kdm">
+            <h2 class="h5" id="kdm">Bản quyền chiếu (KDM) theo rạp</h2>
+            @if (Model.Kdms.Count == 0)
+            {
+                <div class="card-ui"><partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-key", Title = "Chưa có KDM", Text = "Phim chưa có KDM ở rạp nào nên chưa xếp suất được.", ActionLabel = Model.CanManage ? "Thêm KDM" : null, ActionUrl = $"/admin/movies/{m.Id}/edit", ActionIcon = "bi-pencil" })" /></div>
+            }
+            else
+            {
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead><tr><th scope="col">Rạp</th><th scope="col">Hiệu lực từ</th><th scope="col">Hết hiệu lực</th><th scope="col">Tình trạng</th><th scope="col" class="col-opt">Ghi chú</th></tr></thead>
+                        <tbody>
+                            @foreach (var k in Model.Kdms)
+                            {
+                                var (label, tone) = k.Kdm.ValidUntil <= Model.Now ? ("Đã hết hạn", "neutral")
+                                    : k.Kdm.ValidFrom > Model.Now ? ("Chưa tới hạn", "info")
+                                    : k.Kdm.ValidUntil <= Model.Now.AddHours(24) ? ("Hết hạn trong 24 giờ", "warning") : ("Còn hiệu lực", "success");
+                                <tr>
+                                    <td class="cell-title">@k.CinemaName</td>
+                                    <td class="num" data-label="Hiệu lực từ">@Fmt.DateTime(k.Kdm.ValidFrom)</td>
+                                    <td class="num" data-label="Hết hiệu lực">@Fmt.DateTime(k.Kdm.ValidUntil)</td>
+                                    <td data-label="Tình trạng"><span class="status-badge tone-@tone">@label</span></td>
+                                    <td class="col-opt" data-label="Ghi chú">@(k.Kdm.Note ?? "–")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+    </div>
+</div>

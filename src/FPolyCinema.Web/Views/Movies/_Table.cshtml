@@ -1,0 +1,100 @@
+@model MovieListVm
+@* Bảng phim: poster 2:3, tên kèm nhãn tuổi, thời lượng, khởi chiếu, giấy phép, số suất, trạng thái, thao tác bên phải. *@
+@if (Model.Result.Total == 0)
+{
+    if (Model.HasFilter)
+    {
+        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-search", Title = "Không có phim nào phù hợp", Text = "Không có phim phù hợp – thử đổi từ khóa, chọn nhãn khác hoặc bỏ bớt bộ lọc.", ActionLabel = "Xóa bộ lọc", ActionUrl = "/admin/movies", ActionIcon = "bi-funnel" })" />
+    }
+    else
+    {
+        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-film", Title = "Chưa có phim nào", Text = "Thêm phim đầu tiên kèm số giấy phép phân loại để xếp lịch chiếu.", ActionLabel = Model.CanManage ? "Thêm phim" : null, ActionUrl = "/admin/movies/create" })" />
+    }
+}
+else
+{
+    <div class="table-wrap">
+        <table class="data-table">
+            <caption class="visually-hidden">Danh sách phim</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Phim</th>
+                    <th scope="col" class="num">Thời lượng</th>
+                    <th scope="col" class="col-opt">Khởi chiếu</th>
+                    <th scope="col" class="col-opt">Giấy phép</th>
+                    <th scope="col" class="num col-opt">Suất chiếu</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col" class="col-actions">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model.Result.Items)
+                {
+                    var m = row.Movie;
+                    var active = StatusDisplay.Of(StatusDisplay.Active, m.Active);
+                    <tr>
+                        <td class="cell-title">
+                            <div class="d-flex align-items-center gap-3">
+                                <img class="thumb thumb-poster" src="@(m.PosterUrl ?? "/img/placeholder-poster.svg")" width="40" height="60" alt="" loading="lazy" onerror="this.onerror=null;this.src='/img/placeholder-poster.svg'" />
+                                <div>
+                                    <div class="d-flex align-items-center gap-2 flex-wrap">
+                                        <partial name="_AgeBadge" model="@(new AgeBadgeVm(m.AgeRating))" />
+                                        <a class="cell-main" href="/admin/movies/@m.Id">@m.Title</a>
+                                    </div>
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        @if (m.IsVietnameseFilm) { <span class="outline-badge">Phim Việt</span> }
+                                        @if (m.IsBlockbuster) { <span class="outline-badge">Bom tấn</span> }
+                                        @foreach (var l in StatusDisplay.LabelsOfCsv(StatusDisplay.Language, m.LanguageFormats)) { <span class="outline-badge">@l</span> }
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="num" data-label="Thời lượng">@Fmt.Duration(m.DurationMinutes)</td>
+                        <td class="num col-opt" data-label="Khởi chiếu">@Fmt.Date(m.ReleaseDate)</td>
+                        <td class="col-opt" data-label="Giấy phép">
+                            @if (m.AgeRating == AgeRating.C)
+                            {
+                                <span class="status-badge tone-neutral">Chỉ lưu hồ sơ</span>
+                            }
+                            else if (string.IsNullOrWhiteSpace(m.ClassificationLicenseNo))
+                            {
+                                <span class="status-badge tone-warning">Chưa có số giấy phép</span>
+                            }
+                            else
+                            {
+                                <span class="num">@m.ClassificationLicenseNo</span>
+                            }
+                        </td>
+                        <td class="num col-opt" data-label="Suất chiếu">@Fmt.Number(row.ShowtimeCount)</td>
+                        <td data-label="Trạng thái">
+                            @if (Model.CanManage)
+                            {
+                                <label class="form-check form-switch active-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" checked="@m.Active" data-active-url="/admin/movies/@m.Id/set-active" data-on-done="Đã mở chiếu lại phim" data-off-done="Đã ngưng chiếu phim" aria-label="Đang chiếu: @m.Title" />
+                                    <span data-active-label>@active.Label</span>
+                                </label>
+                            }
+                            else
+                            {
+                                <partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Active, m.Active ? "true" : "false"))" />
+                            }
+                        </td>
+                        <td class="col-actions">
+                            <a class="btn btn-ghost btn-icon btn-sm" href="/admin/movies/@m.Id" aria-label="Xem chi tiết @m.Title" data-bs-toggle="tooltip" title="Xem chi tiết"><i class="bi bi-eye" aria-hidden="true"></i></a>
+                            @if (Model.CanManage)
+                            {
+                                <a class="btn btn-ghost btn-icon btn-sm" href="/admin/movies/@m.Id/edit" aria-label="Sửa @m.Title" data-bs-toggle="tooltip" title="Sửa"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                                <button type="button" class="btn btn-ghost btn-icon btn-sm" aria-label="Xóa @m.Title" data-bs-toggle="tooltip" title="Xóa"
+                                        data-name="@m.Title" data-check-url="/admin/movies/@m.Id/delete-check" data-delete-url="/admin/movies/@m.Id/delete"
+                                        data-deactivate-url="/admin/movies/@m.Id/set-active" data-deactivate-text="Ngưng chiếu phim này" data-deactivate-done="Đã ngưng chiếu phim">
+                                    <i class="bi bi-trash" aria-hidden="true"></i>
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_Pagination" model="@(new PaginationVm { Page = Model.Result.Page, PageCount = Model.Result.PageCount, Label = Model.Result.Label, UrlFor = p => QueryUrl.With(Context.Request, "page", p == 1 ? null : p.ToString()) })" />
+}

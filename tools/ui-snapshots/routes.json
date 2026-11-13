@@ -35,6 +35,23 @@
     { "screen": "A9", "role": "cashier", "path": "/me", "area": "pos", "phase": 2, "note": "Trang cá nhân với layout POS" },
     { "screen": "D2", "role": "guest", "path": "/dev/mailbox", "area": "customer", "phase": 2, "note": "Hộp thư thử" },
     { "screen": "D3", "role": "cashier", "path": "/Home/AccessDenied?ReturnUrl=%2Fadmin%2Fusers", "area": "admin", "phase": 2, "note": "Từ chối truy cập trong khu vực quản trị" },
-    { "screen": "D3", "role": "guest", "variant": "loi", "path": "/Home/Error?code=404", "area": "customer", "phase": 2, "note": "Trang lỗi 404 của web khách" }
+    { "screen": "D3", "role": "guest", "variant": "loi", "path": "/Home/Error?code=404", "area": "customer", "phase": 2, "note": "Trang lỗi 404 của web khách" },
+    { "screen": "A2", "role": "manager", "variant": "phim", "path": "/admin/movies", "area": "admin", "phase": 3, "note": "Danh sách phim: lọc trạng thái, nhãn tuổi" },
+    { "screen": "A2", "role": "manager", "variant": "phim-rong", "path": "/admin/movies?q=khong-co-phim-nay", "area": "admin", "phase": 3, "note": "Danh sách phim rỗng" },
+    { "screen": "A2", "role": "shift", "variant": "phim", "path": "/admin/movies", "area": "admin", "phase": 3, "note": "Nhân viên chỉ xem phim" },
+    { "screen": "A2", "role": "manager", "variant": "nha-phat-hanh", "path": "/admin/distributors", "area": "admin", "phase": 3, "note": "Danh sách nhà phát hành" },
+    { "screen": "A2", "role": "manager", "variant": "phong-chieu", "path": "/admin/auditoriums", "area": "admin", "phase": 3, "note": "Danh sách phòng chiếu" },
+    { "screen": "A2", "role": "manager", "variant": "bang-gia", "path": "/admin/pricing", "area": "admin", "phase": 3, "note": "Bảng giá 6 chiều" },
+    { "screen": "A2", "role": "manager", "variant": "ngay-le", "path": "/admin/pricing/holidays", "area": "admin", "phase": 3, "note": "Ngày lễ" },
+    { "screen": "A3", "role": "manager", "variant": "phim", "path": "/admin/movies/1/edit", "area": "admin", "phase": 3, "note": "Sửa phim: poster 2:3, chia doanh thu, KDM" },
+    { "screen": "A3", "role": "manager", "variant": "them-phim", "path": "/admin/movies/create", "area": "admin", "phase": 3, "note": "Thêm phim" },
+    { "screen": "A3", "role": "manager", "variant": "chi-tiet-phim", "path": "/admin/movies/1", "area": "admin", "phase": 3, "note": "Chi tiết phim" },
+    { "screen": "A3", "role": "manager", "variant": "nha-phat-hanh", "path": "/admin/distributors/create", "area": "admin", "phase": 3, "note": "Thêm nhà phát hành" },
+    { "screen": "A3", "role": "manager", "variant": "phong", "path": "/admin/auditoriums/create", "area": "admin", "phase": 3, "note": "Thêm phòng chiếu" },
+    { "screen": "A3", "role": "manager", "variant": "doi-tuong", "path": "/admin/pricing/audiences", "area": "admin", "phase": 3, "note": "Đối tượng ưu đãi" },
+    { "screen": "A3", "role": "manager", "variant": "thu-gia", "path": "/admin/pricing/try?startTime=2026-11-14T19:00&format=IMAX&seatType=VIP&blockbuster=true", "area": "admin", "phase": 3, "note": "Thử tính giá" },
+    { "screen": "A4", "role": "manager", "path": "/admin/auditoriums/1/design", "area": "admin", "phase": 3, "note": "Thiết kế phòng chiếu" },
+    { "screen": "A5", "role": "manager", "path": "/scheduler", "area": "admin", "phase": 3, "note": "Lịch chiếu chế độ Bảng" },
+    { "screen": "A5", "role": "manager", "variant": "them-suat", "path": "/scheduler/create", "area": "admin", "phase": 3, "note": "Form thêm suất" }
   ]
 }

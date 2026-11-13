@@ -1,9 +1,16 @@
 # Tiến độ
 ## Trạng thái
-- [x] Phase 1  - [x] Phase 2  - [ ] Phase 3  - [ ] Phase 4
+- [x] Phase 1  - [x] Phase 2  - [x] Phase 3  - [ ] Phase 4
 - [ ] Phase 5  - [ ] Phase 6  - [ ] Phase 7  - [ ] Phase 8
 ## Phase đang làm
-Phase 2 – Giao diện nền, đăng nhập, CRUD cơ bản: xong ngày 11/11/2026 (verify 2 --final ĐẠT, commit "Phase 2: …", tag lab-4, lab-5). Phase kế tiếp: Phase 3 – Phim, phòng chiếu, giá, suất chiếu.
+Phase 3 – Phim, phòng chiếu, giá, suất chiếu: xong ngày 13/11/2026 (verify 3 --final ĐẠT, commit "Phase 3: …"; Phase 3 không có tag lab). Phase kế tiếp: Phase 4 – POS, hóa đơn, thống kê.
+
+### Việc đã làm ở Phase 3
+- Domain/Rules (logic thuần, có unit test): AgeRules (tuổi tối thiểu, giấy phép và phim C, vé trẻ em AGE_RESTRICTED, giờ chiếu trẻ em CHILD_CURFEW, suất khuya, người giám hộ GUARDIAN_REQUIRED, cảnh báo xếp lịch phim K, T13 kết thúc muộn); ScheduleConstraintChecker (chồng giờ, giấy phép, KDM, khung giờ, ngôn ngữ, SHOWTIME_LOCKED; cảnh báo cùng phút, kết thúc muộn, KDM sắp hết hạn, tỷ lệ phim Việt), VietnameseFilmQuota, ShowtimeLock (LOCKED_HAS_TICKETS); AuditoriumLayout (nhãn, cặp ghế đôi, BaseViewScore, mức heatmap, gợi ý ghế nội bộ, phân biệt đổi cấu trúc với bật tắt bảo trì); DeleteRules thêm Movie, Distributor, Auditorium, Showtime.
+- Màn hình: Phim (A2, A3 có poster 2:3 tải bằng fetch, chia doanh thu, KDM theo rạp, chi tiết), Nhà phát hành, Phòng chiếu và công cụ thiết kế A4, Bảng giá 6 chiều (ghi AuditLogs PRICING_UPDATED), Đối tượng ưu đãi (chặn dưới mức tối thiểu), Ngày lễ, Thử tính giá, Lịch chiếu /scheduler chế độ Bảng (A5) và form suất kiểm tra trực tiếp. Sidebar mở các mục Phase 3; style guide thêm tab, chọn ngày, nhóm ô tích, danh sách lỗi và cảnh báo, công cụ tô, heatmap.
+- Lưu suất: kiểm tra lại trong transaction sau khi khóa (UPDLOCK, HOLDLOCK) các suất cùng phòng quanh khoảng giờ; tạo suất sinh ShowtimeSeats AVAILABLE hoặc HOUSE_HOLD. Sơ đồ ghế _SeatMap khóa ghế nội bộ (khách thấy nhưng không chọn được).
+- Test: 35 test mới (26 quy tắc thuần, 6 dịch vụ trên CSDL mẫu gồm kiểm mọi suất của DbSeeder qua ScheduleConstraintChecker, 3 HTTP); tổng 268/268 đạt.
+
 
 ### Việc đã làm ở Phase 2
 - Hệ thống thiết kế: tokens.css (đúng 109 biến của UI mục 2 và vài bí danh), app.css (ghi đè Bootstrap về token, mọi thành phần mục 5), 4 layout (_LayoutCustomer, _LayoutAdmin, _LayoutPos, _LayoutDisplay), 9 partial bắt buộc và partial phụ, ui.js, StatusDisplay xuất JSON trong layout, trang /dev/style-guide hai theme.
@@ -77,7 +84,18 @@ Phase 2 – Giao diện nền, đăng nhập, CRUD cơ bản: xong ngày 11/11/2
 38. 08/11/2026 – HTML và JSON giữ nguyên chữ tiếng Việt (WebEncoderOptions, JsonOptions cho toàn bộ Unicode).
 39. 08/11/2026 – Model binding dùng InvariantCulture (ô number gửi dấu chấm); hiển thị luôn qua Fmt với vi-VN.
 
+40. 13/11/2026 – Giờ bắt đầu ngoài khung OperatingDayStart–LastShowStartLatest và bản ngôn ngữ không thuộc Movies.LanguageFormats dùng mã VALIDATION_FAILED gắn với ô StartTime, LanguageFormat – SPEC 3.3 ghi là lỗi chặn nhưng CONTRACTS mục 8 không có mã riêng.
+41. 13/11/2026 – Cảnh báo không chặn của ScheduleConstraintChecker có tên nội bộ ScheduleWarningCode (SAME_MINUTE_STARTS, LATE_END_FOR_AUDIENCE, KDM_EXPIRING_SOON, VIETNAMESE_SHARE_LOW), không gửi mã cho giao diện, chỉ gửi mức độ và câu tiếng Việt – không phải mã lỗi nên không thêm vào CONTRACTS.
+42. 13/11/2026 – "KDM hết hạn trong 24 giờ tới mà vẫn còn suất sau thời điểm đó": lấy hạn cuối cùng của mọi KDM của phim tại rạp; cảnh báo khi hạn này nằm trong (bây giờ, bây giờ + 24 giờ] và có suất chưa hủy kết thúc sau hạn.
+43. 13/11/2026 – Tỷ lệ phim Việt tính theo từng rạp, mọi suất không bị hủy có ngày vận hành trong năm (kể cả suất đã xếp cho tương lai); ở lịch chiếu hiện thêm tỷ lệ trong ngày và trong khung 18:00–22:00 để tham khảo. Cảnh báo chỉ áp dụng từ 01/01/2026.
+44. 13/11/2026 – Không xếp suất mới hoặc dời suất vào thời điểm đã qua; suất đã bắt đầu hoặc đã hủy không sửa được; xóa suất chỉ khi chưa bán vé, không có ghế đang giữ, chưa bắt đầu và không gắn hợp đồng doanh nghiệp (suất đã bán dùng Hủy suất do sự cố ở Phase 6). Sửa suất đã bán vé vẫn đổi được bản ngôn ngữ.
+45. 13/11/2026 – Phòng khóa cấu trúc (có suất tương lai đã bán hoặc đang giữ ghế) trả VALIDATION_FAILED kèm lý do; ghế từng có vé (kể cả vé cũ) không xóa khỏi sơ đồ được, gợi ý đặt bảo trì. Đổi cấu trúc khi phòng chưa khóa thì thêm, bớt ShowtimeSeats của các suất tương lai và đặt lại HOUSE_HOLD theo ghế nội bộ. Ghế đôi ghép cặp theo các ô liền nhau trong hàng từ trái sang; PairGroupId mới = PairGroupId lớn nhất hiện có + số thứ tự cặp.
+46. 13/11/2026 – Phòng mới tạo với lưới đầy ghế thường; số hàng, số cột đổi trong công cụ thiết kế. Nhãn, cặp ghế đôi, điểm và gợi ý ghế nội bộ của công cụ do server tính (POST /admin/auditoriums/{id}/preview) để công cụ và lúc lưu dùng chung AuditoriumLayout. Gợi ý ghế nội bộ: hàng gần r_ideal nhất có đủ ghế thường hoặc VIP liền nhau không bảo trì, đoạn gần giữa phòng nhất.
+47. 13/11/2026 – Route Phase 3 theo kiểu chữ thường gạch ngang: /admin/movies, /admin/distributors, /admin/auditoriums (…/{id}/design, …/{id}/preview, …/{id}/layout), /admin/pricing (…/audiences, …/holidays, …/try), /scheduler (…/create, …/{id}/edit, …/check, …/save). Phim xem được với EmployeeOrManager; nhà phát hành, phòng chiếu, bảng giá, lịch chiếu là ManagerOnly (cấu hình, xếp lịch theo CONTRACTS mục 2).
+48. 13/11/2026 – Mức giảm đối tượng dùng chung cho mọi rạp (bảng AudienceDiscounts không có CinemaId); trang chỉ sửa phần trăm giảm, cột bán online và cần giấy tờ giữ theo luật (CONTRACTS mục 4).
+
 ## Thay đổi mô hình (ngày – bảng/cột/use case/màn hình – trước – sau)
+- 13/11/2026 – CONTRACTS C3-39 – thêm AuditAction PRICING_UPDATED (sửa bảng giá và mức giảm đối tượng, SPEC 2.7) theo quy tắc "mỗi phase thêm hành động của mình". Không đổi bảng, cột, use case hay màn hình.
 - 11/11/2026 – CONTRACTS – thêm C3-39 AuditAction (USER_LOCKED, USER_UNLOCKED) và C8-09 mã lỗi chung (AUTH_REQUIRED, ACCESS_DENIED, NOT_FOUND, SERVER_ERROR) theo quy tắc "cần tên mới thì thêm vào CONTRACTS trước". Không đổi bảng, cột, use case hay màn hình.
 - 06/11/2026 – SchemaVersions – (Version, AppliedAt) – (Id INT IDENTITY khóa chính, Version UNIQUE, AppliedAt), theo quy ước khóa chính Id của CONTRACTS mục 9. Đã sửa dòng S6-35 trong docs/spec/s05-07-realtime-csdl-kiem-thu.md, chạy sync, và ghi ở CONTRACTS mục 12.
 - 06/11/2026 – Ràng buộc thêm (không đổi cột): UNIQUE(CinemaId, Name) của RawMaterials; UNIQUE(AuditoriumId, Label) của Seats; index lọc UX_PosShifts_OpenTerminal, UX_PosShifts_OpenUser (một ca mở cho mỗi máy và mỗi thu ngân), UX_Tickets_ActiveSeat (một vé còn hiệu lực cho mỗi ghế của suất), UX_Payments_ProviderTxnId, UX_Users_MemberCode; CHECK CK_Vouchers_PercentValue (voucher PERCENT không quá 100).
@@ -95,5 +113,6 @@ Phase 2 – Giao diện nền, đăng nhập, CRUD cơ bản: xong ngày 11/11/2
 ## Đang bị chặn (câu hỏi cần người dùng trả lời)
 Không có. (07/11/2026: câu hỏi về SDK .NET 8 của S8.1-01 đã xong, người dùng cài SDK 8.0.427.)
 ## Kết quả kiểm tra giao diện (phase – màn hình – kích thước – đạt/chưa)
+- Phase 3 – 13/11/2026, `node tools/ui-snapshots/snap.mjs --phase 3`: 17 đường dẫn, 51 ảnh trong artifacts/ui/phase-3, 0 lỗi HTTP 5xx, 0 cuộn ngang, 0 ảnh vỡ, 0 lỗi JS. Mở từng ảnh đối chiếu UI mục 13 và sửa: A4 (ô mẫu và chú thích heatmap mất màu – BUG-015; lưới bị cắt – BUG-019), A3 phim (ô ngày giờ kiểu Mỹ – BUG-016; ô rạp KDM bị cắt – BUG-017), A5 (nhóm phòng cuộn dọc riêng – BUG-018), A2 bảng giá (số tiền không dấu phân cách – BUG-020), A3 đối tượng (dải trống đầu thẻ). Kết quả cuối: A2, A3, A4, A5 đạt ở 1440, 1280; ở 768 dùng được, bảng lịch chiếu và lưới thiết kế chỉ cuộn ngang trong vùng của chúng.
 - Phase 2 – 11/11/2026, `node tools/ui-snapshots/snap.mjs --phase 2`: 19 đường dẫn, 56 ảnh trong artifacts/ui/phase-2, 0 lỗi HTTP 5xx, 0 cuộn ngang, 0 ảnh vỡ, 0 lỗi JS. Đã mở từng ảnh đối chiếu UI mục 13 và sửa: D1 (thẻ phim lệch nút do dòng phụ), C6 (đạt ở 390, 768, 1440), A2 (cột phụ và nhãn công tắc ở 768px, link trong bảng), A3 (đạt, form 960px hai cột), A9 (lỗi 500 ở layout POS – BUG-007; thanh demo che nút – BUG-012), D2 (cuộn ngang ở 390px – BUG-009), D3 (đạt, layout theo khu vực). Kết quả cuối: D1, C6, A2, A3, A9, D2, D3 đạt ở mọi kích thước của UI mục 11.
 - Phase 1 – không có màn hình (ảnh mẫu SVG được kiểm bằng unit test SvgArtGeneratorTests).

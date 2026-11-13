@@ -43,7 +43,8 @@
             {
                 if (byPos.TryGetValue((r, c), out var s))
                 {
-                    var disabled = s.Status is SeatDisplayStatus.Held or SeatDisplayStatus.Booked or SeatDisplayStatus.Maintenance;
+                    // Ghế nội bộ (HOUSE_HOLD) hiện ra nhưng không chọn được (SPEC 3.2)
+                    var disabled = s.Status is SeatDisplayStatus.Held or SeatDisplayStatus.Booked or SeatDisplayStatus.Maintenance or SeatDisplayStatus.HouseHold;
                     var typeLabel = StatusDisplay.Of(StatusDisplay.Seat, s.SeatType).Label;
                     <button type="button" class="@Cls(s)" disabled="@disabled" aria-label="Ghế @s.Label, @typeLabel, @StatusText(s)" title="Ghế @s.Label · @typeLabel · @StatusText(s)">
                         @if (s.Status == SeatDisplayStatus.Held)

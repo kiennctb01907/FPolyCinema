@@ -1,0 +1,119 @@
+@model AuditoriumDesignVm
+@* A4. Thiết kế phòng chiếu (UI A4, SPEC 3.2):
+   - Trái là công cụ tô: ghế thường, VIP, cặp ghế đôi, xe lăn, ô trống hoặc lối đi, ghế nội bộ, bảo trì; kèm kích thước lưới.
+   - Giữa là lưới chỉnh sửa: bấm hoặc kéo để tô; nút "Tự đánh số" và "Gợi ý ghế nội bộ".
+   - Phải là thống kê (số ghế theo loại, sức chứa) và công tắc xem heatmap BaseViewScore; dưới 1200px xếp thành một cột. Ô lưới 26px, phòng lớn thì chỉ vùng sơ đồ cuộn ngang.
+   Nhãn, cặp ghế đôi, điểm và gợi ý do server tính (AuditoriumLayout); lưu thì tính lại BaseViewScore.
+   Phòng đã có suất sắp chiếu bán vé thì chỉ bật tắt được ghế bảo trì. *@
+@{
+    Layout = "_LayoutAdmin";
+    var a = Model.Auditorium;
+    ViewData["Title"] = "Thiết kế " + a.Name;
+    ViewData["Crumbs"] = new List<Crumb> { new("Rạp và phòng"), new("Phòng chiếu", "/admin/auditoriums"), new(a.Name) };
+    var locked = Model.StructureLocked;
+    const string lockedReason = "Phòng đã có suất sắp chiếu bán vé nên chỉ bật, tắt ghế bảo trì được.";
+    var header = new PageHeaderVm
+    {
+        Title = "Thiết kế " + a.Name,
+        Description = $"{Model.CinemaName} · Phòng {a.Format} · Lưới {a.TotalRows} × {a.TotalCols}. Hàng A gần màn hình nhất.",
+        Crumbs = new() { new("Phòng chiếu", "/admin/auditoriums"), new(a.Name) },
+        Actions = @<text>
+            <a class="btn btn-secondary" href="/admin/auditoriums/@a.Id/edit"><i class="bi bi-pencil" aria-hidden="true"></i>Sửa thông tin</a>
+            <button type="button" class="btn btn-primary" id="design-save"><i class="bi bi-check2" aria-hidden="true"></i>Lưu sơ đồ</button>
+        </text>,
+    };
+    var tools = new List<(string Key, string Label, string Swatch, string Hint)>
+    {
+        ("STANDARD", "Ghế thường", "", "Tô ô thành ghế thường"),
+        ("VIP", "Ghế VIP", "t-vip", "Tô ô thành ghế VIP"),
+        ("SWEETBOX", "Cặp ghế đôi", "t-sweetbox", "Tô hai ô liền nhau trong hàng thành một cặp ghế đôi"),
+        ("WHEELCHAIR", "Chỗ xe lăn", "t-wheelchair", "Tô ô thành chỗ cho khách dùng xe lăn"),
+        ("EMPTY", "Ô trống, lối đi", "is-empty", "Xóa ghế, để ô thành lối đi hoặc khoảng trống"),
+        ("HOUSE", "Ghế nội bộ", "is-house", "Bật hoặc tắt ghế nội bộ (giữ lại cho rạp, khách không chọn được)"),
+        ("MAINT", "Bảo trì", "is-maint", "Bật hoặc tắt ghế bảo trì (không bán ở mọi suất)"),
+    };
+}
+<partial name="_PageHeader" model="header" />
+@if (locked)
+{
+    <div class="alert-ui tone-warning" role="status"><i class="bi bi-lock" aria-hidden="true"></i><div>@lockedReason Muốn đổi cấu trúc, bạn chờ các suất đó chiếu xong.</div></div>
+}
+<script type="application/json" id="design-data">@Json.Serialize(new { id = a.Id, rows = a.TotalRows, cols = a.TotalCols, locked, houseCount = Model.HouseSeatsPerAuditorium, cells = Model.Cells })</script>
+<div class="designer" id="designer" data-locked="@(locked ? "1" : "0")">
+    <aside class="card-ui designer-tools" aria-labelledby="tools-title">
+        <h2 id="tools-title">Công cụ tô</h2>
+        <div class="tool-list" role="radiogroup" aria-label="Chọn công cụ tô">
+            @foreach (var t in tools)
+            {
+                var disabled = locked && t.Key != "MAINT";
+                <button type="button" class="tool-btn @(t.Key == (locked ? "MAINT" : "STANDARD") ? "is-active" : null)" role="radio" aria-checked="@(t.Key == (locked ? "MAINT" : "STANDARD") ? "true" : "false")"
+                        data-tool="@t.Key" disabled="@disabled" title="@(disabled ? lockedReason : t.Hint)">
+                    <span class="tool-swatch @t.Swatch" data-theme="cinema" aria-hidden="true">
+                        @if (t.Key == "WHEELCHAIR") { <i class="bi bi-person-wheelchair"></i> }
+                        else if (t.Key == "HOUSE") { <i class="bi bi-lock"></i> }
+                        else if (t.Key == "MAINT") { <i class="bi bi-wrench"></i> }
+                    </span>
+                    <span>@t.Label</span>
+                </button>
+            }
+        </div>
+        <h2 class="mt-4" id="size-title">Kích thước lưới</h2>
+        <div class="design-size" aria-labelledby="size-title">
+            <div>
+                <label class="form-label" for="grid-rows">Số hàng</label>
+                <input type="number" class="form-control text-end" id="grid-rows" min="1" max="26" value="@a.TotalRows" disabled="@locked" />
+            </div>
+            <div>
+                <label class="form-label" for="grid-cols">Số cột</label>
+                <input type="number" class="form-control text-end" id="grid-cols" min="1" max="40" value="@a.TotalCols" disabled="@locked" />
+            </div>
+            <button type="button" class="btn btn-secondary btn-sm" id="grid-apply" disabled="@locked" title="@(locked ? lockedReason : "Đổi kích thước lưới; ghế nằm ngoài lưới mới sẽ bị bỏ")">Áp dụng</button>
+        </div>
+        <p class="form-text mb-0">Bấm vào ô hoặc giữ chuột rồi kéo để tô nhiều ô. Dùng phím mũi tên để di chuyển, Enter hoặc phím cách để tô ô đang chọn.</p>
+    </aside>
+
+    <section class="card-ui designer-canvas" aria-labelledby="canvas-title">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+            <h2 class="h6 mb-0" id="canvas-title">Sơ đồ ghế</h2>
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" class="btn btn-secondary btn-sm" id="design-renumber" title="Đánh lại nhãn ghế theo hàng, từ trái sang phải, bỏ qua ô trống"><i class="bi bi-123" aria-hidden="true"></i>Tự đánh số</button>
+                <button type="button" class="btn btn-secondary btn-sm" id="design-suggest" disabled="@locked" title="@(locked ? lockedReason : $"Chọn {Model.HouseSeatsPerAuditorium} ghế ở trung tâm hàng xem đẹp nhất làm ghế nội bộ")"><i class="bi bi-magic" aria-hidden="true"></i>Gợi ý ghế nội bộ</button>
+            </div>
+        </div>
+        <div class="seatmap" data-theme="cinema" data-bs-theme="dark" id="design-map">
+            <svg class="screen" viewBox="0 0 560 40" aria-hidden="true" focusable="false">
+                <path class="screen-halo" d="M20 30 Q280 -6 540 30 L540 40 Q280 6 20 40 Z" />
+                <path class="screen-line" d="M20 30 Q280 -6 540 30" />
+            </svg>
+            <p class="screen-label">Màn hình</p>
+            <div class="design-grid" id="design-grid" role="grid" aria-label="Lưới thiết kế sơ đồ ghế @a.Name"></div>
+        </div>
+    </section>
+
+    <aside class="card-ui designer-side" aria-labelledby="stats-title">
+        <h2 id="stats-title">Thống kê</h2>
+        <dl class="design-stats" id="design-stats">
+            <dt>Ghế thường</dt><dd data-stat="STANDARD">@(Model.Stats.ByType.TryGetValue(SeatType.Standard, out var s1) ? s1 : 0)</dd>
+            <dt>Ghế VIP</dt><dd data-stat="VIP">@(Model.Stats.ByType.TryGetValue(SeatType.Vip, out var s2) ? s2 : 0)</dd>
+            <dt>Ghế đôi (ô)</dt><dd data-stat="SWEETBOX">@(Model.Stats.ByType.TryGetValue(SeatType.Sweetbox, out var s3) ? s3 : 0)</dd>
+            <dt>Chỗ xe lăn</dt><dd data-stat="WHEELCHAIR">@(Model.Stats.ByType.TryGetValue(SeatType.Wheelchair, out var s4) ? s4 : 0)</dd>
+            <dt>Ghế nội bộ</dt><dd data-stat="house">@Model.Stats.House</dd>
+            <dt>Ghế bảo trì</dt><dd data-stat="maintenance">@Model.Stats.Maintenance</dd>
+            <dt>Tổng số ghế</dt><dd data-stat="total">@Model.Stats.Total</dd>
+            <dt>Sức chứa bán được</dt><dd data-stat="sellable">@Model.Stats.Sellable</dd>
+        </dl>
+        <h2>Điểm góc nhìn và âm thanh</h2>
+        <label class="form-check form-switch active-switch mb-3">
+            <input class="form-check-input" type="checkbox" role="switch" id="heat-toggle" />
+            <span>Xem heatmap điểm ghế</span>
+        </label>
+        <div class="heat-legend mb-4" data-theme="cinema" aria-label="Thang điểm heatmap">
+            <span class="heat-chip heat-1">0–39</span><span class="heat-chip heat-2">40–59</span><span class="heat-chip heat-3">60–74</span><span class="heat-chip heat-4">75–89</span><span class="heat-chip heat-5">90–100</span>
+        </div>
+        <div id="design-errors" aria-live="polite"></div>
+        <p class="form-text mb-0">Điểm tính theo vị trí so với hàng lý tưởng (tỷ lệ @Fmt.Decimal(a.IdealRowRatio)) và giữa phòng; được tính lại mỗi lần lưu sơ đồ.</p>
+    </aside>
+</div>
+@section Scripts {
+    <script src="~/js/pages/auditorium-designer.js" asp-append-version="true"></script>
+}

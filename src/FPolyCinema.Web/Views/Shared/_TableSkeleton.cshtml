@@ -1,6 +1,7 @@
 @model string?
 @* Skeleton của bảng danh sách (UI U5-30): khối nhấp nháy đúng theo bố cục bảng thật, chỉ hiện khi tải lâu hơn 250ms (ui.loadRegion).
    Model: "category" (tên, số món, trạng thái, thao tác), "staff" (avatar tròn, nhân viên, vai trò, rạp, điện thoại, trạng thái, thao tác),
+   "movie" (poster 2:3, phim, nhãn tuổi, thời lượng, khởi chiếu, trạng thái, thao tác), "distributor" (tên, email, điện thoại, số phim, trạng thái, thao tác),
    mặc định "drink" (ảnh vuông, món, loại, giá, định mức, trạng thái, thao tác). Trên điện thoại skeleton thành thẻ như bảng thật. *@
 @{
     var kind = Model ?? "drink";
@@ -8,6 +9,8 @@
     {
         "category" => new[] { "", "", "", "" },
         "staff" => new[] { "round", "", "", "", "", "", "" },
+        "movie" => new[] { "poster", "", "", "", "", "", "" },
+        "distributor" => new[] { "", "", "", "", "", "" },
         _ => new[] { "sq", "", "", "", "", "", "" },
     };
 }

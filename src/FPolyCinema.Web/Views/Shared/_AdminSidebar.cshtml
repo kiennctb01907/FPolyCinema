@@ -11,9 +11,8 @@
         // TODO(Phase 4): Bảng điều khiển /admin, Bán vé tại quầy /pos/index, Hóa đơn /admin/bills
         ("Tổng quan", new() { ("Bảng điều khiển", "bi-speedometer2", null, false) }),
         ("Bán hàng", new() { ("Bán vé tại quầy", "bi-shop", null, false), ("Hóa đơn", "bi-receipt", null, true) }),
-        // TODO(Phase 3): Phim, Nhà phát hành, Lịch chiếu /scheduler, Phòng chiếu, Bảng giá
-        ("Phim và lịch chiếu", new() { ("Phim", "bi-film", null, false), ("Nhà phát hành", "bi-building", null, true), ("Lịch chiếu", "bi-calendar3", null, true) }),
-        ("Rạp và phòng", new() { ("Phòng chiếu", "bi-grid-3x3-gap", null, true), ("Bảng giá", "bi-tags", null, true) }),
+        ("Phim và lịch chiếu", new() { ("Phim", "bi-film", "/admin/movies", false), ("Nhà phát hành", "bi-building", "/admin/distributors", true), ("Lịch chiếu", "bi-calendar3", "/scheduler", true) }),
+        ("Rạp và phòng", new() { ("Phòng chiếu", "bi-grid-3x3-gap", "/admin/auditoriums", true), ("Bảng giá", "bi-tags", "/admin/pricing", true) }),
         // TODO(Phase 6): Nguyên liệu và nhập kho
         ("Kho bắp nước", new() { ("Loại đồ uống", "bi-collection", "/admin/categories", false), ("Đồ uống", "bi-cup-straw", "/admin/drinks", false), ("Nguyên liệu", "bi-box-seam", null, true) }),
         ("Nhân sự", new() { ("Nhân viên", "bi-people", "/admin/users", true) }),

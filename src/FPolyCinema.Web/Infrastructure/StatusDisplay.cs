@@ -31,6 +31,9 @@ public static class StatusDisplay
     public const string Seat = "seatType";
     public const string Audience = "audienceType";
     public const string Wastage = "wastage";
+    public const string RuleTypes = "ruleType";
+    public const string DayTypes = "dayType";
+    public const string TimeSlots = "timeSlot";
 
     private static StatusLabel L(string label, string tone = "neutral") => new(label, tone);
 
@@ -195,7 +198,42 @@ public static class StatusDisplay
                 [WastageStatus.Approved] = L("Đã duyệt", "success"),
                 [WastageStatus.Rejected] = L("Từ chối", "danger"),
             },
+            [RuleTypes] = new Dictionary<string, StatusLabel>
+            {
+                [PricingRuleType.Base] = L("Giá gốc"),
+                [PricingRuleType.DayType] = L("Loại ngày"),
+                [PricingRuleType.TimeSlot] = L("Khung giờ"),
+                [PricingRuleType.SeatType] = L("Loại ghế"),
+                [PricingRuleType.Format] = L("Định dạng phòng"),
+                [PricingRuleType.Blockbuster] = L("Phim bom tấn"),
+            },
+            [DayTypes] = new Dictionary<string, StatusLabel>
+            {
+                [DayType.Weekday] = L("Ngày thường"),
+                [DayType.Weekend] = L("Cuối tuần (thứ Bảy, Chủ nhật)", "info"),
+                [DayType.Holiday] = L("Ngày lễ", "warning"),
+                [DayType.HappyTuesday] = L("Thứ Ba vui vẻ", "success"),
+            },
+            [TimeSlots] = new Dictionary<string, StatusLabel>
+            {
+                [TimeSlot.Morning] = L("Buổi sáng"),
+                [TimeSlot.Afternoon] = L("Buổi chiều"),
+                [TimeSlot.Golden] = L("Giờ vàng", "warning"),
+                [TimeSlot.Late] = L("Suất khuya", "info"),
+            },
         };
+
+    /// <summary>Tên một dòng của bảng giá, ví dụ "Cuối tuần (thứ Bảy, Chủ nhật)", "Ghế VIP", "IMAX".</summary>
+    public static string PriceKeyLabel(string ruleType, string ruleKey) => ruleType switch
+    {
+        PricingRuleType.Base => "Giá gốc mỗi vé",
+        PricingRuleType.DayType => Of(DayTypes, ruleKey).Label,
+        PricingRuleType.TimeSlot => Of(TimeSlots, ruleKey).Label,
+        PricingRuleType.SeatType => Of(Seat, ruleKey).Label,
+        PricingRuleType.Format => "Phòng " + ruleKey,
+        PricingRuleType.Blockbuster => "Phụ thu phim bom tấn",
+        _ => "Không xác định",
+    };
 
     /// <summary>Nhãn của một giá trị; giá trị lạ trả "Không xác định" (không bao giờ trả lại chuỗi enum gốc).</summary>
     public static StatusLabel Of(string group, string? value)

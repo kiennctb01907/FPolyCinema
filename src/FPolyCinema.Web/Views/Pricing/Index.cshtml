@@ -1,0 +1,76 @@
+@model PricingVm
+@inject CinemaRules Rules
+@* Bảng giá 6 chiều của một rạp (SPEC 3.4, UC33): BASE + DAY_TYPE + TIME_SLOT + SEAT_TYPE + FORMAT + BLOCKBUSTER. Số tiền có thể âm
+   (ví dụ thứ Ba vui vẻ −20.000 ₫). Lưu thì ghi AuditLogs những dòng thay đổi (SPEC 2.7). *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Bảng giá";
+    ViewData["Crumbs"] = new List<Crumb> { new("Rạp và phòng"), new("Bảng giá") };
+    var cinemaName = Model.Cinemas.FirstOrDefault(c => c.Id == Model.CinemaId)?.Name ?? "rạp";
+    string Hint(string type, string key) => (type, key) switch
+    {
+        (PricingRuleType.TimeSlot, TimeSlot.Morning) => $"Phim bắt đầu trước {Rules.PriceSlotAfternoonStart:hh\\:mm}",
+        (PricingRuleType.TimeSlot, TimeSlot.Afternoon) => $"{Rules.PriceSlotAfternoonStart:hh\\:mm}–{Rules.PriceSlotGoldenStart:hh\\:mm}",
+        (PricingRuleType.TimeSlot, TimeSlot.Golden) => $"{Rules.PriceSlotGoldenStart:hh\\:mm}–{Rules.PriceSlotLateStart:hh\\:mm}",
+        (PricingRuleType.TimeSlot, TimeSlot.Late) => $"Từ {Rules.PriceSlotLateStart:hh\\:mm} và suất trước 06:00",
+        (PricingRuleType.DayType, DayType.Holiday) => "Ngày có trong danh sách ngày lễ",
+        (PricingRuleType.DayType, DayType.HappyTuesday) => "Mọi thứ Ba không phải ngày lễ",
+        (PricingRuleType.DayType, DayType.Weekday) => "Thứ Hai, Tư, Năm, Sáu",
+        (PricingRuleType.Base, _) => "Cộng với các dòng bên dưới",
+        _ => string.Empty,
+    };
+}
+<partial name="_PageHeader" model="@(new PageHeaderVm { Title = "Bảng giá", Description = $"Giá vé = giá gốc + phụ thu theo loại ngày, khung giờ, loại ghế, định dạng phòng và phim bom tấn, rồi trừ % giảm của đối tượng và làm tròn {Fmt.Number(Rules.PriceRoundTo)} ₫. Giá đã gồm VAT.", Crumbs = new() { new("Rạp và phòng"), new("Bảng giá") } })" />
+<partial name="_Tabs" model="@("rules")" />
+@if (Model.Cinemas.Count > 1)
+{
+    <form class="filter-bar" method="get" data-filter aria-label="Chọn rạp">
+        <div class="filter-item">
+            <label class="form-label" for="f-cinema">Rạp</label>
+            <select class="form-select" id="f-cinema" name="cinemaId">
+                @foreach (var c in Model.Cinemas) { <option value="@c.Id" selected="@(c.Id == Model.CinemaId)">@c.Name</option> }
+            </select>
+        </div>
+    </form>
+}
+<form asp-antiforgery="true" method="post" action="/admin/pricing" novalidate data-dirty-guard>
+    <input type="hidden" name="cinemaId" value="@Model.CinemaId" />
+    <partial name="~/Views/Login/_FormErrors.cshtml" />
+    <div class="price-grid">
+        @foreach (var group in Model.Cells.GroupBy(c => c.RuleType))
+        {
+            var typeLabel = StatusDisplay.Of(StatusDisplay.RuleTypes, group.Key).Label;
+            <section class="card-ui" aria-labelledby="g-@group.Key">
+                <div class="card-ui-body">
+                    <h2 class="card-ui-title mb-3" id="g-@group.Key">@typeLabel</h2>
+                    @foreach (var cell in group)
+                    {
+                        var field = $"{cell.RuleType}.{cell.RuleKey}";
+                        var id = "p-" + field.Replace(".", "-").Replace("_", "-");
+                        var hint = Hint(cell.RuleType, cell.RuleKey);
+                        <div class="row g-2 align-items-center mb-2">
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label mb-0" for="@id">@StatusDisplay.PriceKeyLabel(cell.RuleType, cell.RuleKey)</label>
+                                @if (hint.Length > 0) { <div class="form-text mt-0">@hint</div> }
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <div class="input-money">
+                                    <input type="text" class="form-control" id="@id" name="amounts[@field]" value="@Fmt.Number(cell.Amount)" inputmode="numeric" autocomplete="off" data-signed-money />
+                                </div>
+                                @Html.ValidationMessage(field)
+                            </div>
+                        </div>
+                    }
+                </div>
+            </section>
+        }
+    </div>
+    <div class="form-actions-sticky mt-4">
+        <a class="btn btn-ghost" href="/admin/pricing?cinemaId=@Model.CinemaId">Hủy</a>
+        <a class="btn btn-secondary" href="/admin/pricing/try?cinemaId=@Model.CinemaId"><i class="bi bi-calculator" aria-hidden="true"></i>Thử tính giá</a>
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Lưu bảng giá @cinemaName</button>
+    </div>
+</form>
+@section Scripts {
+    <script src="~/js/pages/pricing.js" asp-append-version="true"></script>
+}

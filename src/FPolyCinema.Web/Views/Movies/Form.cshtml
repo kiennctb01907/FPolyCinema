@@ -1,0 +1,248 @@
+@model MovieFormVm
+@* A3. Form thêm, sửa phim: thẻ rộng tối đa 960px, các phần có tiêu đề (từ 992px chia 2 cột); vùng kéo thả poster 2:3 xem trước ngay,
+   nút xóa poster (Upload và Delete của FileController bằng fetch, SPEC 2.6); giấy phép phân loại, nhãn tuổi, cảnh báo nội dung, ngôn ngữ;
+   bảng chia doanh thu theo tuần và KDM theo rạp; thanh nút dính chân form "Hủy" và "Lưu"; cảnh báo khi rời trang mà chưa lưu. *@
+@{
+    Layout = "_LayoutAdmin";
+    var isNew = Model.Id == null;
+    var title = isNew ? "Thêm phim" : "Sửa phim";
+    ViewData["Title"] = title;
+    ViewData["Crumbs"] = new List<Crumb> { new("Phim và lịch chiếu"), new("Phim", "/admin/movies"), new(isNew ? "Thêm phim" : Model.Title) };
+    var back = isNew ? "/admin/movies" : $"/admin/movies/{Model.Id}";
+    string Dt(DateTime? d) => d?.ToString("yyyy-MM-ddTHH:mm", System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty;
+    string Pct(decimal v) => v.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture);
+}
+<div class="form-card">
+    <partial name="_PageHeader" model="@(new PageHeaderVm { Title = title, Description = "Các ô có dấu * là bắt buộc. Poster tải lên ngay khi bạn chọn, bấm Lưu để áp dụng.", Crumbs = new() { new("Phim", "/admin/movies"), new(isNew ? "Thêm phim" : Model.Title) } })" />
+    <form asp-antiforgery="true" method="post" action="@(isNew ? "/admin/movies/create" : $"/admin/movies/{Model.Id}/edit")" class="card-ui" id="movie-form" novalidate data-dirty-guard>
+        <partial name="~/Views/Login/_FormErrors.cshtml" />
+        <div class="form-grid cols-2 card-section">
+            <section aria-labelledby="sec-info">
+                <h2 class="card-section-title" id="sec-info">Thông tin phim</h2>
+                <p class="card-section-desc">Tên, thời lượng và ngày khởi chiếu hiện ở web khách và quầy bán vé.</p>
+                <div class="mb-3">
+                    <label asp-for="Title" class="form-label">Tên phim <span class="req" aria-hidden="true">*</span></label>
+                    <input asp-for="Title" class="form-control" placeholder="Ví dụ: Mùa Hè Trên Đồi Gió" />
+                    <span asp-validation-for="Title"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="OriginalTitle" class="form-label">Tên gốc</label>
+                    <input asp-for="OriginalTitle" class="form-control" placeholder="Tên tiếng Anh hoặc tên gốc, nếu có" />
+                    <span asp-validation-for="OriginalTitle"></span>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-sm-6">
+                        <label asp-for="DurationMinutes" class="form-label">Thời lượng (phút) <span class="req" aria-hidden="true">*</span></label>
+                        <input asp-for="DurationMinutes" type="number" min="1" max="400" class="form-control text-end" />
+                        <span asp-validation-for="DurationMinutes"></span>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label for="ReleaseDate" class="form-label">Ngày khởi chiếu <span class="req" aria-hidden="true">*</span></label>
+                        <div class="date-field"><input type="date" class="form-control" id="ReleaseDate" name="ReleaseDate" value="@Model.ReleaseDate?.ToString("yyyy-MM-dd")" /><span class="date-display" aria-hidden="true"></span></div>
+                        <span asp-validation-for="ReleaseDate"></span>
+                    </div>
+                </div>
+                <fieldset class="check-fieldset" data-field="Genres">
+                    <legend>Thể loại <span class="req" aria-hidden="true">*</span></legend>
+                    <div class="check-grid">
+                        @foreach (var g in Genre.All)
+                        {
+                            <label class="form-check"><input class="form-check-input" type="checkbox" name="Genres" value="@g" checked="@Model.Genres.Contains(g)" /><span class="form-check-label">@StatusDisplay.Of(StatusDisplay.Genres, g).Label</span></label>
+                        }
+                    </div>
+                    @Html.ValidationMessage("Genres")
+                </fieldset>
+                <div class="mb-3">
+                    <label asp-for="DistributorId" class="form-label">Nhà phát hành</label>
+                    <select asp-for="DistributorId" class="form-select">
+                        <option value="">Chưa chọn</option>
+                        @foreach (var d in Model.Distributors)
+                        {
+                            <option value="@d.Id" selected="@(d.Id == Model.DistributorId)">@d.Name@(d.Active ? null : " (ngưng hợp tác)")</option>
+                        }
+                    </select>
+                    <span asp-validation-for="DistributorId"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label">Mô tả</label>
+                    <textarea asp-for="Description" class="form-control" rows="4" placeholder="Tóm tắt nội dung phim cho khách"></textarea>
+                    <span asp-validation-for="Description"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="TrailerUrl" class="form-label">Đường dẫn trailer</label>
+                    <input asp-for="TrailerUrl" class="form-control" placeholder="https://…" inputmode="url" />
+                    <span asp-validation-for="TrailerUrl"></span>
+                </div>
+            </section>
+            <section aria-labelledby="sec-poster">
+                <h2 class="card-section-title" id="sec-poster">Poster</h2>
+                <p class="card-section-desc">Poster dọc tỉ lệ 2:3, dạng JPG, PNG, GIF hoặc WEBP, tối đa 5MB.</p>
+                <input type="hidden" asp-for="PosterUrl" id="movie-poster" />
+                <div class="dropzone ratio-2x3" id="movie-dropzone" data-dropzone data-target="movie-poster" data-upload-url="/File/Upload" data-delete-url="/File/Delete" data-subject="phim" data-noun="poster"
+                     role="button" tabindex="0" aria-label="Kéo thả poster vào đây hoặc bấm để chọn poster phim">
+                    <img alt="Poster xem trước của phim" hidden onerror="this.onerror=null;this.src='/img/placeholder-poster.svg'" />
+                    <div class="dz-hint"><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i><span>Kéo thả poster vào đây<br />hoặc bấm để chọn</span></div>
+                </div>
+                <input type="file" accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp" hidden aria-hidden="true" tabindex="-1" />
+                <div class="dropzone-actions">
+                    <button type="button" class="btn btn-secondary btn-sm" data-dropzone-pick="movie-dropzone"><i class="bi bi-image" aria-hidden="true"></i>Chọn poster</button>
+                    <button type="button" class="btn btn-ghost btn-sm" data-dropzone-remove="movie-dropzone"><i class="bi bi-trash" aria-hidden="true"></i>Xóa poster</button>
+                </div>
+                <span asp-validation-for="PosterUrl"></span>
+                <div class="form-text" data-dropzone-why="movie-dropzone"></div>
+            </section>
+        </div>
+
+        <div class="form-grid cols-2 card-section">
+            <section aria-labelledby="sec-legal">
+                <h2 class="card-section-title" id="sec-legal">Phân loại và pháp lý</h2>
+                <p class="card-section-desc">Theo Luật Điện ảnh 2022 và Thông tư 05/2023: chỉ phim có số giấy phép phân loại và nhãn khác C mới xếp suất được. Phim C chỉ lưu hồ sơ.</p>
+                <div class="mb-3">
+                    <label asp-for="AgeRating" class="form-label">Nhãn độ tuổi <span class="req" aria-hidden="true">*</span></label>
+                    <select asp-for="AgeRating" class="form-select">
+                        @foreach (var r in AgeRating.All)
+                        {
+                            <option value="@r" selected="@(r == Model.AgeRating)">@StatusDisplay.AgeExplanation(r)</option>
+                        }
+                    </select>
+                    <span asp-validation-for="AgeRating"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="ClassificationLicenseNo" class="form-label">Số Giấy phép phân loại phim</label>
+                    <input asp-for="ClassificationLicenseNo" class="form-control" placeholder="Ví dụ: 1234/GP-ĐA" aria-describedby="license-help" />
+                    <span asp-validation-for="ClassificationLicenseNo"></span>
+                    <div class="form-text" id="license-help">Để trống thì vẫn lưu được hồ sơ nhưng chưa tạo suất chiếu được.</div>
+                </div>
+                <fieldset class="check-fieldset">
+                    <legend>Cảnh báo nội dung</legend>
+                    <div class="check-grid">
+                        @foreach (var w in ContentWarning.All)
+                        {
+                            <label class="form-check"><input class="form-check-input" type="checkbox" name="ContentWarnings" value="@w" checked="@Model.ContentWarnings.Contains(w)" /><span class="form-check-label">@StatusDisplay.Of(StatusDisplay.Warning, w).Label</span></label>
+                        }
+                    </div>
+                </fieldset>
+            </section>
+            <section aria-labelledby="sec-sale">
+                <h2 class="card-section-title" id="sec-sale">Ngôn ngữ và bán vé</h2>
+                <p class="card-section-desc">Suất chiếu chỉ chọn được bản ngôn ngữ có ở đây. Phim Việt được tính vào hạn ngạch 20% số suất mỗi năm.</p>
+                <fieldset class="check-fieldset" data-field="LanguageFormats">
+                    <legend>Bản ngôn ngữ <span class="req" aria-hidden="true">*</span></legend>
+                    <div class="check-grid">
+                        @foreach (var l in LanguageFormat.All)
+                        {
+                            <label class="form-check"><input class="form-check-input" type="checkbox" name="LanguageFormats" value="@l" checked="@Model.LanguageFormats.Contains(l)" /><span class="form-check-label">@StatusDisplay.Of(StatusDisplay.Language, l).Label</span></label>
+                        }
+                    </div>
+                    @Html.ValidationMessage("LanguageFormats")
+                </fieldset>
+                <div class="mb-3">
+                    <label for="min-price-view" class="form-label">Giá sàn mỗi vé</label>
+                    <div class="input-money">
+                        <input id="min-price-view" class="form-control" inputmode="numeric" autocomplete="off" data-money="MinimumTicketPrice" aria-describedby="min-price-help" value="@(Model.MinimumTicketPrice > 0 ? Fmt.Number(Model.MinimumTicketPrice) : null)" />
+                    </div>
+                    <input type="hidden" asp-for="MinimumTicketPrice" />
+                    <span asp-validation-for="MinimumTicketPrice"></span>
+                    <div class="form-text" id="min-price-help">Giá tối thiểu tính chia doanh thu với nhà phát hành; vé bán thấp hơn thì rạp tự chịu phần chênh.</div>
+                </div>
+                <div class="d-flex flex-column gap-3">
+                    <label class="form-check form-switch active-switch"><input asp-for="IsVietnameseFilm" class="form-check-input" type="checkbox" role="switch" /><span>Phim Việt Nam</span></label>
+                    <label class="form-check form-switch active-switch"><input asp-for="IsBlockbuster" class="form-check-input" type="checkbox" role="switch" /><span>Phim bom tấn (cộng phụ thu BLOCKBUSTER)</span></label>
+                    <label class="form-check form-switch active-switch"><input asp-for="Active" class="form-check-input" type="checkbox" role="switch" /><span>Đang chiếu</span></label>
+                </div>
+            </section>
+        </div>
+
+        <section class="card-section" aria-labelledby="sec-rental" data-rows="RentalRules">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                <div>
+                    <h2 class="card-section-title mb-1" id="sec-rental">Chia doanh thu với nhà phát hành</h2>
+                    <p class="card-section-desc mb-0">Phần trăm doanh thu vé trả nhà phát hành theo tuần chiếu. Tuần sau tuần cuối cùng dùng tỷ lệ của tuần cuối cùng.</p>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" data-row-add><i class="bi bi-plus-lg" aria-hidden="true"></i>Thêm tuần</button>
+            </div>
+            <div class="table-wrap">
+                <table class="data-table recipe-table">
+                    <thead><tr><th scope="col">Tuần chiếu</th><th scope="col" class="num">Trả nhà phát hành (%)</th><th scope="col" class="col-actions"><span class="visually-hidden">Thao tác</span></th></tr></thead>
+                    <tbody data-row-list>
+                        @for (int i = 0; i < Model.RentalRules.Count; i++)
+                        {
+                            var r = Model.RentalRules[i];
+                            <tr data-row>
+                                <td data-label="Tuần chiếu"><input type="number" class="form-control" name="RentalRules[@i].WeekNumber" data-name="WeekNumber" value="@r.WeekNumber" min="1" max="52" aria-label="Tuần chiếu" />@Html.ValidationMessage($"RentalRules[{i}].WeekNumber")</td>
+                                <td class="num" data-label="Trả nhà phát hành"><input type="number" class="form-control text-end" name="RentalRules[@i].DistributorSharePercent" data-name="DistributorSharePercent" value="@Pct(r.DistributorSharePercent)" min="0" max="100" step="0.01" aria-label="Phần trăm trả nhà phát hành" />@Html.ValidationMessage($"RentalRules[{i}].DistributorSharePercent")</td>
+                                <td class="col-actions"><button type="button" class="btn btn-ghost btn-icon btn-sm" data-row-remove aria-label="Bỏ dòng tuần này" title="Bỏ dòng"><i class="bi bi-x-lg" aria-hidden="true"></i></button></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <p class="text-muted small px-4 py-3 mb-0" data-row-empty hidden="@(Model.RentalRules.Count > 0)">Chưa có quy tắc chia doanh thu. Bấm “Thêm tuần”.</p>
+            </div>
+            <template data-row-template>
+                <tr data-row>
+                    <td data-label="Tuần chiếu"><input type="number" class="form-control" data-name="WeekNumber" min="1" max="52" aria-label="Tuần chiếu" /></td>
+                    <td class="num" data-label="Trả nhà phát hành"><input type="number" class="form-control text-end" data-name="DistributorSharePercent" min="0" max="100" step="0.01" aria-label="Phần trăm trả nhà phát hành" /></td>
+                    <td class="col-actions"><button type="button" class="btn btn-ghost btn-icon btn-sm" data-row-remove aria-label="Bỏ dòng tuần này" title="Bỏ dòng"><i class="bi bi-x-lg" aria-hidden="true"></i></button></td>
+                </tr>
+            </template>
+        </section>
+
+        <section class="card-section" aria-labelledby="sec-kdm" data-rows="Kdms">
+            <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                <div>
+                    <h2 class="card-section-title mb-1" id="sec-kdm">Bản quyền chiếu (KDM) theo rạp</h2>
+                    <p class="card-section-desc mb-0">Suất chiếu chỉ được xếp khi KDM của rạp phủ trọn thời gian chiếu phim (từ lúc phim bắt đầu đến lúc kết thúc).</p>
+                </div>
+                <button type="button" class="btn btn-secondary btn-sm" data-row-add><i class="bi bi-plus-lg" aria-hidden="true"></i>Thêm KDM</button>
+            </div>
+            <div class="table-wrap">
+                <table class="data-table recipe-table kdm-table">
+                    <thead><tr><th scope="col">Rạp</th><th scope="col">Hiệu lực từ</th><th scope="col">Hết hiệu lực</th><th scope="col">Ghi chú</th><th scope="col" class="col-actions"><span class="visually-hidden">Thao tác</span></th></tr></thead>
+                    <tbody data-row-list>
+                        @for (int i = 0; i < Model.Kdms.Count; i++)
+                        {
+                            var k = Model.Kdms[i];
+                            <tr data-row>
+                                <td data-label="Rạp">
+                                    <select class="form-select" name="Kdms[@i].CinemaId" data-name="CinemaId" aria-label="Rạp của KDM">
+                                        <option value="0">Chọn rạp</option>
+                                        @foreach (var c in Model.Cinemas) { <option value="@c.Id" selected="@(c.Id == k.CinemaId)">@c.Name</option> }
+                                    </select>
+                                    @Html.ValidationMessage($"Kdms[{i}].CinemaId")
+                                </td>
+                                <td data-label="Hiệu lực từ"><div class="date-field"><input type="datetime-local" class="form-control" name="Kdms[@i].ValidFrom" data-name="ValidFrom" value="@Dt(k.ValidFrom)" aria-label="Hiệu lực từ" /><span class="date-display" aria-hidden="true"></span></div>@Html.ValidationMessage($"Kdms[{i}].ValidFrom")</td>
+                                <td data-label="Hết hiệu lực"><div class="date-field"><input type="datetime-local" class="form-control" name="Kdms[@i].ValidUntil" data-name="ValidUntil" value="@Dt(k.ValidUntil)" aria-label="Hết hiệu lực" /><span class="date-display" aria-hidden="true"></span></div>@Html.ValidationMessage($"Kdms[{i}].ValidUntil")</td>
+                                <td data-label="Ghi chú"><input class="form-control" name="Kdms[@i].Note" data-name="Note" value="@k.Note" maxlength="300" aria-label="Ghi chú KDM" />@Html.ValidationMessage($"Kdms[{i}].Note")</td>
+                                <td class="col-actions"><button type="button" class="btn btn-ghost btn-icon btn-sm" data-row-remove aria-label="Bỏ dòng KDM này" title="Bỏ dòng"><i class="bi bi-x-lg" aria-hidden="true"></i></button></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <p class="text-muted small px-4 py-3 mb-0" data-row-empty hidden="@(Model.Kdms.Count > 0)">Chưa có KDM nào nên chưa xếp suất được. Bấm “Thêm KDM”.</p>
+            </div>
+            <template data-row-template>
+                <tr data-row>
+                    <td data-label="Rạp">
+                        <select class="form-select" data-name="CinemaId" aria-label="Rạp của KDM">
+                            <option value="0">Chọn rạp</option>
+                            @foreach (var c in Model.Cinemas) { <option value="@c.Id">@c.Name</option> }
+                        </select>
+                    </td>
+                    <td data-label="Hiệu lực từ"><div class="date-field"><input type="datetime-local" class="form-control" data-name="ValidFrom" aria-label="Hiệu lực từ" /><span class="date-display" aria-hidden="true"></span></div></td>
+                    <td data-label="Hết hiệu lực"><div class="date-field"><input type="datetime-local" class="form-control" data-name="ValidUntil" aria-label="Hết hiệu lực" /><span class="date-display" aria-hidden="true"></span></div></td>
+                    <td data-label="Ghi chú"><input class="form-control" data-name="Note" maxlength="300" aria-label="Ghi chú KDM" /></td>
+                    <td class="col-actions"><button type="button" class="btn btn-ghost btn-icon btn-sm" data-row-remove aria-label="Bỏ dòng KDM này" title="Bỏ dòng"><i class="bi bi-x-lg" aria-hidden="true"></i></button></td>
+                </tr>
+            </template>
+        </section>
+
+        <div class="form-actions-sticky">
+            <a class="btn btn-ghost" href="@back">Hủy</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Lưu</button>
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/pages/movie-form.js" asp-append-version="true"></script>
+}

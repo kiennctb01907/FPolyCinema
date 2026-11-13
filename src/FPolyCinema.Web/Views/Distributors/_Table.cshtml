@@ -1,0 +1,59 @@
+@model DistributorListVm
+@* Bảng nhà phát hành: tên, email, điện thoại, số phim, trạng thái, thao tác bên phải. *@
+@if (Model.Result.Total == 0)
+{
+    if (Model.HasFilter)
+    {
+        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-search", Title = "Không có nhà phát hành phù hợp", Text = "Không có kết quả – thử đổi từ khóa hoặc bỏ bớt bộ lọc.", ActionLabel = "Xóa bộ lọc", ActionUrl = "/admin/distributors", ActionIcon = "bi-funnel" })" />
+    }
+    else
+    {
+        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-building", Title = "Chưa có nhà phát hành", Text = "Thêm nhà phát hành để chọn khi thêm phim.", ActionLabel = "Thêm nhà phát hành", ActionUrl = "/admin/distributors/create" })" />
+    }
+}
+else
+{
+    <div class="table-wrap">
+        <table class="data-table">
+            <caption class="visually-hidden">Danh sách nhà phát hành</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Nhà phát hành</th>
+                    <th scope="col" class="col-opt">Email</th>
+                    <th scope="col" class="col-opt">Điện thoại</th>
+                    <th scope="col" class="num">Số phim</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col" class="col-actions">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model.Result.Items)
+                {
+                    var d = row.Distributor;
+                    var active = StatusDisplay.Of(StatusDisplay.Active, d.Active);
+                    <tr>
+                        <td class="cell-title"><a class="cell-main" href="/admin/distributors/@d.Id/edit">@d.Name</a></td>
+                        <td class="col-opt" data-label="Email">@(d.Email ?? "–")</td>
+                        <td class="col-opt num" data-label="Điện thoại">@(d.Phone ?? "–")</td>
+                        <td class="num" data-label="Số phim">@Fmt.Number(row.MovieCount)</td>
+                        <td data-label="Trạng thái">
+                            <label class="form-check form-switch active-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" checked="@d.Active" data-active-url="/admin/distributors/@d.Id/set-active" data-on-done="Đã mở lại hợp tác" data-off-done="Đã ngưng hợp tác" aria-label="Đang hợp tác: @d.Name" />
+                                <span data-active-label>@active.Label</span>
+                            </label>
+                        </td>
+                        <td class="col-actions">
+                            <a class="btn btn-ghost btn-icon btn-sm" href="/admin/distributors/@d.Id/edit" aria-label="Sửa @d.Name" data-bs-toggle="tooltip" title="Sửa"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                            <button type="button" class="btn btn-ghost btn-icon btn-sm" aria-label="Xóa @d.Name" data-bs-toggle="tooltip" title="Xóa"
+                                    data-name="@d.Name" data-check-url="/admin/distributors/@d.Id/delete-check" data-delete-url="/admin/distributors/@d.Id/delete"
+                                    data-deactivate-url="/admin/distributors/@d.Id/set-active" data-deactivate-text="Ngưng hợp tác" data-deactivate-done="Đã ngưng hợp tác">
+                                <i class="bi bi-trash" aria-hidden="true"></i>
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_Pagination" model="@(new PaginationVm { Page = Model.Result.Page, PageCount = Model.Result.PageCount, Label = Model.Result.Label, UrlFor = p => QueryUrl.With(Context.Request, "page", p == 1 ? null : p.ToString()) })" />
+}

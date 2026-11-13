@@ -469,6 +469,72 @@
     </div>
 </div>
 
+@* ---------------------------------------------------------------- Thành phần Phase 3 (A4, A5, bảng giá) *@
+<div class="sg-block">
+    <h3>Tab nhóm trang, chọn ngày, nhóm ô tích</h3>
+    <p class="sg-note">Tab của nhóm trang bảng giá; chọn ngày ‹ Hôm nay › của lịch chiếu; nhóm ô tích nhiều lựa chọn (thể loại, ngôn ngữ).</p>
+    <nav class="page-tabs" aria-label="Ví dụ tab"><a href="#" class="active" aria-current="page"><i class="bi bi-tags" aria-hidden="true"></i>Bảng giá 6 chiều</a><a href="#"><i class="bi bi-people" aria-hidden="true"></i>Đối tượng ưu đãi</a><a href="#"><i class="bi bi-calendar-heart" aria-hidden="true"></i>Ngày lễ</a></nav>
+    <div class="date-nav mb-4" role="group" aria-label="Ví dụ chọn ngày">
+        <button type="button" class="btn btn-secondary btn-icon" aria-label="Ngày trước"><i class="bi bi-chevron-left" aria-hidden="true"></i></button>
+        <button type="button" class="btn btn-secondary active">Hôm nay</button>
+        <button type="button" class="btn btn-secondary btn-icon" aria-label="Ngày sau"><i class="bi bi-chevron-right" aria-hidden="true"></i></button>
+        <span class="date-label">@Fmt.WeekdayDate(Model.Now)/@Model.Now.Year</span>
+    </div>
+    <fieldset class="check-fieldset">
+        <legend>Bản ngôn ngữ</legend>
+        <div class="check-grid">
+            <label class="form-check"><input class="form-check-input" type="checkbox" checked /><span class="form-check-label">Phụ đề</span></label>
+            <label class="form-check"><input class="form-check-input" type="checkbox" /><span class="form-check-label">Lồng tiếng</span></label>
+            <label class="form-check"><input class="form-check-input" type="checkbox" disabled /><span class="form-check-label">Nguyên bản (bị khóa)</span></label>
+        </div>
+    </fieldset>
+</div>
+
+<div class="sg-block">
+    <h3>Lỗi chặn và cảnh báo của suất chiếu</h3>
+    <p class="sg-note">Lỗi đỏ chặn lưu, cảnh báo vàng vẫn lưu được; luôn có icon kèm chữ. Thanh số ghế đã bán dùng biến CSS --pct.</p>
+    <ul class="issue-list mb-3">
+        <li class="tone-danger"><i class="bi bi-x-octagon" aria-hidden="true"></i><span>Phòng 2 đã có suất 19:00–21:25 (gồm thời gian dọn phòng). Suất mới phải bắt đầu từ 21:25.</span></li>
+        <li class="tone-warning"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i><span>Cảnh báo: Phim K kết thúc lúc 22:10, từ 22:00 trở đi: trẻ em dưới 13 tuổi không vào được suất này.</span></li>
+    </ul>
+    <div class="issue-ok mb-3"><i class="bi bi-check-circle" aria-hidden="true"></i><span>Suất hợp lệ, không có cảnh báo.</span></div>
+    <span class="sold-meter"><span>42/120</span><span class="bar" aria-hidden="true"><span style="--pct: 35%"></span></span></span>
+</div>
+
+<div class="sg-block">
+    <h3>Công cụ thiết kế phòng và heatmap điểm ghế</h3>
+    <p class="sg-note">Công cụ tô (đang chọn, thường, bị khóa); ô lưới thiết kế; thang heatmap 0–39, 40–59, 60–74, 75–89, 90–100 (hai mức sáng chữ tối). Ghế đang chọn luôn giữ màu --seat-selected.</p>
+    <div class="row g-4">
+        <div class="col-12 col-md-4">
+            <div class="tool-list">
+                <button type="button" class="tool-btn is-active"><span class="tool-swatch t-vip" data-theme="cinema" aria-hidden="true"></span><span>Ghế VIP</span></button>
+                <button type="button" class="tool-btn"><span class="tool-swatch is-house" data-theme="cinema" aria-hidden="true"><i class="bi bi-lock"></i></span><span>Ghế nội bộ</span></button>
+                <button type="button" class="tool-btn" disabled title="Phòng đã có suất sắp chiếu bán vé"><span class="tool-swatch is-empty" data-theme="cinema" aria-hidden="true"></span><span>Ô trống (bị khóa)</span></button>
+            </div>
+        </div>
+        <div class="col-12 col-md-8">
+            <div class="seatmap show-heat" data-theme="cinema" data-bs-theme="dark">
+                <div class="design-grid mb-3" style="--cols: 7" aria-label="Ví dụ ô lưới thiết kế">
+                    <span class="seat-row-label">A</span>
+                    <button type="button" class="dcell" aria-label="Ô trống"></button>
+                    <button type="button" class="dcell has-seat t-standard heat-1" aria-label="Ghế 15 điểm">1</button>
+                    <button type="button" class="dcell has-seat t-vip heat-3" aria-label="Ghế VIP 65 điểm">2</button>
+                    <button type="button" class="dcell has-seat t-sweetbox pair-left heat-4" aria-label="Ghế đôi trái">3</button>
+                    <button type="button" class="dcell has-seat t-sweetbox pair-right heat-4" aria-label="Ghế đôi phải">4</button>
+                    <button type="button" class="dcell has-seat t-standard is-house heat-5" aria-label="Ghế nội bộ"><i class="bi bi-lock" aria-hidden="true"></i></button>
+                    <button type="button" class="dcell has-seat t-standard is-maint" aria-label="Ghế bảo trì"><i class="bi bi-wrench" aria-hidden="true"></i></button>
+                    <span class="seat-row-label">A</span>
+                </div>
+                <div class="d-flex gap-2 mb-3">
+                    <span class="seat t-standard s-free heat-2" aria-hidden="true">5</span>
+                    <span class="seat t-standard s-selected heat-5" aria-hidden="true">✓</span>
+                </div>
+                <div class="heat-legend"><span class="heat-chip heat-1">0–39</span><span class="heat-chip heat-2">40–59</span><span class="heat-chip heat-3">60–74</span><span class="heat-chip heat-4">75–89</span><span class="heat-chip heat-5">90–100</span></div>
+            </div>
+        </div>
+    </div>
+</div>
+
 @* ---------------------------------------------------------------- Sơ đồ ghế *@
 <div class="sg-block">
     <h3>Sơ đồ ghế (_SeatMap)</h3>

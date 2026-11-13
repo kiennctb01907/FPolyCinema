@@ -36,6 +36,31 @@ public static class ErrorCodes
     /// <summary>Lỗi không lường trước ở máy chủ (HTTP 500); không lộ chi tiết kỹ thuật.</summary>
     public const string ServerError = "SERVER_ERROR";
 
+    // ---------------------------------------------------------------- Phase 3 (CONTRACTS C8-06)
+    /// <summary>KDM của phim tại rạp không phủ trọn [FeatureStartTime, EndTime] của suất (SPEC 3.3).</summary>
+    public const string KdmInvalid = "KDM_INVALID";
+
+    /// <summary>Phim chưa có số Giấy phép phân loại phim nên chưa tạo suất được (SPEC 3.1).</summary>
+    public const string LicenseMissing = "LICENSE_MISSING";
+
+    /// <summary>Phim nhãn C (không được phép phổ biến) chỉ lưu hồ sơ, không tạo suất (SPEC 3.1).</summary>
+    public const string RatingC = "RATING_C";
+
+    /// <summary>Hai suất cùng phòng có khoảng [StartTime, CleaningEndTime) giao nhau (SPEC 3.3).</summary>
+    public const string ShowtimeOverlap = "SHOWTIME_OVERLAP";
+
+    /// <summary>Suất đã có khách mua hoặc đang giữ ghế (LOCKED_HAS_TICKETS) nên không đổi giờ, phòng hay phim (SPEC 3.3).</summary>
+    public const string ShowtimeLocked = "SHOWTIME_LOCKED";
+
+    /// <summary>Vé trẻ em không áp dụng cho phim có nhãn tuổi cao hơn (SPEC 3.1 mục 2).</summary>
+    public const string AgeRestricted = "AGE_RESTRICTED";
+
+    /// <summary>Vé trẻ em chỉ bán cho suất kết thúc trước mốc giờ theo quy định (SPEC 3.1 mục 4).</summary>
+    public const string ChildCurfew = "CHILD_CURFEW";
+
+    /// <summary>Phim K: vé trẻ dưới 13 tuổi cần người lớn hoặc người giám hộ đi cùng (SPEC 3.1 mục 3).</summary>
+    public const string GuardianRequired = "GUARDIAN_REQUIRED";
+
     /// <summary>Mã HTTP của từng mã lỗi; mặc định 422 (vi phạm quy tắc nghiệp vụ).</summary>
     public static int HttpStatusOf(string code) => code switch
     {
