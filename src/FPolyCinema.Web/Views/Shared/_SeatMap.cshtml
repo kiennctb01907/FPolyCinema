@@ -1,0 +1,94 @@
+@model SeatMapVm
+@* Sơ đồ ghế (UI mục 8), luôn theme cinema: màn hình cong SVG ở trên, nhãn hàng ở hai đầu, lối đi chừa khoảng bằng một ghế,
+   trạng thái thể hiện bằng cả màu lẫn ký hiệu. TODO(Phase 4): chọn ghế, bàn phím mũi tên, tooltip giá và điểm, cập nhật thời gian thực. *@
+@{
+    var byPos = Model.Seats.ToDictionary(s => (s.Row, s.Col));
+    string Row(int r) => SeatLabeler.RowLetter(r).ToString();
+    string StatusText(SeatCell s) => s.Status switch
+    {
+        "SELECTED" => "đang chọn",
+        SeatDisplayStatus.Held => "người khác đang giữ",
+        SeatDisplayStatus.Booked => "đã bán",
+        SeatDisplayStatus.HouseHold => "ghế nội bộ",
+        SeatDisplayStatus.Maintenance => "đang bảo trì",
+        _ => "còn trống",
+    };
+    string Cls(SeatCell s) => "seat t-" + s.SeatType.ToLowerInvariant() + " s-" + s.Status switch
+    {
+        "SELECTED" => "selected",
+        SeatDisplayStatus.Held => "held",
+        SeatDisplayStatus.Booked => "booked",
+        SeatDisplayStatus.HouseHold => "house",
+        SeatDisplayStatus.Maintenance => "maint",
+        _ => "free",
+    };
+    string Icon(SeatCell s) => s.Status switch
+    {
+        "SELECTED" => "✓",
+        SeatDisplayStatus.Booked => "✕",
+        _ => s.Label[1..],
+    };
+}
+<div class="seatmap" data-theme="cinema" data-bs-theme="dark">
+    <svg class="screen" viewBox="0 0 560 40" aria-hidden="true" focusable="false">
+        <path class="screen-halo" d="M20 30 Q280 -6 540 30 L540 40 Q280 6 20 40 Z" />
+        <path class="screen-line" d="M20 30 Q280 -6 540 30" />
+    </svg>
+    <p class="screen-label">Màn hình</p>
+    <div class="seat-grid" style="--cols: @Model.Cols" role="grid" aria-label="Sơ đồ ghế">
+        @for (int r = 1; r <= Model.Rows; r++)
+        {
+            <span class="seat-row-label" role="rowheader">@Row(r)</span>
+            for (int c = 1; c <= Model.Cols; c++)
+            {
+                if (byPos.TryGetValue((r, c), out var s))
+                {
+                    var disabled = s.Status is SeatDisplayStatus.Held or SeatDisplayStatus.Booked or SeatDisplayStatus.Maintenance;
+                    var typeLabel = StatusDisplay.Of(StatusDisplay.Seat, s.SeatType).Label;
+                    <button type="button" class="@Cls(s)" disabled="@disabled" aria-label="Ghế @s.Label, @typeLabel, @StatusText(s)" title="Ghế @s.Label · @typeLabel · @StatusText(s)">
+                        @if (s.Status == SeatDisplayStatus.Held)
+                        {
+                            <i class="bi bi-clock" aria-hidden="true"></i>
+                        }
+                        else if (s.Status == SeatDisplayStatus.HouseHold)
+                        {
+                            <i class="bi bi-lock" aria-hidden="true"></i>
+                        }
+                        else if (s.Status == SeatDisplayStatus.Maintenance)
+                        {
+                            <i class="bi bi-wrench" aria-hidden="true"></i>
+                        }
+                        else if (s.SeatType == SeatType.Wheelchair && s.Status == SeatDisplayStatus.Available)
+                        {
+                            <i class="bi bi-person-wheelchair" aria-hidden="true"></i>
+                        }
+                        else
+                        {
+                            <span aria-hidden="true">@Icon(s)</span>
+                        }
+                    </button>
+                    if (s.SeatType == SeatType.Sweetbox) { c++; }
+                }
+                else
+                {
+                    <span class="seat-gap" aria-hidden="true"></span>
+                }
+            }
+            <span class="seat-row-label" aria-hidden="true">@Row(r)</span>
+        }
+    </div>
+    @if (Model.ShowLegend)
+    {
+        <div class="seat-legend" aria-label="Chú thích">
+            <span><span class="seat t-standard s-free" aria-hidden="true"></span>Ghế thường</span>
+            <span><span class="seat t-vip s-free" aria-hidden="true"></span>Ghế VIP</span>
+            <span><span class="seat t-sweetbox s-free" aria-hidden="true"></span>Ghế đôi</span>
+            <span><span class="seat t-wheelchair s-free" aria-hidden="true"><i class="bi bi-person-wheelchair"></i></span>Chỗ xe lăn</span>
+            <span><span class="seat t-standard s-selected" aria-hidden="true">✓</span>Đang chọn</span>
+            <span><span class="seat t-standard s-held" aria-hidden="true"><i class="bi bi-clock"></i></span>Người khác đang giữ</span>
+            <span><span class="seat t-standard s-booked" aria-hidden="true">✕</span>Đã bán</span>
+            <span><span class="seat t-standard s-house" aria-hidden="true"><i class="bi bi-lock"></i></span>Ghế nội bộ</span>
+            <span><span class="seat t-standard s-maint" aria-hidden="true"><i class="bi bi-wrench"></i></span>Bảo trì</span>
+        </div>
+    }
+</div>

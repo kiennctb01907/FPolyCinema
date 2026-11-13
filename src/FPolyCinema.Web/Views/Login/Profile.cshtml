@@ -1,0 +1,65 @@
+@model ProfileVm
+@* Thông tin tài khoản của khách (UC04, Login/Profile). TODO(Phase 5): trang tài khoản C5 /account với hạng thành viên, vé, ví, voucher. *@
+@{
+    ViewData["Title"] = "Thông tin tài khoản";
+}
+<div class="form-narrow mx-auto">
+    <partial name="_PageHeader" model="@(new PageHeaderVm { Title = "Thông tin tài khoản", Description = "Cập nhật họ tên, số điện thoại và ngày sinh của bạn.", Crumbs = new() { new("Trang chủ", "/"), new("Thông tin tài khoản") } })" />
+    <div class="row g-4">
+        <div class="col-12 col-lg-7">
+            <section class="card-ui" aria-labelledby="info-title">
+                <form asp-antiforgery="true" method="post" action="/Login/Profile" novalidate data-dirty-guard>
+                    <div class="card-section">
+                        <div class="profile-head mb-4">
+                            <span class="avatar avatar-lg" aria-hidden="true">@Model.Initials</span>
+                            <div>
+                                <h2 class="card-section-title h5" id="info-title">@Model.FullName</h2>
+                                <span class="text-muted small">@Model.Email</span>
+                            </div>
+                        </div>
+                        <partial name="~/Views/Login/_FormErrors.cshtml" />
+                        <div class="mb-3">
+                            <label asp-for="FullName" class="form-label">Họ tên <span class="req" aria-hidden="true">*</span></label>
+                            <input asp-for="FullName" class="form-control" autocomplete="name" />
+                            <span asp-validation-for="FullName"></span>
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-12 col-sm-6">
+                                <label asp-for="Phone" class="form-label">Số điện thoại</label>
+                                <input asp-for="Phone" class="form-control" type="tel" inputmode="tel" autocomplete="tel" placeholder="0901234567" />
+                                <span asp-validation-for="Phone"></span>
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <label asp-for="BirthDate" class="form-label">Ngày sinh</label>
+                                <div class="date-field">
+                                    <input asp-for="BirthDate" class="form-control" type="date" />
+                                    <span class="date-display" aria-hidden="true"></span>
+                                </div>
+                                <span asp-validation-for="BirthDate"></span>
+                                <div class="form-text">Dùng để kiểm tra độ tuổi khi mua vé phim T13, T16, T18.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions-sticky">
+                        <a class="btn btn-ghost" href="/">Hủy</a>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Lưu</button>
+                    </div>
+                </form>
+            </section>
+        </div>
+        <div class="col-12 col-lg-5">
+            <section class="card-ui card-ui-body" aria-labelledby="member-title">
+                <h2 class="card-ui-title" id="member-title">Thẻ thành viên</h2>
+                <dl class="detail-list">
+                    <dt>Mã thành viên</dt><dd class="num fw-500">@(Model.MemberCode ?? "–")</dd>
+                    <dt>Hạng</dt><dd><span class="status-badge tone-warning">@Model.TierLabel</span></dd>
+                    <dt>Điểm</dt><dd class="num">@Fmt.Number(Model.LoyaltyPoints) điểm</dd>
+                </dl>
+                <a class="btn btn-secondary mt-4" href="/Login/ChangePassword"><i class="bi bi-key" aria-hidden="true"></i>Đổi mật khẩu</a>
+            </section>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

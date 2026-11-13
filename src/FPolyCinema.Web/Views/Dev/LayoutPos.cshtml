@@ -1,0 +1,32 @@
+@* Xem trước _LayoutPos (UI U4-10, U4-11): topbar 48px, cao đúng 100vh, trang không cuộn, từng cột tự cuộn bên trong.
+   TODO(Phase 4): màn hình POS thật /pos/index dùng layout này. *@
+@{
+    Layout = "_LayoutPos";
+    ViewData["Title"] = "Xem trước layout POS";
+}
+<div class="pos-preview">
+    <section class="pos-col" aria-labelledby="c1">
+        <h2 class="h6" id="c1">Cột 1 · 300px</h2>
+        <p class="text-muted small">Danh sách suất hôm nay sẽ nằm ở đây. Cột tự cuộn khi dài.</p>
+        @for (int i = 1; i <= 30; i++)
+        {
+            <div class="skeleton skeleton-line"></div>
+        }
+    </section>
+    <section class="pos-col" aria-labelledby="c2">
+        <h2 class="h6" id="c2">Cột 2 · co giãn</h2>
+        <p class="text-muted">Sơ đồ ghế và lưới món bắp nước. Trang không cuộn, chỉ từng cột cuộn.</p>
+        <partial name="_SeatMap" model="StyleGuideSamples.SeatMap()" />
+    </section>
+    <section class="pos-col d-flex flex-column" aria-labelledby="c3">
+        <h2 class="h6" id="c3">Cột 3 · 380px – hóa đơn tạm tính</h2>
+        <div class="flex-grow-1">
+            <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-receipt", Title = "Hóa đơn trống", Text = "Chọn suất và ghế, hoặc thêm món bắp nước để bắt đầu." })" />
+        </div>
+        <div class="d-grid gap-2">
+            <span class="d-grid" tabindex="0" data-bs-toggle="tooltip" title="Bản xem trước layout: chưa có hóa đơn để thanh toán.">
+                <button type="button" class="btn btn-primary btn-pay" disabled><i class="bi bi-cash-coin" aria-hidden="true"></i>Tiền mặt <kbd>F4</kbd></button>
+            </span>
+        </div>
+    </section>
+</div>

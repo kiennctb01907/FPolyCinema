@@ -1,0 +1,12 @@
+@model QrBlockVm
+@* Khối QR (UI U5-36): nền trắng bo góc 16px, QR 240px (màn hình phụ 360px), mã ghi bên dưới, đồng hồ đếm ngược nếu có hạn. *@
+<figure class="qr-block @(Model.Large ? "qr-lg" : null) mb-0">
+    <img src="@Model.DataUri" width="@(Model.Large ? 360 : 240)" height="@(Model.Large ? 360 : 240)" alt="Mã QR @Model.Code" />
+    <figcaption class="text-center">
+        <span class="qr-code d-block">@Model.Code</span>
+        @if (Model.ExpiresAt.HasValue)
+        {
+            <span class="qr-countdown">Còn <time data-countdown data-expires-at="@Model.ExpiresAt.Value.ToString("yyyy-MM-ddTHH:mm:ss")">--:--</time></span>
+        }
+    </figcaption>
+</figure>

@@ -1,0 +1,43 @@
+@model CategoryFormVm
+@* A3. Form thêm, sửa loại đồ uống: thẻ rộng tối đa 960px, chia phần có tiêu đề; thanh nút dính chân form "Hủy" và "Lưu";
+   cảnh báo khi rời trang mà chưa lưu. *@
+@{
+    Layout = "_LayoutAdmin";
+    var isNew = Model.Id == null;
+    var title = isNew ? "Thêm loại đồ uống" : "Sửa loại đồ uống";
+    ViewData["Title"] = title;
+    ViewData["Crumbs"] = new List<Crumb> { new("Kho bắp nước"), new("Loại đồ uống", "/admin/categories"), new(isNew ? "Thêm loại" : Model.Name) };
+}
+<div class="form-card">
+    <partial name="_PageHeader" model="@(new PageHeaderVm { Title = title, Description = "Các ô có dấu * là bắt buộc.", Crumbs = new() { new("Loại đồ uống", "/admin/categories"), new(isNew ? "Thêm loại" : Model.Name) } })" />
+    <form asp-antiforgery="true" method="post" action="@(isNew ? "/admin/categories/create" : $"/admin/categories/{Model.Id}/edit")" class="card-ui" novalidate data-dirty-guard>
+        <partial name="~/Views/Login/_FormErrors.cshtml" />
+        <section class="card-section" aria-labelledby="sec-info">
+            <h2 class="card-section-title" id="sec-info">Thông tin loại</h2>
+            <p class="card-section-desc">Tên hiện trên bộ lọc của quầy bán và thực đơn web.</p>
+            <div class="form-grid cols-2">
+                <div>
+                    <label asp-for="Name" class="form-label">Tên loại <span class="req" aria-hidden="true">*</span></label>
+                    <input asp-for="Name" class="form-control" placeholder="Ví dụ: Combo" autofocus />
+                    <span asp-validation-for="Name"></span>
+                    <div class="form-text">Tối đa 100 ký tự, không trùng với loại khác.</div>
+                </div>
+                <div>
+                    <span class="form-label d-block">Trạng thái</span>
+                    <label class="form-check form-switch active-switch">
+                        <input asp-for="Active" class="form-check-input" type="checkbox" role="switch" />
+                        <span>Đang hoạt động</span>
+                    </label>
+                    <div class="form-text">Tắt để ẩn loại này khỏi nơi bán mà vẫn giữ lịch sử.</div>
+                </div>
+            </div>
+        </section>
+        <div class="form-actions-sticky">
+            <a class="btn btn-ghost" href="/admin/categories">Hủy</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Lưu</button>
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,56 @@
+@model CategoryDetailsVm
+@{
+    Layout = "_LayoutAdmin";
+    var c = Model.Category;
+    ViewData["Title"] = c.Name;
+    ViewData["Crumbs"] = new List<Crumb> { new("Kho bắp nước"), new("Loại đồ uống", "/admin/categories"), new(c.Name) };
+    var header = new PageHeaderVm { Title = c.Name, Description = $"{Model.DrinkTotal} món thuộc loại này.", Crumbs = new() { new("Loại đồ uống", "/admin/categories"), new(c.Name) } };
+    if (Model.CanManage)
+    {
+        header.Actions = @<text>
+            <button type="button" class="btn btn-secondary" data-name="@c.Name" data-check-url="/admin/categories/@c.Id/delete-check" data-delete-url="/admin/categories/@c.Id/delete"
+                    data-deactivate-url="/admin/categories/@c.Id/set-active" data-deactivate-done="Đã ngưng loại đồ uống này" data-after-delete="/admin/categories"><i class="bi bi-trash" aria-hidden="true"></i>Xóa</button>
+            <a class="btn btn-primary" href="/admin/categories/@c.Id/edit"><i class="bi bi-pencil" aria-hidden="true"></i>Sửa</a>
+        </text>;
+    }
+}
+<partial name="_PageHeader" model="header" />
+<div class="row g-4">
+    <div class="col-12 col-lg-4">
+        <section class="card-ui card-ui-body" aria-labelledby="info">
+            <h2 class="card-ui-title" id="info">Thông tin</h2>
+            <dl class="detail-list">
+                <dt>Tên loại</dt><dd>@c.Name</dd>
+                <dt>Trạng thái</dt><dd><partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Active, c.Active ? "true" : "false"))" /></dd>
+                <dt>Số món</dt><dd class="num">@Fmt.Number(Model.DrinkTotal)</dd>
+            </dl>
+        </section>
+    </div>
+    <div class="col-12 col-lg-8">
+        <section aria-labelledby="drinks">
+            <h2 class="h5" id="drinks">Các món thuộc loại</h2>
+            @if (Model.Drinks.Count == 0)
+            {
+                <div class="card-ui"><partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-cup-straw", Title = "Chưa có món nào", Text = "Loại này chưa có món. Bạn thêm món mới và chọn loại này.", ActionLabel = Model.CanManage ? "Thêm món" : null, ActionUrl = $"/admin/drinks/create?categoryId={c.Id}" })" /></div>
+            }
+            else
+            {
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead><tr><th scope="col">Món</th><th scope="col" class="num">Giá bán</th><th scope="col">Trạng thái</th></tr></thead>
+                        <tbody>
+                            @foreach (var d in Model.Drinks)
+                            {
+                                <tr>
+                                    <td class="cell-title"><a class="cell-main" href="/admin/drinks/@d.Drink.Id">@d.Drink.Name</a></td>
+                                    <td class="num money" data-label="Giá bán">@Fmt.Money(d.Drink.Price)</td>
+                                    <td data-label="Trạng thái"><partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Active, d.Drink.Active ? "true" : "false"))" /></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+    </div>
+</div>

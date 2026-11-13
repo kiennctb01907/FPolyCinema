@@ -1,0 +1,163 @@
+@model DrinkFormVm
+@* A3. Form thêm, sửa đồ uống: thẻ rộng tối đa 960px chia phần có tiêu đề (từ 992px chia 2 cột); vùng kéo thả ảnh món 1:1,
+   xem trước ngay, nút xóa ảnh (gọi Upload và Delete của FileController bằng fetch); định mức nguyên liệu theo từng rạp;
+   thanh nút dính chân form "Hủy" và "Lưu"; cảnh báo khi rời trang mà chưa lưu. *@
+@{
+    Layout = "_LayoutAdmin";
+    var isNew = Model.Id == null;
+    var title = isNew ? "Thêm món" : "Sửa món";
+    ViewData["Title"] = title;
+    ViewData["Crumbs"] = new List<Crumb> { new("Kho bắp nước"), new("Đồ uống", "/admin/drinks"), new(isNew ? "Thêm món" : Model.Name) };
+    int rowIndex = 0;
+    var firstCinema = Model.CinemaMaterials.FirstOrDefault();
+}
+<div class="form-card">
+    <partial name="_PageHeader" model="@(new PageHeaderVm { Title = title, Description = "Các ô có dấu * là bắt buộc. Ảnh tải lên ngay khi bạn chọn, bấm Lưu để áp dụng.", Crumbs = new() { new("Đồ uống", "/admin/drinks"), new(isNew ? "Thêm món" : Model.Name) } })" />
+    <form asp-antiforgery="true" method="post" action="@(isNew ? "/admin/drinks/create" : $"/admin/drinks/{Model.Id}/edit")" class="card-ui" id="drink-form" novalidate data-dirty-guard>
+        <partial name="~/Views/Login/_FormErrors.cshtml" />
+        <div class="form-grid cols-2 card-section">
+            <section aria-labelledby="sec-info">
+                <h2 class="card-section-title" id="sec-info">Thông tin món</h2>
+                <p class="card-section-desc">Tên, loại và giá hiện ở quầy bán và thực đơn web.</p>
+                <div class="mb-3">
+                    <label asp-for="Name" class="form-label">Tên món <span class="req" aria-hidden="true">*</span></label>
+                    <input asp-for="Name" class="form-control" placeholder="Ví dụ: Bắp rang bơ lớn" />
+                    <span asp-validation-for="Name"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="CategoryId" class="form-label">Loại đồ uống <span class="req" aria-hidden="true">*</span></label>
+                    <select asp-for="CategoryId" class="form-select">
+                        <option value="0">Chọn loại</option>
+                        @foreach (var c in Model.Categories)
+                        {
+                            <option value="@c.Id" selected="@(c.Id == Model.CategoryId)">@c.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CategoryId"></span>
+                </div>
+                <div class="mb-3">
+                    <label for="price-view" class="form-label">Giá bán <span class="req" aria-hidden="true">*</span></label>
+                    <div class="input-money">
+                        <input id="price-view" class="form-control" inputmode="numeric" autocomplete="off" data-money="Price" aria-describedby="price-help" value="@(Model.Price > 0 ? Fmt.Number(Model.Price) : null)" />
+                    </div>
+                    <input type="hidden" asp-for="Price" />
+                    <span asp-validation-for="Price"></span>
+                    <div class="form-text" id="price-help">Giá đã gồm VAT, tính theo đồng.</div>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Description" class="form-label">Mô tả</label>
+                    <textarea asp-for="Description" class="form-control" rows="3" placeholder="Ví dụ: 1 bắp lớn và 2 nước ngọt"></textarea>
+                    <span asp-validation-for="Description"></span>
+                </div>
+                <div class="d-flex flex-wrap gap-4">
+                    <label class="form-check form-switch active-switch">
+                        <input asp-for="IsCombo" class="form-check-input" type="checkbox" role="switch" />
+                        <span>Là combo</span>
+                    </label>
+                    <label class="form-check form-switch active-switch">
+                        <input asp-for="Active" class="form-check-input" type="checkbox" role="switch" />
+                        <span>Đang bán</span>
+                    </label>
+                </div>
+            </section>
+            <section aria-labelledby="sec-image">
+                <h2 class="card-section-title" id="sec-image">Ảnh món</h2>
+                <p class="card-section-desc">Ảnh vuông 1:1, dạng JPG, PNG, GIF hoặc WEBP, tối đa 5MB.</p>
+                <input type="hidden" asp-for="Image" id="drink-image" />
+                <div class="dropzone" id="drink-dropzone" data-dropzone data-target="drink-image" data-upload-url="/File/Upload" data-delete-url="/File/Delete"
+                     role="button" tabindex="0" aria-label="Kéo thả ảnh vào đây hoặc bấm để chọn ảnh món">
+                    <img alt="Ảnh xem trước của món" hidden onerror="this.onerror=null;this.src='/img/placeholder-food.svg'" />
+                    <div class="dz-hint"><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i><span>Kéo thả ảnh vào đây<br />hoặc bấm để chọn</span></div>
+                </div>
+                <input type="file" accept=".jpg,.jpeg,.png,.gif,.webp,image/jpeg,image/png,image/gif,image/webp" hidden aria-hidden="true" tabindex="-1" />
+                <div class="dropzone-actions">
+                    <button type="button" class="btn btn-secondary btn-sm" data-dropzone-pick="drink-dropzone"><i class="bi bi-image" aria-hidden="true"></i>Chọn ảnh</button>
+                    <button type="button" class="btn btn-ghost btn-sm" data-dropzone-remove="drink-dropzone"><i class="bi bi-trash" aria-hidden="true"></i>Xóa ảnh</button>
+                </div>
+                <span asp-validation-for="Image"></span>
+                <div class="form-text" data-dropzone-why="drink-dropzone"></div>
+            </section>
+        </div>
+
+        <section class="card-section" aria-labelledby="sec-recipe">
+            <h2 class="card-section-title" id="sec-recipe">Định mức nguyên liệu</h2>
+            <p class="card-section-desc">Lượng nguyên liệu và bao bì dùng cho một phần. Nguyên liệu quản lý theo từng rạp; combo nhập định mức gộp của các món trong combo.</p>
+            @foreach (var cm in Model.CinemaMaterials)
+            {
+                var rows = Model.Recipes.Where(r => r.CinemaId == cm.CinemaId).ToList();
+                <div class="recipe-block mb-4" data-recipe-cinema="@cm.CinemaId" data-cinema-name="@cm.CinemaName">
+                    <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+                        <h3 class="h6 mb-0">@cm.CinemaName</h3>
+                        <div class="d-flex flex-wrap gap-2">
+                            @if (firstCinema != null && cm.CinemaId != firstCinema.CinemaId)
+                            {
+                                <button type="button" class="btn btn-ghost btn-sm" data-recipe-copy="@firstCinema.CinemaId"><i class="bi bi-files" aria-hidden="true"></i>Chép định mức từ @firstCinema.CinemaName</button>
+                            }
+                            <button type="button" class="btn btn-secondary btn-sm" data-recipe-add><i class="bi bi-plus-lg" aria-hidden="true"></i>Thêm nguyên liệu</button>
+                        </div>
+                    </div>
+                    <div class="table-wrap">
+                        <table class="data-table recipe-table">
+                            <thead>
+                                <tr><th scope="col">Nguyên liệu</th><th scope="col" class="num">Định mức một phần</th><th scope="col">Đơn vị</th><th scope="col" class="col-actions"><span class="visually-hidden">Thao tác</span></th></tr>
+                            </thead>
+                            <tbody data-recipe-rows>
+                                @foreach (var r in rows)
+                                {
+                                    var i = rowIndex++;
+                                    var mat = cm.Materials.FirstOrDefault(m => m.Id == r.RawMaterialId);
+                                    <tr data-recipe-row>
+                                        <td data-label="Nguyên liệu">
+                                            <input type="hidden" name="Recipes[@i].CinemaId" value="@cm.CinemaId" data-name="CinemaId" />
+                                            <select class="form-select" name="Recipes[@i].RawMaterialId" data-name="RawMaterialId" aria-label="Nguyên liệu tại @cm.CinemaName">
+                                                <option value="0">Chọn nguyên liệu</option>
+                                                @foreach (var m in cm.Materials)
+                                                {
+                                                    <option value="@m.Id" data-unit="@m.Unit" selected="@(m.Id == r.RawMaterialId)">@m.Name</option>
+                                                }
+                                            </select>
+                                            @Html.ValidationMessage($"Recipes[{i}].RawMaterialId")
+                                        </td>
+                                        <td class="num" data-label="Định mức">
+                                            <input type="number" class="form-control text-end" name="Recipes[@i].Quantity" data-name="Quantity" value="@r.Quantity.ToString("0.###", System.Globalization.CultureInfo.InvariantCulture)" min="0.001" step="0.001" aria-label="Định mức một phần" />
+                                            @Html.ValidationMessage($"Recipes[{i}].Quantity")
+                                        </td>
+                                        <td data-label="Đơn vị" data-unit>@(mat?.Unit ?? "–")</td>
+                                        <td class="col-actions"><button type="button" class="btn btn-ghost btn-icon btn-sm" data-recipe-remove aria-label="Bỏ dòng nguyên liệu này" data-bs-toggle="tooltip" title="Bỏ dòng"><i class="bi bi-x-lg" aria-hidden="true"></i></button></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        <p class="text-muted small px-4 py-3 mb-0" data-recipe-empty hidden="@(rows.Count > 0)">Chưa có nguyên liệu nào cho @cm.CinemaName. Bấm “Thêm nguyên liệu”.</p>
+                    </div>
+                    <template data-recipe-template>
+                        <tr data-recipe-row>
+                            <td data-label="Nguyên liệu">
+                                <input type="hidden" value="@cm.CinemaId" data-name="CinemaId" />
+                                <select class="form-select" data-name="RawMaterialId" aria-label="Nguyên liệu tại @cm.CinemaName">
+                                    <option value="0">Chọn nguyên liệu</option>
+                                    @foreach (var m in cm.Materials)
+                                    {
+                                        <option value="@m.Id" data-unit="@m.Unit">@m.Name</option>
+                                    }
+                                </select>
+                            </td>
+                            <td class="num" data-label="Định mức"><input type="number" class="form-control text-end" data-name="Quantity" min="0.001" step="0.001" aria-label="Định mức một phần" /></td>
+                            <td data-label="Đơn vị" data-unit>–</td>
+                            <td class="col-actions"><button type="button" class="btn btn-ghost btn-icon btn-sm" data-recipe-remove aria-label="Bỏ dòng nguyên liệu này" title="Bỏ dòng"><i class="bi bi-x-lg" aria-hidden="true"></i></button></td>
+                        </tr>
+                    </template>
+                </div>
+            }
+        </section>
+
+        <div class="form-actions-sticky">
+            <a class="btn btn-ghost" href="/admin/drinks">Hủy</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Lưu</button>
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script src="~/js/pages/drink-form.js" asp-append-version="true"></script>
+}

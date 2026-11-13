@@ -1,0 +1,6 @@
+@model DateTime
+@* Đồng hồ giữ ghế (UI U5-31–33): viên thuốc mm:ss; còn ≤ 2 phút màu warning; ≤ 1 phút màu danger và nhấp nhẹ;
+   về 0 mở hộp "Hết thời gian giữ ghế" với nút "Chọn lại" (data-restart-url). *@
+<span class="hold-timer" data-hold-timer data-expires-at="@Model.ToString("yyyy-MM-ddTHH:mm:ss")" data-restart-url="@(ViewData["RestartUrl"] as string)" role="timer">
+    <i class="bi bi-hourglass-split" aria-hidden="true"></i><span data-time>--:--</span>
+</span>

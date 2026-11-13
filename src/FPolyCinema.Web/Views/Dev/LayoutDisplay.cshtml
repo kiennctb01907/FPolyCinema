@@ -1,0 +1,12 @@
+@model DateTime
+@* Xem trước _LayoutDisplay (UI U4-12): toàn màn hình, không có thanh điều hướng, ẩn con trỏ sau 3 giây không dùng;
+   ?state=reconnecting hiện lớp phủ "Đang kết nối lại…". TODO(Phase 6): bảng sảnh, bảng gọi số, màn hình phụ dùng layout này. *@
+@{
+    Layout = "_LayoutDisplay";
+    ViewData["Title"] = "Xem trước màn hình hiển thị";
+}
+<div class="display-sample">
+    <partial name="_Logo" model="@("/dev/style-guide")" />
+    <time class="display-clock" data-clock="seconds" data-server-now="@Model.ToString("yyyy-MM-ddTHH:mm:ss")">@Fmt.Time(Model)</time>
+    <p class="display-text">@Fmt.WeekdayDate(Model) · Màn hình hiển thị đọc rõ từ 2–3 m</p>
+</div>

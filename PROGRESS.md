@@ -1,9 +1,18 @@
 # Tiến độ
 ## Trạng thái
-- [x] Phase 1  - [ ] Phase 2  - [ ] Phase 3  - [ ] Phase 4
+- [x] Phase 1  - [x] Phase 2  - [ ] Phase 3  - [ ] Phase 4
 - [ ] Phase 5  - [ ] Phase 6  - [ ] Phase 7  - [ ] Phase 8
 ## Phase đang làm
-Phase 1 – Nền tảng dữ liệu: đã xong ngày 07/11/2026 (verify 1 --final ĐẠT, commit "Phase 1: …", tag lab-3). Phase kế tiếp: Phase 2 – Giao diện nền, đăng nhập, CRUD cơ bản.
+Phase 2 – Giao diện nền, đăng nhập, CRUD cơ bản: xong ngày 11/11/2026 (verify 2 --final ĐẠT, commit "Phase 2: …", tag lab-4, lab-5). Phase kế tiếp: Phase 3 – Phim, phòng chiếu, giá, suất chiếu.
+
+### Việc đã làm ở Phase 2
+- Hệ thống thiết kế: tokens.css (đúng 109 biến của UI mục 2 và vài bí danh), app.css (ghi đè Bootstrap về token, mọi thành phần mục 5), 4 layout (_LayoutCustomer, _LayoutAdmin, _LayoutPos, _LayoutDisplay), 9 partial bắt buộc và partial phụ, ui.js, StatusDisplay xuất JSON trong layout, trang /dev/style-guide hai theme.
+- Thư viện tự host trong wwwroot/lib (Bootstrap 5.3.3, Bootstrap Icons 1.11.3, Chart.js 4.4.9, html5-qrcode 2.3.8, Be Vietnam Pro, jQuery validate), nguồn ghi ở libman.json; QRCoder 1.6.0 cho khối QR.
+- Program.cs: cookie 24 giờ, 6 policy, Anti-Forgery toàn cục (header RequestVerificationToken), xử lý lỗi tập trung (trang lỗi thân thiện, JSON CONTRACTS mục 8), UseForwardedHeaders đầu pipeline, 404 cho demo/ dev/ khi tắt công cụ, bắt đổi mật khẩu khi MustChangePassword = 1, đăng xuất phiên khác khi đổi mật khẩu (PasswordStamp).
+- LoginController (đăng nhập, đăng xuất, đăng ký, quên mật khẩu OTP 2 bước, đổi mật khẩu, hồ sơ, /me), IEmailSender (SMTP hoặc hộp thư thử /dev/mailbox).
+- CRUD: Loại đồ uống, Đồ uống (ảnh 1:1 tải bằng fetch qua FileController, định mức theo từng rạp, lọc theo loại, tìm theo tên), Nhân viên (cấp mật khẩu qua email, khóa hoặc mở ghi AuditLogs, quy tắc xóa SPEC 3.14).
+- Thanh đổi vai trò và /demo/switch-role; script tools/ui-snapshots (snap.mjs, routes.json, Playwright).
+- Test: 38 test mới (quy tắc thuần, dịch vụ trên CSDL thử, HTTP qua WebApplicationFactory); tổng 233/233 đạt.
 
 ### Kiểm tra môi trường (06/11/2026, cập nhật 07/11/2026)
 - 06/11: `dotnet --list-sdks` chỉ có 10.0.301 (thiếu SDK .NET 8 theo S8.1-01); `dotnet --list-runtimes` có Microsoft.NETCore.App 8.0.28, Microsoft.AspNetCore.App 8.0.28 (và 10.0.9). Ngày 06/11 đã tự chốt dùng SDK 10 và làm tiếp, không dừng hỏi ngay như S8.1-04 yêu cầu.
@@ -53,11 +62,30 @@ Phase 1 – Nền tảng dữ liệu: đã xong ngày 07/11/2026 (verify 1 --fin
 24. 07/11/2026 – Rà lại tên phim mẫu để không trùng phim thật: đổi "Bóng Ma Phố Cổ" thành "Căn Gác Số 9 Phố Cũ", "Vương Quốc Kẹo Ngọt" thành "Cô Bé Mây Và Xứ Sở Kẹo Bông", "Kẻ Săn Bóng Đêm" thành "Thanh Tra Đêm Mất Điện", "Vùng Cấm" thành "Phòng Thí Nghiệm Số 19", và các tên gốc tiếng Anh thành Orbit Paws, Candy Cloud Kingdom, Northbound Ice Chronicle, Blackout Inspector, Lab Nineteen – agent kiểm tra độc lập phát hiện "Forbidden Zone" và "Night Stalker" là tên phim có thật.
 25. 07/11/2026 – Quy ước đặt tên CONTRACTS mục 9 có hai chỗ giữ theo SPEC mục 6: bảng EmailOutbox (tên spec đặt, không số nhiều) và các cột người thực hiện CreatedBy, DecidedBy, RequestedBy, CheckedInBy (khóa ngoại tới Users nhưng không có đuôi Id) – SPEC mục 6 là nguồn tên bảng và cột.
 
+26. 08/11/2026 – Trang chính sau đăng nhập ở Phase 2: Manager, ShiftManager → /admin/drinks; POSCashier, TicketInspector → /me; khách → / (RoleRouting.HomePath, đổi khi có /admin ở Phase 4, /pos/index ở Phase 4, /pos/gate-inspector ở Phase 6) – các trang chính theo vai trò chưa tồn tại ở Phase 2.
+27. 08/11/2026 – Menu web khách (Phim, Lịch chiếu, Bắp nước, Ưu đãi), các mục sidebar chưa có màn hình và nút Đóng ca hiện ở trạng thái khóa có lý do trong tooltip, ghi TODO(Phase k) – UI mục 4 yêu cầu có các mục này từ Phase 2 nhưng màn hình thuộc phase sau; khóa có lý do theo UI U6-02 thay vì nút chết.
+28. 08/11/2026 – Route quản trị đặt chữ thường gạch ngang: /admin/categories, /admin/drinks, /admin/users, …/create, …/{id}/edit, …/{id}/delete-check, …/{id}/delete, …/{id}/set-active – UI mục 7 không ghi đường dẫn A2, A3; theo kiểu route ở CONTRACTS C9-07.
+29. 08/11/2026 – Mật khẩu người dùng tự đặt: ít nhất 8 ký tự, có cả chữ và số, khác mật khẩu hiện tại (PasswordRules) – spec không ghi; tài khoản mẫu vẫn dùng 123456 vì do DbSeeder tạo.
+30. 08/11/2026 – Mã OTP: gửi lại chỉ sau 60 giây (kiểm cả ở server); mã mới vô hiệu mã cũ; sai đủ 5 lần thì mã bị vô hiệu (OTP_INVALID kèm câu "đã hết lượt thử", lần sau OTP_EXPIRED); email không có tài khoản trả cùng lời nhắn nhưng không gửi thư.
+31. 08/11/2026 – Thêm nhân viên: hệ thống cấp mật khẩu ngẫu nhiên Auth:NewPasswordLength ký tự, gửi qua email, MustChangePassword = 1; nhân viên không phải Manager phải gắn rạp; không ai tự đổi vai trò của mình. Ngoài Bills, nhân viên có dữ liệu vận hành khác (ca, phê duyệt, nhật ký, kho…) cũng không xóa cứng được vì khóa ngoại.
+32. 08/11/2026 – Định mức món nhập theo từng rạp (RawMaterials theo rạp) với nút chép định mức sang rạp khác theo tên nguyên liệu; lưu món thay toàn bộ định mức trong một transaction.
+33. 08/11/2026 – Ảnh món: tải lên ngay khi chọn (FileController.Upload); nút Xóa ảnh gọi FileController.Delete cho ảnh vừa tải trong lần sửa; ảnh đã lưu chỉ xóa khi bấm Lưu (DrinkService xóa ảnh cũ không còn món, phim nào dùng); FileController.Delete từ chối ảnh đang được dùng (DELETE_BLOCKED). Uploads:Path phải là thư mục tên "uploads".
+34. 08/11/2026 – Ô chọn rạp lưu trong cookie fpc_cinema; nhân viên gắn rạp chỉ xem rạp của mình; quản lý toàn chuỗi chọn được "Toàn chuỗi".
+35. 08/11/2026 – Cỡ chữ 13, 28, 32, 56px (UI mục 5 ghi đích danh) là token bí danh --fs-13, --fs-28, --fs-32, --fs-56 trong tokens.css; bí danh màu --white, --ink, --scrim lấy đúng giá trị có sẵn.
+36. 08/11/2026 – Ảnh chụp của màn hình có nhiều trang thêm biến thể sau vai trò, ví dụ A2-manager-loai-1440x900.png – mẫu tên UI U13-04 chỉ cho một trang mỗi mã màn hình.
+37. 08/11/2026 – Bản ghi đọc (CategoryRow, DrinkRow, RecipeLine, PendingApprovalRow) đặt trong namespace Entities.ReadModels – không ứng với bảng nên không tính là Entity (test Phase 1 đếm đúng 35 entity).
+38. 08/11/2026 – HTML và JSON giữ nguyên chữ tiếng Việt (WebEncoderOptions, JsonOptions cho toàn bộ Unicode).
+39. 08/11/2026 – Model binding dùng InvariantCulture (ô number gửi dấu chấm); hiển thị luôn qua Fmt với vi-VN.
+
 ## Thay đổi mô hình (ngày – bảng/cột/use case/màn hình – trước – sau)
+- 11/11/2026 – CONTRACTS – thêm C3-39 AuditAction (USER_LOCKED, USER_UNLOCKED) và C8-09 mã lỗi chung (AUTH_REQUIRED, ACCESS_DENIED, NOT_FOUND, SERVER_ERROR) theo quy tắc "cần tên mới thì thêm vào CONTRACTS trước". Không đổi bảng, cột, use case hay màn hình.
 - 06/11/2026 – SchemaVersions – (Version, AppliedAt) – (Id INT IDENTITY khóa chính, Version UNIQUE, AppliedAt), theo quy ước khóa chính Id của CONTRACTS mục 9. Đã sửa dòng S6-35 trong docs/spec/s05-07-realtime-csdl-kiem-thu.md, chạy sync, và ghi ở CONTRACTS mục 12.
 - 06/11/2026 – Ràng buộc thêm (không đổi cột): UNIQUE(CinemaId, Name) của RawMaterials; UNIQUE(AuditoriumId, Label) của Seats; index lọc UX_PosShifts_OpenTerminal, UX_PosShifts_OpenUser (một ca mở cho mỗi máy và mỗi thu ngân), UX_Tickets_ActiveSeat (một vé còn hiệu lực cho mỗi ghế của suất), UX_Payments_ProviderTxnId, UX_Users_MemberCode; CHECK CK_Vouchers_PercentValue (voucher PERCENT không quá 100).
 
 ## Lỗi biết trước và việc còn lại
+- Phase 2: DeveloperExceptionPage của .NET vẫn tự bật trong Development nhưng chỉ hiện khi chính trang lỗi /Home/Error hỏng; mọi lỗi thường đi qua UseExceptionHandler, không hiện stack trace.
+- Phase 2: _SeatMap mới hiển thị trạng thái; chọn ghế, bàn phím, tooltip giá, thời gian thực làm ở Phase 4. Nút Đặt vé trên thẻ phim khóa đến Phase 5.
+- Phase 2: chỉ báo kết nối ở POS phản ánh mạng của trình duyệt cho tới khi có realtime.js (Phase 4).
 - Phase 1 không có màn hình; thư mục Controllers, Views, ViewModels, Hubs, Background, wwwroot/css, wwwroot/js đã tạo (chứa .gitkeep), nội dung làm từ Phase 2.
 - OperationalStatus của suất trong dữ liệu mẫu chỉ là COMPLETED (đã dọn xong) hoặc SCHEDULED; ShowtimeClockService cập nhật theo giờ ở Phase 6.
 - QR vé dạng SVG (QRCoder) làm ở Phase 4.
@@ -67,4 +95,5 @@ Phase 1 – Nền tảng dữ liệu: đã xong ngày 07/11/2026 (verify 1 --fin
 ## Đang bị chặn (câu hỏi cần người dùng trả lời)
 Không có. (07/11/2026: câu hỏi về SDK .NET 8 của S8.1-01 đã xong, người dùng cài SDK 8.0.427.)
 ## Kết quả kiểm tra giao diện (phase – màn hình – kích thước – đạt/chưa)
+- Phase 2 – 11/11/2026, `node tools/ui-snapshots/snap.mjs --phase 2`: 19 đường dẫn, 56 ảnh trong artifacts/ui/phase-2, 0 lỗi HTTP 5xx, 0 cuộn ngang, 0 ảnh vỡ, 0 lỗi JS. Đã mở từng ảnh đối chiếu UI mục 13 và sửa: D1 (thẻ phim lệch nút do dòng phụ), C6 (đạt ở 390, 768, 1440), A2 (cột phụ và nhãn công tắc ở 768px, link trong bảng), A3 (đạt, form 960px hai cột), A9 (lỗi 500 ở layout POS – BUG-007; thanh demo che nút – BUG-012), D2 (cuộn ngang ở 390px – BUG-009), D3 (đạt, layout theo khu vực). Kết quả cuối: D1, C6, A2, A3, A9, D2, D3 đạt ở mọi kích thước của UI mục 11.
 - Phase 1 – không có màn hình (ảnh mẫu SVG được kiểm bằng unit test SvgArtGeneratorTests).

@@ -1,0 +1,16 @@
+@model KpiCardVm
+@* Thẻ KPI (UI U5-16): icon trong vòng tròn màu nhạt; nhãn 13px muted; giá trị 28px đậm 600 dạng tabular; chip tăng hoặc giảm so với kỳ trước. *@
+<div class="card-ui kpi-card">
+    <span class="kpi-icon tone-@Model.Tone"><i class="bi @Model.Icon" aria-hidden="true"></i></span>
+    <div>
+        <p class="kpi-label">@Model.Label</p>
+        <p class="kpi-value">@Model.Value</p>
+        @if (Model.ChangePercent.HasValue)
+        {
+            var up = Model.ChangePercent.Value >= 0;
+            <span class="kpi-chip @(up ? "up" : "down")">
+                <i class="bi @(up ? "bi-arrow-up-right" : "bi-arrow-down-right")" aria-hidden="true"></i>@(up ? "Tăng" : "Giảm") @Math.Abs(Model.ChangePercent.Value).ToString("0.#", Fmt.Vi)% so với kỳ trước
+            </span>
+        }
+    </div>
+</div>

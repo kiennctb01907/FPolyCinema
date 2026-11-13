@@ -1,0 +1,67 @@
+@model DrinkDetailsVm
+@{
+    Layout = "_LayoutAdmin";
+    var d = Model.Drink;
+    ViewData["Title"] = d.Name;
+    ViewData["Crumbs"] = new List<Crumb> { new("Kho bắp nước"), new("Đồ uống", "/admin/drinks"), new(d.Name) };
+    var header = new PageHeaderVm { Title = d.Name, Description = Model.CategoryName + (d.IsCombo ? " · Combo" : null), Crumbs = new() { new("Đồ uống", "/admin/drinks"), new(d.Name) } };
+    if (Model.CanManage)
+    {
+        header.Actions = @<text>
+            <button type="button" class="btn btn-secondary" data-name="@d.Name" data-check-url="/admin/drinks/@d.Id/delete-check" data-delete-url="/admin/drinks/@d.Id/delete"
+                    data-deactivate-url="/admin/drinks/@d.Id/set-active" data-deactivate-text="Ngưng bán món này" data-deactivate-done="Đã ngưng bán món" data-after-delete="/admin/drinks"><i class="bi bi-trash" aria-hidden="true"></i>Xóa</button>
+            <a class="btn btn-primary" href="/admin/drinks/@d.Id/edit"><i class="bi bi-pencil" aria-hidden="true"></i>Sửa</a>
+        </text>;
+    }
+}
+<partial name="_PageHeader" model="header" />
+<div class="row g-4">
+    <div class="col-12 col-lg-4">
+        <section class="card-ui card-ui-body" aria-labelledby="info">
+            <img class="img-fixed ratio-1x1 w-100 rounded-3 mb-4" src="@(d.Image ?? "/img/placeholder-food.svg")" width="320" height="320" alt="Ảnh món @d.Name" loading="lazy" onerror="this.onerror=null;this.src='/img/placeholder-food.svg'" />
+            <h2 class="card-ui-title" id="info">Thông tin</h2>
+            <dl class="detail-list">
+                <dt>Loại</dt><dd>@Model.CategoryName</dd>
+                <dt>Giá bán</dt><dd class="money">@Fmt.Money(d.Price)</dd>
+                <dt>Trạng thái</dt><dd><partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Active, d.Active ? "true" : "false"))" /></dd>
+                <dt>Còn hàng</dt><dd>@(d.IsSoldOut ? "Tạm hết" : "Còn bán được")</dd>
+                <dt>Ngày tạo</dt><dd class="num">@Fmt.Date(d.CreatedAt)</dd>
+            </dl>
+            @if (!string.IsNullOrEmpty(d.Description))
+            {
+                <p class="mt-3 mb-0">@d.Description</p>
+            }
+        </section>
+    </div>
+    <div class="col-12 col-lg-8">
+        <h2 class="h5">Định mức nguyên liệu theo rạp</h2>
+        @foreach (var (cinema, lines) in Model.RecipesByCinema)
+        {
+            <section class="mb-4" aria-label="Định mức tại @cinema">
+                <h3 class="h6">@cinema</h3>
+                @if (lines.Count == 0)
+                {
+                    <div class="card-ui"><partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-box-seam", Title = "Chưa có định mức", Text = $"Món này chưa có định mức tại {cinema}, nên kho chưa trừ nguyên liệu khi bán.", ActionLabel = Model.CanManage ? "Nhập định mức" : null, ActionUrl = $"/admin/drinks/{d.Id}/edit", ActionIcon = "bi-pencil" })" /></div>
+                }
+                else
+                {
+                    <div class="table-wrap">
+                        <table class="data-table">
+                            <thead><tr><th scope="col">Nguyên liệu</th><th scope="col" class="num">Định mức một phần</th><th scope="col">Đơn vị</th></tr></thead>
+                            <tbody>
+                                @foreach (var l in lines)
+                                {
+                                    <tr>
+                                        <td class="cell-title">@l.MaterialName</td>
+                                        <td class="num" data-label="Định mức">@Fmt.Decimal(l.Quantity)</td>
+                                        <td data-label="Đơn vị">@l.Unit</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+        }
+    </div>
+</div>

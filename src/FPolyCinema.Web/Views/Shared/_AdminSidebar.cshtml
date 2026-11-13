@@ -1,0 +1,64 @@
+@* Nhóm mục sidebar (UI U4-07): Tổng quan; Bán hàng; Phim và lịch chiếu; Rạp và phòng; Kho bắp nước; Nhân sự; Báo cáo; Cấu hình.
+   Mục chưa có màn hình bị khóa, có lý do trong tooltip (UI U6-02). *@
+@{
+    var path = Context.Request.Path.Value ?? "/";
+    var isManager = Shell.IsManager;
+    var isStaff = Shell.IsStaff;
+    const string soon = "Chức năng này sẽ có ở bản cập nhật tới.";
+    // (nhãn, icon, đường dẫn hoặc null nếu chưa có, chỉ quản lý rạp)
+    var groups = new List<(string Title, List<(string Label, string Icon, string? Url, bool ManagerOnly)> Items)>
+    {
+        // TODO(Phase 4): Bảng điều khiển /admin, Bán vé tại quầy /pos/index, Hóa đơn /admin/bills
+        ("Tổng quan", new() { ("Bảng điều khiển", "bi-speedometer2", null, false) }),
+        ("Bán hàng", new() { ("Bán vé tại quầy", "bi-shop", null, false), ("Hóa đơn", "bi-receipt", null, true) }),
+        // TODO(Phase 3): Phim, Nhà phát hành, Lịch chiếu /scheduler, Phòng chiếu, Bảng giá
+        ("Phim và lịch chiếu", new() { ("Phim", "bi-film", null, false), ("Nhà phát hành", "bi-building", null, true), ("Lịch chiếu", "bi-calendar3", null, true) }),
+        ("Rạp và phòng", new() { ("Phòng chiếu", "bi-grid-3x3-gap", null, true), ("Bảng giá", "bi-tags", null, true) }),
+        // TODO(Phase 6): Nguyên liệu và nhập kho
+        ("Kho bắp nước", new() { ("Loại đồ uống", "bi-collection", "/admin/categories", false), ("Đồ uống", "bi-cup-straw", "/admin/drinks", false), ("Nguyên liệu", "bi-box-seam", null, true) }),
+        ("Nhân sự", new() { ("Nhân viên", "bi-people", "/admin/users", true) }),
+        // TODO(Phase 4): Thống kê, Đối soát nhà phát hành
+        ("Báo cáo", new() { ("Thống kê", "bi-bar-chart", null, true), ("Đối soát nhà phát hành", "bi-file-earmark-spreadsheet", null, true) }),
+        ("Cấu hình", new() { ("Cấu hình rạp", "bi-gear", null, true) }),
+    };
+}
+@if (isStaff)
+{
+    @foreach (var g in groups)
+    {
+        var items = g.Items.Where(i => !i.ManagerOnly || isManager).ToList();
+        if (items.Count == 0) { continue; }
+        <div class="nav-group">
+            <h2 class="nav-group-title">@g.Title</h2>
+            @foreach (var i in items)
+            {
+                if (i.Url != null)
+                {
+                    var active = path.StartsWith(i.Url, StringComparison.OrdinalIgnoreCase);
+                    <a class="side-link @(active ? "active" : null)" href="@i.Url" aria-current="@(active ? "page" : null)" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-trigger="hover" title="@i.Label">
+                        <i class="bi @i.Icon" aria-hidden="true"></i><span class="label">@i.Label</span>
+                    </a>
+                }
+                else
+                {
+                    <span class="side-link is-disabled" aria-disabled="true" tabindex="0" data-bs-toggle="tooltip" data-bs-placement="right" title="@i.Label – @soon">
+                        <i class="bi @i.Icon" aria-hidden="true"></i><span class="label">@i.Label</span><span class="soon-pill">Sắp có</span>
+                    </span>
+                }
+            }
+        </div>
+    }
+    <div class="nav-group">
+        <h2 class="nav-group-title">Tài khoản</h2>
+        <a class="side-link @(path.StartsWith("/me", StringComparison.OrdinalIgnoreCase) ? "active" : null)" href="/me" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-trigger="hover" title="Trang cá nhân">
+            <i class="bi bi-person-circle" aria-hidden="true"></i><span class="label">Trang cá nhân</span>
+        </a>
+    </div>
+}
+else
+{
+    <div class="nav-group">
+        <p class="nav-group-title">Bạn chưa đăng nhập bằng tài khoản nhân viên.</p>
+        <a class="side-link" href="/Login/Login"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i><span class="label">Đăng nhập</span></a>
+    </div>
+}

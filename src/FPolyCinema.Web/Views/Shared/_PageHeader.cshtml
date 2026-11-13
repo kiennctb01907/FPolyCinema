@@ -1,0 +1,34 @@
+@model PageHeaderVm
+@* Đầu trang (UI U5-24): breadcrumb, tiêu đề 24px đậm 600, mô tả 14px muted, các nút đặt bên phải.
+   Trong layout quản trị, breadcrumb đã hiện trên topbar nên ở đây chỉ hiện trên điện thoại. *@
+<div class="page-header">
+    <div class="page-heading">
+        @if (Model.Crumbs.Count > 0)
+        {
+            <nav aria-label="Vị trí trang" class="page-crumbs">
+                <ol class="breadcrumb">
+                    @foreach (var c in Model.Crumbs)
+                    {
+                        if (c.Url != null)
+                        {
+                            <li class="breadcrumb-item"><a href="@c.Url">@c.Label</a></li>
+                        }
+                        else
+                        {
+                            <li class="breadcrumb-item active" aria-current="page">@c.Label</li>
+                        }
+                    }
+                </ol>
+            </nav>
+        }
+        <h1>@Model.Title</h1>
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <p class="page-desc">@Model.Description</p>
+        }
+    </div>
+    @if (Model.Actions != null)
+    {
+        <div class="page-actions">@Model.Actions(null)</div>
+    }
+</div>

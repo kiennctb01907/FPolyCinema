@@ -1,0 +1,82 @@
+@model StaffFormVm
+@* A3. Form thêm, sửa nhân viên. Thêm mới: hệ thống cấp mật khẩu ngẫu nhiên, gửi qua email, nhân viên phải đổi ở lần đăng nhập đầu. *@
+@{
+    Layout = "_LayoutAdmin";
+    var isNew = Model.Id == null;
+    var title = isNew ? "Thêm nhân viên" : "Sửa nhân viên";
+    ViewData["Title"] = title;
+    ViewData["Crumbs"] = new List<Crumb> { new("Nhân sự"), new("Nhân viên", "/admin/users"), new(isNew ? "Thêm nhân viên" : Model.FullName) };
+}
+<div class="form-card">
+    <partial name="_PageHeader" model="@(new PageHeaderVm { Title = title, Description = isNew ? "Mật khẩu được cấp ngẫu nhiên và gửi tới email của nhân viên; nhân viên phải đổi ở lần đăng nhập đầu." : "Các ô có dấu * là bắt buộc.", Crumbs = new() { new("Nhân viên", "/admin/users"), new(isNew ? "Thêm nhân viên" : Model.FullName) } })" />
+    <form asp-antiforgery="true" method="post" action="@(isNew ? "/admin/users/create" : $"/admin/users/{Model.Id}/edit")" class="card-ui" novalidate data-dirty-guard>
+        <partial name="~/Views/Login/_FormErrors.cshtml" />
+        <div class="form-grid cols-2 card-section">
+            <section aria-labelledby="sec-account">
+                <h2 class="card-section-title" id="sec-account">Thông tin tài khoản</h2>
+                <p class="card-section-desc">Email dùng để đăng nhập và nhận mật khẩu được cấp.</p>
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label">Email <span class="req" aria-hidden="true">*</span></label>
+                    <input asp-for="Email" class="form-control" type="email" autocomplete="off" placeholder="ten@fpolycinema.vn" />
+                    <span asp-validation-for="Email"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="FullName" class="form-label">Họ tên <span class="req" aria-hidden="true">*</span></label>
+                    <input asp-for="FullName" class="form-control" autocomplete="off" placeholder="Nguyễn Thị Bình" />
+                    <span asp-validation-for="FullName"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Phone" class="form-label">Số điện thoại</label>
+                    <input asp-for="Phone" class="form-control" type="tel" inputmode="tel" placeholder="0901234567" />
+                    <span asp-validation-for="Phone"></span>
+                </div>
+            </section>
+            <section aria-labelledby="sec-role">
+                <h2 class="card-section-title" id="sec-role">Phân công</h2>
+                <p class="card-section-desc">Vai trò quyết định các màn hình nhân viên được dùng.</p>
+                <div class="mb-3">
+                    <label asp-for="Role" class="form-label">Vai trò <span class="req" aria-hidden="true">*</span></label>
+                    @if (Model.IsSelf)
+                    {
+                        <span class="d-block" tabindex="0" data-bs-toggle="tooltip" title="Bạn không thể tự đổi vai trò của tài khoản mình đang đăng nhập.">
+                            <select class="form-select" disabled aria-describedby="role-why">
+                                <option>@StatusDisplay.RoleLabel(Model.Role)</option>
+                            </select>
+                        </span>
+                        <input type="hidden" asp-for="Role" />
+                        <div class="form-text" id="role-why">Bạn không thể tự đổi vai trò của tài khoản mình đang đăng nhập.</div>
+                    }
+                    else
+                    {
+                        <select asp-for="Role" class="form-select">
+                            @foreach (var r in FPolyCinema.Web.Services.StaffService.StaffRoles)
+                            {
+                                <option value="@r" selected="@(r == Model.Role)">@StatusDisplay.RoleLabel(r)</option>
+                            }
+                        </select>
+                    }
+                    <span asp-validation-for="Role"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="CinemaId" class="form-label">Rạp làm việc</label>
+                    <select asp-for="CinemaId" class="form-select" aria-describedby="cinema-help">
+                        <option value="">Toàn chuỗi (chỉ dành cho quản lý rạp)</option>
+                        @foreach (var c in Model.Cinemas)
+                        {
+                            <option value="@c.Id" selected="@(c.Id == Model.CinemaId)">@c.Name</option>
+                        }
+                    </select>
+                    <span asp-validation-for="CinemaId"></span>
+                    <div class="form-text" id="cinema-help">Thu ngân, soát vé và quản lý ca phải gắn với một rạp.</div>
+                </div>
+            </section>
+        </div>
+        <div class="form-actions-sticky">
+            <a class="btn btn-ghost" href="/admin/users">Hủy</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Lưu</button>
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

@@ -1,0 +1,9 @@
+@* Chỉ báo kết nối (UI U5-34): chấm xanh, vàng hoặc đỏ kèm chữ. ui.connection.set(state) cập nhật mọi chỉ báo trên trang.
+   Trạng thái ban đầu lấy từ ViewData["ConnState"] (connected, reconnecting, lost). *@
+@{
+    var state = ViewData["ConnState"] as string ?? "connected";
+    var text = state switch { "reconnecting" => "Đang kết nối lại", "lost" => "Mất kết nối", _ => "Đã kết nối" };
+}
+<span class="conn-indicator" data-conn-indicator data-state="@state" role="status" aria-live="polite">
+    <span class="dot" aria-hidden="true"></span><span class="conn-text">@text</span>
+</span>

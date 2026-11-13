@@ -1,0 +1,15 @@
+@model EmptyStateVm
+@* Trạng thái rỗng hoặc lỗi (UI U5-29): icon 48px trong vòng tròn màu nhạt, tiêu đề, một câu giải thích, một nút hành động. *@
+<div class="empty-state @(Model.Tone == "error" ? "tone-error" : null)" role="@(Model.Tone == "error" ? "alert" : "status")">
+    <div class="empty-icon"><i class="bi @Model.Icon" aria-hidden="true"></i></div>
+    <h3>@Model.Title</h3>
+    <p>@Model.Text</p>
+    @if (Model.IsRetry)
+    {
+        <button type="button" class="btn btn-secondary" data-region-retry><i class="bi bi-arrow-clockwise" aria-hidden="true"></i>@(Model.ActionLabel ?? "Thử lại")</button>
+    }
+    else if (Model.ActionLabel != null && Model.ActionUrl != null)
+    {
+        <a class="btn btn-primary" href="@Model.ActionUrl"><i class="bi @Model.ActionIcon" aria-hidden="true"></i>@Model.ActionLabel</a>
+    }
+</div>

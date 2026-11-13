@@ -1,0 +1,19 @@
+@model CinemaRules
+@{
+    ViewData["Title"] = "Chính sách hủy vé";
+    var hours = Model.SelfCancelMinMinutesBeforeStart / 60.0;
+}
+<article class="policy prose">
+    <partial name="_PageHeader" model="@(new PageHeaderVm { Title = "Chính sách hủy vé", Description = "Điều kiện để bạn tự hủy vé đã mua online và cách hoàn tiền.", Crumbs = new() { new("Trang chủ", "/"), new("Chính sách hủy vé") } })" />
+    <h2>Khi nào bạn tự hủy được vé</h2>
+    <ul>
+        <li>Vé mua online bằng tài khoản của bạn và đã thanh toán (vé doanh nghiệp không tự hủy được).</li>
+        <li>Hủy trước giờ chiếu ít nhất <span class="num">@Fmt.Duration(Model.SelfCancelMinMinutesBeforeStart)</span> (<span class="num">@hours.ToString("0.#", Fmt.Vi)</span> tiếng).</li>
+        <li>Chưa có ghế nào vào cửa, và bắp nước chưa bắt đầu làm.</li>
+        <li>Tối đa <span class="num">@Model.SelfCancelMaxPerMonth</span> lần mỗi tháng dương lịch, tính theo giờ Việt Nam.</li>
+    </ul>
+    <h2>Hoàn tiền</h2>
+    <p>Toàn bộ số tiền đã trả được hoàn vào Ví FPoly của bạn ngay khi hủy thành công. Voucher và điểm đã dùng cho hóa đơn được trả lại; điểm đã cộng cho hóa đơn sẽ được thu hồi.</p>
+    <h2>Suất chiếu bị hủy do sự cố</h2>
+    <p>Nếu rạp phải hủy suất do sự cố, bạn được hoàn toàn bộ số đã trả theo phương thức gốc và nhận voucher bồi thường trị giá <span class="money">@Fmt.Money(Model.CompensationVoucherAmount)</span>, dùng trong <span class="num">@Model.CompensationVoucherValidDays</span> ngày.</p>
+</article>

@@ -1,0 +1,37 @@
+@* Chuông phê duyệt kèm số yêu cầu đang chờ (UI U4-08). Chỉ quản lý ca và quản lý rạp thấy. *@
+@if (Shell.IsSupervisor)
+{
+    var count = Shell.PendingApprovals;
+    var list = count > 0 ? Shell.PendingApprovalList() : Array.Empty<PendingApprovalRow>();
+    <div class="dropdown bell">
+        <button type="button" class="btn btn-ghost btn-icon" data-bs-toggle="dropdown" aria-expanded="false"
+                aria-label="@(count > 0 ? $"Có {count} yêu cầu phê duyệt đang chờ" : "Không có yêu cầu phê duyệt nào đang chờ")">
+            <i class="bi bi-bell" aria-hidden="true"></i>
+            @if (count > 0)
+            {
+                <span class="count-pill" aria-hidden="true">@(count > 99 ? "99+" : count.ToString())</span>
+            }
+        </button>
+        <div class="dropdown-menu dropdown-menu-end p-0">
+            <h2 class="dropdown-header">Yêu cầu phê duyệt đang chờ</h2>
+            @if (list.Count == 0)
+            {
+                <p class="px-3 pb-3 mb-0 text-muted small">Không có yêu cầu nào đang chờ duyệt.</p>
+            }
+            else
+            {
+                @* TODO(Phase 6): bấm vào yêu cầu để duyệt hoặc từ chối từ xa (UI A7). *@
+                <ul class="list-unstyled mb-0">
+                    @foreach (var a in list)
+                    {
+                        <li class="dropdown-item flex-column align-items-start">
+                            <span class="fw-500">Hủy hóa đơn @a.BillCode</span>
+                            <span class="small text-muted">@a.RequesterName · <span class="num">@Fmt.DateTime(a.CreatedAt)</span></span>
+                            <span class="small text-truncate-1">@a.Reason</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </div>
+    </div>
+}

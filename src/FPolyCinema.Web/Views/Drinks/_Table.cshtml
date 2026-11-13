@@ -1,0 +1,81 @@
+@model DrinkListVm
+@* Bảng đồ uống: ảnh, tên, loại, giá (canh phải), số dòng định mức, trạng thái, thao tác bên phải. *@
+@if (Model.Result.Total == 0)
+{
+    if (Model.HasFilter)
+    {
+        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-search", Title = "Không có món nào phù hợp", Text = "Không có món phù hợp – thử đổi từ khóa, chọn loại khác hoặc bỏ bớt bộ lọc.", ActionLabel = "Xóa bộ lọc", ActionUrl = "/admin/drinks", ActionIcon = "bi-funnel" })" />
+    }
+    else
+    {
+        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-cup-straw", Title = "Chưa có món nào", Text = "Thêm món đầu tiên để quầy bán và web có thực đơn bắp nước.", ActionLabel = Model.CanManage ? "Thêm món" : null, ActionUrl = "/admin/drinks/create" })" />
+    }
+}
+else
+{
+    <div class="table-wrap">
+        <table class="data-table">
+            <caption class="visually-hidden">Danh sách đồ uống</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Món</th>
+                    <th scope="col">Loại</th>
+                    <th scope="col" class="num">Giá bán</th>
+                    <th scope="col" class="num col-opt">Định mức</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col" class="col-actions">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model.Result.Items)
+                {
+                    var d = row.Drink;
+                    var active = StatusDisplay.Of(StatusDisplay.Active, d.Active);
+                    <tr>
+                        <td class="cell-title">
+                            <div class="d-flex align-items-center gap-3">
+                                <img class="thumb" src="@(d.Image ?? "/img/placeholder-food.svg")" width="40" height="40" alt="" loading="lazy" onerror="this.onerror=null;this.src='/img/placeholder-food.svg'" />
+                                <div>
+                                    <a class="cell-main" href="/admin/drinks/@d.Id">@d.Name</a>
+                                    <div class="d-flex flex-wrap gap-1 mt-1">
+                                        @if (d.IsCombo) { <span class="outline-badge">Combo</span> }
+                                        @if (d.IsSoldOut) { <span class="status-badge tone-danger">Tạm hết</span> }
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                        <td data-label="Loại">@row.CategoryName</td>
+                        <td class="num money" data-label="Giá bán">@Fmt.Money(d.Price)</td>
+                        <td class="num col-opt" data-label="Định mức">@(row.RecipeCount == 0 ? "Chưa có" : $"{row.RecipeCount} dòng")</td>
+                        <td data-label="Trạng thái">
+                            @if (Model.CanManage)
+                            {
+                                <label class="form-check form-switch active-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" checked="@d.Active" data-active-url="/admin/drinks/@d.Id/set-active" data-on-done="Đã mở bán lại món" data-off-done="Đã ngưng bán món" aria-label="Đang bán: @d.Name" />
+                                    <span data-active-label>@active.Label</span>
+                                </label>
+                            }
+                            else
+                            {
+                                <partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Active, d.Active ? "true" : "false"))" />
+                            }
+                        </td>
+                        <td class="col-actions">
+                            <a class="btn btn-ghost btn-icon btn-sm" href="/admin/drinks/@d.Id" aria-label="Xem chi tiết @d.Name" data-bs-toggle="tooltip" title="Xem chi tiết"><i class="bi bi-eye" aria-hidden="true"></i></a>
+                            @if (Model.CanManage)
+                            {
+                                <a class="btn btn-ghost btn-icon btn-sm" href="/admin/drinks/@d.Id/edit" aria-label="Sửa @d.Name" data-bs-toggle="tooltip" title="Sửa"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                                <button type="button" class="btn btn-ghost btn-icon btn-sm" aria-label="Xóa @d.Name" data-bs-toggle="tooltip" title="Xóa"
+                                        data-name="@d.Name" data-check-url="/admin/drinks/@d.Id/delete-check" data-delete-url="/admin/drinks/@d.Id/delete"
+                                        data-deactivate-url="/admin/drinks/@d.Id/set-active" data-deactivate-text="Ngưng bán món này" data-deactivate-done="Đã ngưng bán món">
+                                    <i class="bi bi-trash" aria-hidden="true"></i>
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_Pagination" model="@(new PaginationVm { Page = Model.Result.Page, PageCount = Model.Result.PageCount, Label = Model.Result.Label, UrlFor = p => QueryUrl.With(Context.Request, "page", p == 1 ? null : p.ToString()) })" />
+}

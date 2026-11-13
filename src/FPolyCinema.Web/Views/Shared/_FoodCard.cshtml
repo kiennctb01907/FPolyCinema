@@ -1,0 +1,20 @@
+@model FoodCardVm
+@* Thẻ món bắp nước (UI U5-17): ảnh 1:1, tên, giá, bộ tăng giảm (− số +) nút 40px (POS 48px); hết hàng có lớp phủ "Tạm hết". *@
+<article class="food-card @(Model.SoldOut ? "is-soldout" : null)">
+    <div class="food-img">
+        <img src="@(Model.Image ?? "/img/placeholder-food.svg")" alt="@Model.Name" width="300" height="300" loading="lazy" onerror="this.onerror=null;this.src='/img/placeholder-food.svg'" />
+        @if (Model.SoldOut)
+        {
+            <div class="soldout" role="status">Tạm hết</div>
+        }
+    </div>
+    <div class="food-body">
+        <h3 class="food-name text-clamp-2 h6">@Model.Name</h3>
+        <p class="food-price money">@Fmt.Money(Model.Price)</p>
+        <div class="qty-stepper" role="group" aria-label="Số lượng @Model.Name">
+            <button type="button" class="btn btn-secondary" aria-label="Bớt một @Model.Name" disabled="@(Model.SoldOut || Model.Quantity == 0)" data-qty="-1"><i class="bi bi-dash-lg" aria-hidden="true"></i></button>
+            <span class="qty" aria-live="polite">@Model.Quantity</span>
+            <button type="button" class="btn btn-secondary" aria-label="Thêm một @Model.Name" disabled="@Model.SoldOut" data-qty="1"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+        </div>
+    </div>
+</article>

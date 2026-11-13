@@ -1,0 +1,15 @@
+@model string?
+@* Logo FPoly Cinema: biểu tượng SVG tự vẽ (cuộn phim cách điệu với nút phát) kèm chữ (UI mục 4) *@
+<a class="brand" href="@(Model ?? "/")" aria-label="FPoly Cinema – về trang chính">
+    <svg viewBox="0 0 32 32" aria-hidden="true" focusable="false">
+        <rect class="lm-bg" x="1" y="1" width="30" height="30" rx="8" />
+        <rect class="lm-strip" x="5" y="6" width="3" height="20" rx="1.5" />
+        <circle class="lm-hole" cx="6.5" cy="9" r="1" />
+        <circle class="lm-hole" cx="6.5" cy="13.7" r="1" />
+        <circle class="lm-hole" cx="6.5" cy="18.3" r="1" />
+        <circle class="lm-hole" cx="6.5" cy="23" r="1" />
+        <path class="lm-fg" d="M12.5 9.2v13.6c0 .9 1 1.4 1.7.9l10-6.8c.6-.4.6-1.4 0-1.8l-10-6.8c-.7-.5-1.7 0-1.7.9z" />
+        <circle class="lm-gold" cx="25" cy="8" r="2.2" />
+    </svg>
+    <span class="brand-text">FPoly <span class="brand-accent">Cinema</span></span>
+</a>

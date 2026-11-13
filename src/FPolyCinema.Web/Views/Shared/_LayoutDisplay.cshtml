@@ -1,0 +1,19 @@
+@* _LayoutDisplay (theme cinema, UI U4-12): toàn màn hình, không có thanh điều hướng; ẩn con trỏ sau 3 giây không dùng;
+   hiện lớp phủ "Đang kết nối lại…" khi mất kết nối thời gian thực (ui.connection.set). *@
+<!DOCTYPE html>
+<html lang="vi" data-theme="cinema" data-bs-theme="dark">
+<head>
+    <partial name="_Head" />
+</head>
+<body data-conn-state="@(ViewData["ConnState"] as string)">
+    <div class="display-shell">
+        @RenderBody()
+    </div>
+    <div id="reconnect-overlay" class="reconnect-overlay" role="alert" aria-live="assertive">
+        <span class="spinner-border" aria-hidden="true"></span>
+        <p class="mb-0">Đang kết nối lại…</p>
+    </div>
+    <partial name="_Scripts" />
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,35 @@
+@model StyleGuideVm
+@* D1. Style guide /dev/style-guide (chỉ khi Demo:EnableTools): mọi thành phần ở UI mục 5 trên cả hai theme;
+   mỗi thành phần có tiêu đề và đủ các trạng thái (thường, hover, đang xử lý, lỗi, bị khóa). Màn hình mới chỉ dùng thành phần có ở đây. *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Style guide";
+    ViewData["Crumbs"] = new List<Crumb> { new("Công cụ phát triển"), new("Style guide") };
+}
+<partial name="_PageHeader" model="@(new PageHeaderVm { Title = "Style guide", Description = "Thành phần dùng chung của FPoly Cinema trên hai theme: ops (quản trị, POS) và cinema (web khách, màn hình hiển thị). Dữ liệu phim và món lấy từ CSDL mẫu; các mục ghi “Ví dụ” là dữ liệu minh họa.", Crumbs = new() { new("Công cụ phát triển"), new("Style guide") } })" />
+
+<nav class="sg-toc mb-5" aria-label="Mục lục style guide">
+    <a class="btn btn-secondary btn-sm" href="#theme-ops">Theme ops</a>
+    <a class="btn btn-secondary btn-sm" href="#theme-cinema">Theme cinema</a>
+    <a class="btn btn-ghost btn-sm" href="/">Layout khách</a>
+    <a class="btn btn-ghost btn-sm" href="/dev/layouts/pos">Layout POS</a>
+    <a class="btn btn-ghost btn-sm" href="/dev/layouts/display">Layout màn hình hiển thị</a>
+    <a class="btn btn-ghost btn-sm" href="/dev/layouts/display?state=reconnecting">Màn hình hiển thị khi mất kết nối</a>
+    <a class="btn btn-ghost btn-sm" href="/dev/mailbox">Hộp thư thử</a>
+</nav>
+
+<section class="sg-theme" id="theme-ops" data-theme="ops" data-bs-theme="light" aria-labelledby="t-ops">
+    <h2 id="t-ops">Theme ops – quản trị và POS</h2>
+    @{ ViewData["SgPrefix"] = "ops"; }
+    <partial name="_StyleGuideBody" model="Model" view-data="ViewData" />
+</section>
+
+<section class="sg-theme" id="theme-cinema" data-theme="cinema" data-bs-theme="dark" aria-labelledby="t-cin">
+    <h2 id="t-cin">Theme cinema – web khách và màn hình hiển thị</h2>
+    @{ ViewData["SgPrefix"] = "cin"; }
+    <partial name="_StyleGuideBody" model="Model" view-data="ViewData" />
+</section>
+
+@section Scripts {
+    <script src="~/js/pages/style-guide.js" asp-append-version="true"></script>
+}

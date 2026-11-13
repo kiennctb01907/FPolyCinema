@@ -1,0 +1,21 @@
+@* Thanh đổi vai trò (chỉ khi Demo:EnableTools, UI mục 4, SPEC 5): viên thuốc nổi góc trái dưới, thu gọn được,
+   hiện vai trò hiện tại và 5 nút đổi sang tài khoản mẫu bằng một lần bấm. *@
+@if (Shell.DemoEnabled)
+{
+    var current = Shell.DemoSlug;
+    var user = Shell.User;
+    var currentLabel = user == null ? "Chưa đăng nhập" : (FPolyCinema.Web.Services.DemoAccounts.Find(current)?.Label ?? user.RoleLabel);
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
+    // TODO(Phase 8): thêm nút mở trung tâm demo /demo/multi-screen (UI U4-15).
+    <div class="demo-bar" role="region" aria-label="Thanh đổi vai trò dùng để trình diễn">
+        <button type="button" class="demo-toggle" data-demo-toggle aria-expanded="true" aria-controls="demo-roles" title="Thu gọn hoặc mở thanh đổi vai trò">
+            <i class="bi bi-person-badge" aria-hidden="true"></i><span>Đang là: @currentLabel</span>
+        </button>
+        <nav class="demo-roles" id="demo-roles" aria-label="Đổi vai trò">
+            @foreach (var a in FPolyCinema.Web.Services.DemoAccounts.All)
+            {
+                <a href="/demo/switch-role?role=@a.Role&amp;returnUrl=@Uri.EscapeDataString(returnUrl)" class="@(a.Slug == current ? "is-current" : null)" aria-current="@(a.Slug == current ? "true" : null)">@a.Label</a>
+            }
+        </nav>
+    </div>
+}

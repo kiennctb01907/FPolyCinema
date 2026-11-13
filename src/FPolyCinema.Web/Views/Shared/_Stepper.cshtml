@@ -1,0 +1,18 @@
+@model StepperVm
+@* Stepper 4 bước (UI U5-25): số trong vòng tròn, bước hiện tại màu primary, bước đã xong có dấu ✓;
+   trên điện thoại hiện gọn "Bước 2/4 · Chọn ghế". *@
+<ol class="stepper" aria-label="Các bước">
+    @for (int i = 0; i < Model.Steps.Count; i++)
+    {
+        var n = i + 1;
+        var cls = n < Model.Current ? "is-done" : n == Model.Current ? "is-current" : null;
+        <li class="@cls" aria-current="@(n == Model.Current ? "step" : null)">
+            <span class="step-no" aria-hidden="true">@(n < Model.Current ? "✓" : n.ToString())</span>
+            <span>@Model.Steps[i]<span class="visually-hidden">@(n < Model.Current ? " (đã xong)" : n == Model.Current ? " (bước hiện tại)" : null)</span></span>
+        </li>
+    }
+</ol>
+@if (Model.Steps.Count > 0)
+{
+    <p class="stepper-compact">Bước @Model.Current/@Model.Steps.Count · @Model.Steps[Math.Clamp(Model.Current, 1, Model.Steps.Count) - 1]</p>
+}

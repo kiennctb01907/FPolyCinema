@@ -1,0 +1,70 @@
+/* Token thiết kế FPolyCinema (UI mục 2). Đây là nơi duy nhất được ghi mã màu.
+   Khối :root, [data-theme="ops"], [data-theme="cinema"] giữ đúng tên và giá trị của spec. */
+
+:root {
+  --brand-red: #E50914; --brand-red-hover: #C40812; --brand-gold: #F59E0B;
+
+  --font-sans: "Be Vietnam Pro", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  --fs-xs: .75rem; --fs-sm: .875rem; --fs-md: 1rem; --fs-lg: 1.125rem; --fs-xl: 1.25rem;
+  --fs-2xl: 1.5rem; --fs-3xl: 1.875rem; --fs-4xl: 2.25rem; --fs-display: 3rem;
+  --lh-tight: 1.25; --lh-normal: 1.5;
+
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px; --sp-8: 64px;
+  --radius-sm: 6px; --radius-md: 10px; --radius-lg: 16px; --radius-pill: 999px;
+  --dur-fast: 150ms; --dur-base: 200ms; --ease: cubic-bezier(.2,.8,.2,1);
+
+  --age-fg: #0B0F19;
+  --age-P: #10B981; --age-K: #3B82F6; --age-T13: #F59E0B; --age-T16: #F97316; --age-T18: #EF4444;
+  --age-C: #6B7280;   /* riêng nhãn C dùng chữ trắng */
+
+  --seat-size: 32px; --seat-gap: 6px;
+}
+
+[data-theme="ops"] {
+  --bg: #F6F7F9; --surface: #FFFFFF; --surface-2: #F3F4F6; --border: #E5E7EB;
+  --text: #111827; --text-muted: #6B7280;
+  --primary: #2563EB; --primary-hover: #1D4ED8; --on-primary: #FFFFFF; --focus: #2563EB;
+  --success: #15803D; --success-bg: #DCFCE7; --success-fg: #166534;
+  --warning: #B45309; --warning-bg: #FEF3C7; --warning-fg: #92400E;
+  --danger:  #DC2626; --danger-bg:  #FEE2E2; --danger-fg:  #991B1B;
+  --info:    #0369A1; --info-bg:    #E0F2FE; --info-fg:    #075985;
+  --neutral-bg: #F3F4F6; --neutral-fg: #374151;
+  --shadow-sm: 0 1px 2px rgba(16,24,40,.06); --shadow-md: 0 4px 12px rgba(16,24,40,.08);
+}
+
+[data-theme="cinema"] {
+  --bg: #0B0F19; --surface: #111827; --surface-2: #1F2937; --border: #374151;
+  --text: #F9FAFB; --text-muted: #9CA3AF;
+  --primary: #E50914; --primary-hover: #C40812; --on-primary: #FFFFFF; --focus: #F59E0B;
+  --glass: rgba(17,24,39,.72);
+  --success: #16A34A; --success-bg: rgba(34,197,94,.15);  --success-fg: #4ADE80;
+  --warning: #D97706; --warning-bg: rgba(245,158,11,.15); --warning-fg: #FBBF24;
+  --danger:  #DC2626; --danger-bg:  rgba(239,68,68,.15);  --danger-fg:  #F87171;
+  --info:    #0284C7; --info-bg:    rgba(56,189,248,.15); --info-fg:    #7DD3FC;
+  --neutral-bg: rgba(156,163,175,.15); --neutral-fg: #D1D5DB;
+  --shadow-md: 0 8px 24px rgba(0,0,0,.45);
+
+  --seat-bg: #1F2937; --seat-border: #4B5563; --seat-text: #D1D5DB;
+  --seat-vip: #F59E0B; --seat-sweetbox: #EC4899; --seat-wheelchair: #38BDF8;
+  --seat-selected: #E50914; --seat-selected-text: #FFFFFF;
+  --seat-held: #4B5563; --seat-booked: #111827; --seat-booked-text: #6B7280;
+  --seat-house: #F59E0B; --seat-maint: #374151;
+  --heat-1: #374151; --heat-2: #065F46; --heat-3: #047857; --heat-4: #10B981; --heat-5: #34D399;
+}
+
+/* Bí danh dùng lại đúng các giá trị ở trên (không tạo cặp màu mới):
+   - nền trắng và chữ tối của khối QR, nhãn C chữ trắng;
+   - lớp phủ tối của ảnh và hộp thoại lấy từ nền theme cinema. */
+:root {
+  /* Cỡ chữ mà UI mục 5 ghi đích danh: 13px (tiêu đề cột, lỗi, nhãn KPI), 28px (giá trị KPI, chữ màn hình hiển thị),
+     32px (tổng tiền POS), 56px (tổng tiền màn hình phụ) */
+  --fs-13: .8125rem; --fs-28: 1.75rem; --fs-32: 2rem; --fs-56: 3.5rem;
+  --sp-half: 2px;
+  --white: #FFFFFF;
+  --ink: #0B0F19;
+  --scrim: rgba(11,15,25,.72);
+  --scrim-soft: rgba(11,15,25,.35);
+  --shadow-sm-dark: 0 1px 2px rgba(0,0,0,.35);
+}
+[data-theme="cinema"] { --shadow-sm: var(--shadow-sm-dark); }
+[data-theme="ops"] { --glass: rgba(255,255,255,.85); }

@@ -1,0 +1,31 @@
+@model CategoryListVm
+@* A2. Danh sách loại đồ uống: _PageHeader, thanh lọc, bảng dữ liệu, phân trang, trạng thái rỗng. *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Loại đồ uống";
+    ViewData["Crumbs"] = new List<Crumb> { new("Kho bắp nước"), new("Loại đồ uống") };
+    var header = new PageHeaderVm
+    {
+        Title = "Loại đồ uống",
+        Description = "Nhóm các món bắp nước để lọc nhanh ở quầy và trên web.",
+        Crumbs = new() { new("Kho bắp nước"), new("Loại đồ uống") },
+    };
+    if (Model.CanManage)
+    {
+        header.Actions = @<a class="btn btn-primary" href="/admin/categories/create"><i class="bi bi-plus-lg" aria-hidden="true"></i>Thêm loại</a>;
+    }
+    var filter = new FilterBarVm
+    {
+        SearchValue = Model.Query, SearchLabel = "Tìm theo tên", SearchPlaceholder = "Ví dụ: Combo",
+        Selects = new() { new FilterSelect("status", "Trạng thái", new List<(string, string)> { ("active", "Đang hoạt động"), ("inactive", "Ngưng") }, Model.Status) },
+        HasFilter = Model.HasFilter, ClearUrl = "/admin/categories",
+    };
+}
+<partial name="_PageHeader" model="header" />
+<partial name="_FilterBar" model="filter" />
+<div data-region data-url="@QueryUrl.Current(Context.Request)">
+    <partial name="_TableSkeleton" model="@("category")" />
+    <div data-region-content>
+        <partial name="_Table" model="Model" />
+    </div>
+</div>

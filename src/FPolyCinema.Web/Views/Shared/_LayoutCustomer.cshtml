@@ -1,0 +1,141 @@
+@* _LayoutCustomer (theme cinema, UI mục 4): header dính 64px kính mờ; menu Phim, Lịch chiếu, Bắp nước, Ưu đãi; ô chọn rạp; tài khoản;
+   điện thoại dùng offcanvas; nội dung trong container-xl; footer thông tin rạp, liên hệ, điều khoản, chính sách hủy vé.
+   ViewData["Chrome"] = "auth" (trang đăng nhập chia đôi) hoặc "bare" (đổi mật khẩu bắt buộc: chỉ có form và nút Đăng xuất). *@
+@{
+    var chrome = ViewData["Chrome"] as string;
+    var demo = Shell.DemoEnabled && chrome != "bare";
+    // TODO(Phase 5): Phim, Lịch chiếu, Bắp nước, Ưu đãi mở các trang C1, C2 của web khách.
+    var menu = new[] { ("Phim", "bi-film"), ("Lịch chiếu", "bi-calendar3"), ("Bắp nước", "bi-cup-straw"), ("Ưu đãi", "bi-gift") };
+    const string soon = "Trang này sẽ mở ở bản cập nhật tới.";
+}
+<!DOCTYPE html>
+<html lang="vi" data-theme="cinema" data-bs-theme="dark">
+<head>
+    <partial name="_Head" />
+</head>
+<body class="@(demo ? "has-demo-bar" : null)">
+    <a class="visually-hidden-focusable" href="#main">Bỏ qua tới nội dung chính</a>
+    @if (chrome == "auth")
+    {
+        <main id="main">@RenderBody()</main>
+    }
+    else if (chrome == "bare")
+    {
+        <div class="bare-shell">
+            <header class="bare-header">
+                <partial name="_Logo" model="@("/Login/ChangePassword")" />
+                <form asp-antiforgery="true" method="post" action="/Login/Logout">
+                    <button type="submit" class="btn btn-secondary"><i class="bi bi-box-arrow-right" aria-hidden="true"></i>Đăng xuất</button>
+                </form>
+            </header>
+            <main id="main" class="bare-main">@RenderBody()</main>
+        </div>
+    }
+    else
+    {
+        <header class="site-header">
+            <div class="container-xl">
+                <partial name="_Logo" model="@("/")" />
+                <nav class="d-none d-xl-block" aria-label="Menu chính">
+                    <ul class="site-nav">
+                        @foreach (var (label, icon) in menu)
+                        {
+                            <li><span class="nav-link disabled" aria-disabled="true" tabindex="0" data-bs-toggle="tooltip" title="@label – @soon"><i class="bi @icon" aria-hidden="true"></i>@label</span></li>
+                        }
+                    </ul>
+                </nav>
+                <div class="header-tools">
+                    <div class="d-none d-md-block"><partial name="_CinemaPicker" /></div>
+                    <div class="d-none d-xl-block"><partial name="_UserMenu" /></div>
+                    @if (Shell.User == null)
+                    {
+                        <a class="btn btn-primary d-none d-sm-inline-flex" href="/Login/Register">Đăng ký</a>
+                    }
+                    <button type="button" class="btn btn-ghost btn-icon d-xl-none" data-bs-toggle="offcanvas" data-bs-target="#site-menu" aria-controls="site-menu" aria-label="Mở menu">
+                        <i class="bi bi-list" aria-hidden="true"></i>
+                    </button>
+                </div>
+            </div>
+        </header>
+        <div class="offcanvas offcanvas-end" tabindex="-1" id="site-menu" aria-labelledby="site-menu-title" data-theme="cinema" data-bs-theme="dark">
+            <div class="offcanvas-header">
+                <h2 class="offcanvas-title h5" id="site-menu-title">Menu</h2>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Đóng menu"></button>
+            </div>
+            <div class="offcanvas-body d-flex flex-column gap-4">
+                <ul class="site-nav">
+                    @foreach (var (label, icon) in menu)
+                    {
+                        <li><span class="nav-link disabled" aria-disabled="true">@label<span class="soon-pill ms-auto">Sắp có</span></span></li>
+                    }
+                </ul>
+                @{ ViewData["PickerId"] = "mobile"; }
+                <partial name="_CinemaPicker" />
+                @if (Shell.User == null)
+                {
+                    <div class="d-flex gap-2">
+                        <a class="btn btn-secondary flex-fill" href="/Login/Login">Đăng nhập</a>
+                        <a class="btn btn-primary flex-fill" href="/Login/Register">Đăng ký</a>
+                    </div>
+                }
+                else
+                {
+                    <partial name="_UserMenu" />
+                }
+            </div>
+        </div>
+        <main id="main" class="site-main">
+            <div class="container-xl">@RenderBody()</div>
+        </main>
+        <footer class="site-footer">
+            <div class="container-xl">
+                <div class="row g-4">
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <h2>Hệ thống rạp</h2>
+                        <ul>
+                            @foreach (var c in Shell.Cinema.Cinemas)
+                            {
+                                <li><strong class="text-body">@c.Name</strong><br />@c.Address</li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <h2>Liên hệ</h2>
+                        <ul>
+                            @foreach (var c in Shell.Cinema.Cinemas.Where(c => !string.IsNullOrEmpty(c.Phone)))
+                            {
+                                <li><i class="bi bi-telephone" aria-hidden="true"></i> <a href="tel:@c.Phone">@c.Phone</a> · @c.Name</li>
+                            }
+                            <li><i class="bi bi-envelope" aria-hidden="true"></i> <a href="mailto:hotro@fpolycinema.vn">hotro@fpolycinema.vn</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-2">
+                        <h2>Điều khoản</h2>
+                        <ul>
+                            <li><a href="/policies/terms">Điều khoản sử dụng</a></li>
+                            <li><a href="/policies/terms#bao-mat">Bảo mật thông tin</a></li>
+                        </ul>
+                    </div>
+                    <div class="col-12 col-md-6 col-lg-3">
+                        <h2>Chính sách hủy vé</h2>
+                        <ul>
+                            <li><a href="/policies/cancellation">Điều kiện tự hủy vé và hoàn tiền</a></li>
+                            <li>Giờ chiếu cho trẻ em theo Nghị định 131/2022/NĐ-CP</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="footer-bottom d-flex flex-wrap justify-content-between gap-2">
+                    <span>FPoly Cinema – đồ án môn Dự án .NET 1, FPT Polytechnic.</span>
+                    <span>Phân loại phim theo Thông tư 05/2023/TT-BVHTTDL.</span>
+                </div>
+            </div>
+        </footer>
+    }
+    @if (demo)
+    {
+        <partial name="_DemoBar" />
+    }
+    <partial name="_Scripts" />
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

@@ -1,0 +1,19 @@
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@{
+    var title = ViewData["Title"] as string;
+    var flashes = Flash.Read(TempData);
+}
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="color-scheme" content="light dark" />
+<meta name="csrf-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
+<title>@(string.IsNullOrEmpty(title) ? "FPoly Cinema" : title + " · FPoly Cinema")</title>
+<link rel="icon" type="image/svg+xml" href="~/img/favicon.svg" />
+<link rel="preload" href="~/lib/be-vietnam-pro/files/be-vietnam-pro-vietnamese-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="~/lib/bootstrap-icons/font/bootstrap-icons.min.css" />
+<link rel="stylesheet" href="~/css/tokens.css" asp-append-version="true" />
+<link rel="stylesheet" href="~/css/app.css" asp-append-version="true" />
+@* Bảng nhãn trạng thái dùng chung cho JavaScript (UI mục 6) và toast chờ hiện sau khi chuyển trang *@
+<script type="application/json" id="status-display">@Json.Serialize(StatusDisplay.All)</script>
+<script type="application/json" id="flash-toasts">@Json.Serialize(flashes.Select(f => new { type = f.Type, message = f.Message }))</script>

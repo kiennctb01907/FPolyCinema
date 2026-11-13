@@ -1,0 +1,98 @@
+@model ProfileVm
+@* A9. Trang cá nhân nhân viên /me (mọi nhân viên, dùng layout của vai trò đang đăng nhập).
+   Thẻ thông tin: ảnh đại diện chữ cái đầu, họ tên, email (chỉ đọc), số điện thoại, vai trò, rạp, nút "Lưu".
+   Thẻ đổi mật khẩu: mật khẩu hiện tại, mới, nhập lại; thước đo độ mạnh, nút hiện hoặc ẩn. Đổi xong thì đăng xuất các phiên khác. *@
+@{
+    Layout = ViewData["Layout"] as string ?? "_LayoutAdmin";
+    ViewData["Title"] = "Trang cá nhân";
+    ViewData["Crumbs"] = new List<Crumb> { new("Tài khoản"), new("Trang cá nhân") };
+    var inPos = Layout == "_LayoutPos";
+}
+@if (inPos)
+{
+    @:<div class="pos-scroll"><div class="form-narrow mx-auto">
+}
+else
+{
+    @:<div class="form-narrow">
+}
+<partial name="_PageHeader" model="@(new PageHeaderVm { Title = "Trang cá nhân", Description = "Cập nhật thông tin liên hệ và đổi mật khẩu của bạn.", Crumbs = new() { new("Tài khoản"), new("Trang cá nhân") } })" />
+<div class="row g-4">
+    <div class="col-12 col-lg-6">
+        <section class="card-ui h-100" aria-labelledby="info-title">
+            <form asp-antiforgery="true" method="post" action="/Login/Profile" novalidate data-dirty-guard>
+                <div class="card-section">
+                    <div class="profile-head mb-4">
+                        <span class="avatar avatar-lg" aria-hidden="true">@Model.Initials</span>
+                        <div>
+                            <h2 class="card-section-title h5" id="info-title">@Model.FullName</h2>
+                            <span class="status-badge tone-info">@Model.RoleLabel</span>
+                        </div>
+                    </div>
+                    <partial name="~/Views/Login/_FormErrors.cshtml" />
+                    <div class="mb-3">
+                        <label asp-for="FullName" class="form-label">Họ tên <span class="req" aria-hidden="true">*</span></label>
+                        <input asp-for="FullName" class="form-control" autocomplete="name" />
+                        <span asp-validation-for="FullName"></span>
+                    </div>
+                    <div class="mb-3">
+                        <label for="me-email" class="form-label">Email</label>
+                        <input id="me-email" class="form-control" value="@Model.Email" readonly aria-describedby="me-email-help" />
+                        <div class="form-text" id="me-email-help">Email dùng để đăng nhập, chỉ quản lý rạp đổi được.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label asp-for="Phone" class="form-label">Số điện thoại</label>
+                        <input asp-for="Phone" class="form-control" type="tel" inputmode="tel" autocomplete="tel" placeholder="0901234567" />
+                        <span asp-validation-for="Phone"></span>
+                    </div>
+                    <dl class="detail-list">
+                        <dt>Vai trò</dt><dd>@Model.RoleLabel</dd>
+                        <dt>Rạp</dt><dd>@(Model.CinemaName ?? "Chưa gắn rạp")</dd>
+                    </dl>
+                </div>
+                <div class="form-actions-sticky">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Lưu</button>
+                </div>
+            </form>
+        </section>
+    </div>
+    <div class="col-12 col-lg-6">
+        <section class="card-ui h-100" id="doi-mat-khau" aria-labelledby="pw-title">
+            <form asp-antiforgery="true" id="me-password" method="post" action="/Login/ChangePassword" novalidate>
+                <div class="card-section">
+                    <h2 class="card-section-title h5" id="pw-title">Đổi mật khẩu</h2>
+                    <p class="card-section-desc">Đổi xong, các phiên đăng nhập khác của bạn sẽ được đăng xuất.</p>
+                    <partial name="_ChangePasswordFields" model="Model.Password" />
+                </div>
+                <div class="form-actions-sticky">
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-key" aria-hidden="true"></i>Đổi mật khẩu</button>
+                </div>
+            </form>
+        </section>
+    </div>
+</div>
+@if (inPos)
+{
+    @:</div></div>
+}
+else
+{
+    @:</div>
+}
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        // Đổi mật khẩu bằng ui.api để ở lại trang và báo kết quả ngay
+        document.getElementById('me-password').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const form = e.currentTarget;
+            if (window.jQuery && !jQuery(form).valid()) return;
+            try {
+                const data = await ui.api(form.action, { method: 'POST', body: new FormData(form), button: form.querySelector('[type="submit"]'), form });
+                form.reset();
+                form.querySelectorAll('[data-pw-meter]').forEach((i) => i.dispatchEvent(new Event('input')));
+                ui.toast.success(data.message);
+            } catch { /* lỗi đã hiện dưới ô hoặc bằng toast */ }
+        });
+    </script>
+}

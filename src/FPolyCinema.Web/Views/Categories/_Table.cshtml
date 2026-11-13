@@ -1,0 +1,66 @@
+@model CategoryListVm
+@* Bảng loại đồ uống (tải lại bằng ui.loadRegion khi lọc, tìm, đổi trang). *@
+@if (Model.Result.Total == 0)
+{
+    if (Model.HasFilter)
+    {
+        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-search", Title = "Không có loại nào phù hợp", Text = "Không có loại đồ uống phù hợp – thử đổi từ khóa hoặc bỏ bớt bộ lọc.", ActionLabel = "Xóa bộ lọc", ActionUrl = "/admin/categories", ActionIcon = "bi-funnel" })" />
+    }
+    else
+    {
+        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-collection", Title = "Chưa có loại đồ uống nào", Text = "Thêm loại đầu tiên để bắt đầu nhập thực đơn bắp nước.", ActionLabel = Model.CanManage ? "Thêm loại" : null, ActionUrl = "/admin/categories/create" })" />
+    }
+}
+else
+{
+    <div class="table-wrap">
+        <table class="data-table">
+            <caption class="visually-hidden">Danh sách loại đồ uống</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Tên loại</th>
+                    <th scope="col" class="num">Số món</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col" class="col-actions">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model.Result.Items)
+                {
+                    var c = row.Category;
+                    var active = StatusDisplay.Of(StatusDisplay.Active, c.Active);
+                    <tr>
+                        <td class="cell-title"><a class="cell-main" href="/admin/categories/@c.Id">@c.Name</a></td>
+                        <td class="num" data-label="Số món">@Fmt.Number(row.DrinkCount)</td>
+                        <td data-label="Trạng thái">
+                            @if (Model.CanManage)
+                            {
+                                <label class="form-check form-switch active-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" checked="@c.Active" data-active-url="/admin/categories/@c.Id/set-active" aria-label="Đang hoạt động: @c.Name" />
+                                    <span data-active-label>@active.Label</span>
+                                </label>
+                            }
+                            else
+                            {
+                                <partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Active, c.Active ? "true" : "false"))" />
+                            }
+                        </td>
+                        <td class="col-actions">
+                            <a class="btn btn-ghost btn-icon btn-sm" href="/admin/categories/@c.Id" aria-label="Xem chi tiết @c.Name" data-bs-toggle="tooltip" title="Xem chi tiết"><i class="bi bi-eye" aria-hidden="true"></i></a>
+                            @if (Model.CanManage)
+                            {
+                                <a class="btn btn-ghost btn-icon btn-sm" href="/admin/categories/@c.Id/edit" aria-label="Sửa @c.Name" data-bs-toggle="tooltip" title="Sửa"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                                <button type="button" class="btn btn-ghost btn-icon btn-sm" aria-label="Xóa @c.Name" data-bs-toggle="tooltip" title="Xóa"
+                                        data-name="@c.Name" data-check-url="/admin/categories/@c.Id/delete-check" data-delete-url="/admin/categories/@c.Id/delete"
+                                        data-deactivate-url="/admin/categories/@c.Id/set-active" data-deactivate-text="Ngưng hoạt động" data-deactivate-done="Đã ngưng loại đồ uống này">
+                                    <i class="bi bi-trash" aria-hidden="true"></i>
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_Pagination" model="@(new PaginationVm { Page = Model.Result.Page, PageCount = Model.Result.PageCount, Label = Model.Result.Label, UrlFor = p => QueryUrl.With(Context.Request, "page", p == 1 ? null : p.ToString()) })" />
+}

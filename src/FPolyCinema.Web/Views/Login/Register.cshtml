@@ -1,0 +1,73 @@
+@model RegisterVm
+@* C6. Đăng ký tài khoản khách (UC05): cùng bố cục chia đôi với trang đăng nhập. *@
+@{
+    ViewData["Title"] = "Đăng ký thành viên";
+    ViewData["Chrome"] = "auth";
+    var returnUrl = ViewData["ReturnUrl"] as string;
+}
+<div class="auth-shell">
+    <partial name="_AuthArt" />
+    <div class="auth-panel">
+        <div class="auth-form">
+            <partial name="_Logo" model="@("/")" />
+            <h1>Đăng ký thành viên</h1>
+            <p class="auth-sub">Tích điểm mỗi lần mua vé và bắp nước, nhận ưu đãi dành riêng cho thành viên.</p>
+            <partial name="_FormErrors" />
+            <form asp-antiforgery="true" method="post" action="/Login/Register@(string.IsNullOrEmpty(returnUrl) ? null : "?returnUrl=" + Uri.EscapeDataString(returnUrl))" novalidate>
+                <div class="mb-3">
+                    <label asp-for="FullName" class="form-label">Họ tên <span class="req" aria-hidden="true">*</span></label>
+                    <input asp-for="FullName" class="form-control" autocomplete="name" placeholder="Nguyễn Văn An" />
+                    <span asp-validation-for="FullName"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label">Email <span class="req" aria-hidden="true">*</span></label>
+                    <input asp-for="Email" class="form-control" type="email" autocomplete="email" placeholder="ten@gmail.com" />
+                    <span asp-validation-for="Email"></span>
+                </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-12 col-sm-6">
+                        <label asp-for="Phone" class="form-label">Số điện thoại</label>
+                        <input asp-for="Phone" class="form-control" type="tel" inputmode="tel" autocomplete="tel" placeholder="0901234567" />
+                        <span asp-validation-for="Phone"></span>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label asp-for="BirthDate" class="form-label">Ngày sinh</label>
+                        <div class="date-field">
+                            <input asp-for="BirthDate" class="form-control" type="date" />
+                            <span class="date-display" aria-hidden="true"></span>
+                        </div>
+                        <span asp-validation-for="BirthDate"></span>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="Password" class="form-label">Mật khẩu <span class="req" aria-hidden="true">*</span></label>
+                    <div class="input-password">
+                        <input asp-for="Password" class="form-control" autocomplete="new-password" data-pw-meter="reg-meter" />
+                        <button type="button" class="btn-toggle-pw" aria-label="Hiện mật khẩu" aria-pressed="false" aria-controls="Password"><i class="bi bi-eye" aria-hidden="true"></i></button>
+                    </div>
+                    <div class="pw-meter" id="reg-meter" data-score="0" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+                    <div class="pw-meter-label" id="reg-meter-label" aria-live="polite">Ít nhất 8 ký tự, có cả chữ và số.</div>
+                    <span asp-validation-for="Password"></span>
+                </div>
+                <div class="mb-3">
+                    <label asp-for="ConfirmPassword" class="form-label">Nhập lại mật khẩu <span class="req" aria-hidden="true">*</span></label>
+                    <div class="input-password">
+                        <input asp-for="ConfirmPassword" class="form-control" autocomplete="new-password" />
+                        <button type="button" class="btn-toggle-pw" aria-label="Hiện mật khẩu" aria-pressed="false" aria-controls="ConfirmPassword"><i class="bi bi-eye" aria-hidden="true"></i></button>
+                    </div>
+                    <span asp-validation-for="ConfirmPassword"></span>
+                </div>
+                <div class="form-check mb-4">
+                    <input asp-for="AcceptTerms" class="form-check-input" />
+                    <label asp-for="AcceptTerms" class="form-check-label">Tôi đồng ý với <a href="/policies/terms" target="_blank">điều khoản sử dụng</a></label>
+                    <span asp-validation-for="AcceptTerms"></span>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-person-plus" aria-hidden="true"></i>Tạo tài khoản</button>
+            </form>
+            <p class="auth-alt">Đã có tài khoản? <a href="/Login/Login">Đăng nhập</a></p>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

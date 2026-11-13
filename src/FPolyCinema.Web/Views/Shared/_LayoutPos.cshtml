@@ -1,0 +1,47 @@
+@* _LayoutPos (theme ops; trang bếp và máy soát vé đặt ViewData["Theme"] = "cinema", UI mục 4): không có sidebar;
+   topbar 48px gồm mã quầy, thông tin ca, người dùng, đồng hồ, chỉ báo kết nối, nút đóng ca; cao đúng 100vh, từng cột tự cuộn. *@
+@{
+    var theme = ViewData["Theme"] as string == "cinema" ? "cinema" : "ops";
+    var shift = Shell.OpenShift;
+    var bodyClass = (ViewData["BodyClass"] as string) ?? "pos-ui";
+}
+<!DOCTYPE html>
+<html lang="vi" data-theme="@theme" data-bs-theme="@(theme == "cinema" ? "dark" : "light")">
+<head>
+    <partial name="_Head" />
+</head>
+<body class="@bodyClass @(Shell.DemoEnabled ? "has-demo-bar" : null)">
+    <a class="visually-hidden-focusable" href="#main">Bỏ qua tới nội dung chính</a>
+    <div class="pos-shell">
+        <header class="pos-topbar">
+            <partial name="_Logo" model="@Shell.HomePath" />
+            @if (shift != null)
+            {
+                <span class="terminal" title="Mã quầy">@shift.TerminalCode</span>
+                <span class="shift-info">Ca mở lúc @Fmt.Time(shift.OpenedAt) · Tiền đầu ca <span class="money">@Fmt.Money(shift.OpeningCashFloat)</span></span>
+            }
+            else
+            {
+                <span class="terminal">Chưa mở ca</span>
+                <span class="shift-info">Mở ca ở máy POS trước khi bán hàng.</span>
+            }
+            <div class="pos-tools">
+                <time class="pos-clock" data-clock="seconds" data-server-now="@Shell.Now.ToString("yyyy-MM-ddTHH:mm:ss")" aria-label="Giờ hiện tại">@Fmt.Time(Shell.Now)</time>
+                <partial name="_ConnIndicator" />
+                @* TODO(Phase 4): nút Đóng ca mở quy trình đóng ca mù 3 bước (UI P7). *@
+                <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip"
+                      title="@(shift == null ? "Bạn chưa mở ca nên chưa có ca để đóng." : "Đóng ca sẽ mở ở bản cập nhật tới, cùng màn hình bán hàng.")">
+                    <button type="button" class="btn btn-secondary btn-sm" disabled><i class="bi bi-door-closed" aria-hidden="true"></i>Đóng ca</button>
+                </span>
+                <partial name="_UserMenu" />
+            </div>
+        </header>
+        <main id="main" class="pos-body">
+            @RenderBody()
+        </main>
+    </div>
+    <partial name="_DemoBar" />
+    <partial name="_Scripts" />
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

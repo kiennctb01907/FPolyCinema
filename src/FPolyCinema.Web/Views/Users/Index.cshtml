@@ -1,0 +1,34 @@
+@model StaffListVm
+@* A2. Danh sách nhân viên: lọc theo vai trò và rạp, tìm theo tên hoặc email. Chỉ quản lý rạp (ManagerOnly). *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Nhân viên";
+    ViewData["Crumbs"] = new List<Crumb> { new("Nhân sự"), new("Nhân viên") };
+    var header = new PageHeaderVm
+    {
+        Title = "Nhân viên",
+        Description = "Tài khoản nhân viên các rạp: vai trò, rạp làm việc, khóa hoặc mở đăng nhập.",
+        Crumbs = new() { new("Nhân sự"), new("Nhân viên") },
+    };
+    header.Actions = @<a class="btn btn-primary" href="/admin/users/create"><i class="bi bi-person-plus" aria-hidden="true"></i>Thêm nhân viên</a>;
+    var roles = FPolyCinema.Web.Services.StaffService.StaffRoles.Select(r => (r, StatusDisplay.RoleLabel(r))).ToList();
+    var filter = new FilterBarVm
+    {
+        SearchValue = Model.Query, SearchLabel = "Tìm theo tên hoặc email", SearchPlaceholder = "Ví dụ: Trang hoặc shift@",
+        Selects = new()
+        {
+            new FilterSelect("role", "Vai trò", roles, Model.Role, "Tất cả vai trò"),
+            new FilterSelect("cinemaId", "Rạp", Model.Cinemas.Select(c => (c.Id.ToString(), c.Name)).ToList(), Model.CinemaId?.ToString(), "Tất cả các rạp"),
+            new FilterSelect("status", "Trạng thái", new List<(string, string)> { ("active", "Đang hoạt động"), ("inactive", "Ngưng") }, Model.Status),
+        },
+        HasFilter = Model.HasFilter, ClearUrl = "/admin/users",
+    };
+}
+<partial name="_PageHeader" model="header" />
+<partial name="_FilterBar" model="filter" />
+<div data-region data-url="@QueryUrl.Current(Context.Request)">
+    <partial name="_TableSkeleton" model="@("staff")" />
+    <div data-region-content>
+        <partial name="_Table" model="Model" />
+    </div>
+</div>

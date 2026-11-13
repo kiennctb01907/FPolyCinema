@@ -1,0 +1,45 @@
+@model PaginationVm
+@* Phân trang (UI U5-21) dạng "1–20 trên 135". Liên kết tải lại vùng dữ liệu bằng fetch (data-region-link), không tải cả trang. *@
+<div class="table-footer">
+    <span class="page-info" aria-live="polite">@Model.Label</span>
+    @if (Model.PageCount > 1)
+    {
+        <nav aria-label="Phân trang">
+            <ul class="pagination">
+                <li class="page-item @(Model.Page <= 1 ? "disabled" : null)">
+                    @if (Model.Page > 1)
+                    {
+                        <a class="page-link" href="@Model.UrlFor(Model.Page - 1)" data-region-link aria-label="Trang trước"><i class="bi bi-chevron-left" aria-hidden="true"></i></a>
+                    }
+                    else
+                    {
+                        <span class="page-link" aria-label="Đang ở trang đầu"><i class="bi bi-chevron-left" aria-hidden="true"></i></span>
+                    }
+                </li>
+                @foreach (var p in Paging.Window(Model.Page, Model.PageCount))
+                {
+                    if (p == 0)
+                    {
+                        <li class="page-item disabled"><span class="page-link">…</span></li>
+                    }
+                    else
+                    {
+                        <li class="page-item @(p == Model.Page ? "active" : null)">
+                            <a class="page-link" href="@Model.UrlFor(p)" data-region-link aria-current="@(p == Model.Page ? "page" : null)" aria-label="Trang @p">@p</a>
+                        </li>
+                    }
+                }
+                <li class="page-item @(Model.Page >= Model.PageCount ? "disabled" : null)">
+                    @if (Model.Page < Model.PageCount)
+                    {
+                        <a class="page-link" href="@Model.UrlFor(Model.Page + 1)" data-region-link aria-label="Trang sau"><i class="bi bi-chevron-right" aria-hidden="true"></i></a>
+                    }
+                    else
+                    {
+                        <span class="page-link" aria-label="Đang ở trang cuối"><i class="bi bi-chevron-right" aria-hidden="true"></i></span>
+                    }
+                </li>
+            </ul>
+        </nav>
+    }
+</div>

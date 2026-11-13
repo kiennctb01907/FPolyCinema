@@ -1,0 +1,49 @@
+@model FilterBarVm
+@* Thanh lọc (UI U5-22, U5-23, A2): ô tìm có icon và nút xóa, tìm sau 300ms ngừng gõ và giữ trên query string;
+   các ô chọn (trạng thái, danh mục cha); khoảng ngày với mốc nhanh; nút "Xóa bộ lọc". *@
+<form class="filter-bar" method="get" data-filter role="search" aria-label="Lọc danh sách">
+    <div class="filter-item filter-search">
+        <label class="form-label" for="f-@Model.SearchName">@Model.SearchLabel</label>
+        <div class="search-box">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <input type="search" class="form-control" id="f-@Model.SearchName" name="@Model.SearchName" value="@Model.SearchValue" placeholder="@Model.SearchPlaceholder" autocomplete="off" />
+            <button type="button" class="btn btn-ghost btn-icon btn-sm btn-clear" aria-label="Xóa nội dung tìm" hidden><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        </div>
+    </div>
+    @foreach (var s in Model.Selects)
+    {
+        <div class="filter-item">
+            <label class="form-label" for="f-@s.Name">@s.Label</label>
+            <select class="form-select" id="f-@s.Name" name="@s.Name">
+                <option value="">@s.AllText</option>
+                @foreach (var (value, text) in s.Options)
+                {
+                    <option value="@value" selected="@(value == s.Selected)">@text</option>
+                }
+            </select>
+        </div>
+    }
+    @if (Model.ShowDateRange)
+    {
+        <div class="filter-item">
+            <label class="form-label" for="f-from">Từ ngày</label>
+            <div class="date-field"><input type="date" class="form-control" id="f-from" name="from" value="@Model.DateFrom" data-range-from /><span class="date-display" aria-hidden="true"></span></div>
+        </div>
+        <div class="filter-item">
+            <label class="form-label" for="f-to">Đến ngày</label>
+            <div class="date-field"><input type="date" class="form-control" id="f-to" name="to" value="@Model.DateTo" data-range-to /><span class="date-display" aria-hidden="true"></span></div>
+        </div>
+        <div class="filter-item">
+            <span class="form-label d-block">Mốc nhanh</span>
+            <div class="quick-ranges" role="group" aria-label="Chọn nhanh khoảng ngày">
+                <button type="button" class="btn btn-secondary btn-sm" data-range="today">Hôm nay</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-range="7">7 ngày</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-range="30">30 ngày</button>
+                <button type="button" class="btn btn-secondary btn-sm" data-range="month">Tháng này</button>
+            </div>
+        </div>
+    }
+    <div class="filter-item filter-clear">
+        <button type="button" class="btn btn-ghost" data-filter-clear><i class="bi bi-funnel" aria-hidden="true"></i>Xóa bộ lọc</button>
+    </div>
+</form>

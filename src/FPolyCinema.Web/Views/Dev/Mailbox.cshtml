@@ -1,0 +1,53 @@
+@model MailboxVm
+@* D2. Hộp thư thử /dev/mailbox (chỉ khi Demo:EnableTools): danh sách thư trong EmailOutbox, mới nhất ở trên;
+   bấm vào thì xem nội dung; có nút xóa hết. Dùng khi không cấu hình Email:SmtpHost. *@
+@{
+    ViewData["Title"] = "Hộp thư thử";
+    var header = new PageHeaderVm { Title = "Hộp thư thử", Description = $"Thư hệ thống gửi đi khi chưa cấu hình SMTP (mã OTP, mật khẩu mới…). Có {Model.Total} thư.", Crumbs = new() { new("Công cụ phát triển"), new("Hộp thư thử") } };
+    if (Model.Total > 0)
+    {
+        header.Actions = @<form asp-antiforgery="true" method="post" action="/dev/mailbox/clear" data-confirm-title="Xóa hết thư trong hộp thư thử?" data-confirm-message="Toàn bộ thư thử sẽ bị xóa, không khôi phục được." data-confirm-text="Xóa hết">
+            <button type="submit" class="btn btn-secondary"><i class="bi bi-trash" aria-hidden="true"></i>Xóa hết</button>
+        </form>;
+    }
+}
+<partial name="_PageHeader" model="header" />
+@if (Model.Items.Count == 0)
+{
+    <div class="card-ui"><partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-envelope-open", Title = "Chưa có thư nào", Text = "Thử chức năng Quên mật khẩu để nhận mã xác nhận tại đây.", ActionLabel = "Mở Quên mật khẩu", ActionUrl = "/Login/ForgotPassword", ActionIcon = "bi-key" })" /></div>
+}
+else
+{
+    <div class="mailbox">
+        <nav class="card-ui" aria-label="Danh sách thư">
+            <ul class="mail-list">
+                @foreach (var m in Model.Items)
+                {
+                    var active = Model.Selected?.Id == m.Id;
+                    <li>
+                        <a href="/dev/mailbox?id=@m.Id" class="@(active ? "active" : null)" aria-current="@(active ? "true" : null)">
+                            <span class="mail-subject text-truncate-1">@m.Subject</span>
+                            <span class="mail-meta">Tới @m.ToEmail · <span class="num">@Fmt.DateTime(m.CreatedAt)</span>@(m.SentAt.HasValue ? " · đã gửi qua SMTP" : null)</span>
+                        </a>
+                    </li>
+                }
+            </ul>
+        </nav>
+        @if (Model.Selected is { } s)
+        {
+            <article class="card-ui card-ui-body" aria-labelledby="mail-title">
+                <h2 class="h4" id="mail-title">@s.Subject</h2>
+                <dl class="detail-list mb-4">
+                    <dt>Người nhận</dt><dd>@s.ToEmail</dd>
+                    <dt>Thời gian</dt><dd class="num">@Fmt.DateTime(s.CreatedAt)</dd>
+                    <dt>Trạng thái</dt><dd class="num">@(s.SentAt.HasValue ? "Đã gửi qua SMTP lúc " + Fmt.DateTime(s.SentAt) : "Chỉ lưu trong hộp thư thử")</dd>
+                </dl>
+                <pre class="mail-body">@s.Body</pre>
+            </article>
+        }
+        else
+        {
+            <div class="card-ui"><partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-envelope-x", Title = "Không tìm thấy thư", Text = "Thư này có thể đã bị xóa. Bạn chọn một thư khác trong danh sách.", ActionLabel = "Về thư mới nhất", ActionUrl = "/dev/mailbox", ActionIcon = "bi-inbox" })" /></div>
+        }
+    </div>
+}

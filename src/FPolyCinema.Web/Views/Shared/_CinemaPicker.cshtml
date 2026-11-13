@@ -1,0 +1,37 @@
+@* Ô chọn rạp (UI mục 4). Nhân viên gắn với một rạp thì chỉ xem, có lý do trong tooltip (UI U6-02). *@
+@{
+    var ctx = Shell.Cinema;
+    var current = ctx.CurrentCinemaId;
+    var returnUrl = Context.Request.Path + Context.Request.QueryString;
+    var id = "cinema-picker-" + (ViewData["PickerId"] as string ?? "main");
+}
+@if (ctx.Cinemas.Count > 0)
+{
+    <form asp-antiforgery="true" class="cinema-picker" method="post" action="/cinema/select">
+        <input type="hidden" name="returnUrl" value="@returnUrl" />
+        <label class="visually-hidden" for="@id">Chọn rạp</label>
+        @if (ctx.CanChoose)
+        {
+            <select class="form-select" id="@id" name="cinemaId" data-cinema-picker>
+                @if (ctx.IsChainManager)
+                {
+                    <option value="" selected="@(current == null)">Toàn chuỗi</option>
+                }
+                @foreach (var c in ctx.Cinemas)
+                {
+                    <option value="@c.Id" selected="@(c.Id == current)">@c.Name</option>
+                }
+            </select>
+            <noscript><button type="submit" class="btn btn-secondary btn-sm">Chọn</button></noscript>
+        }
+        else
+        {
+            <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Tài khoản của bạn gắn với rạp này nên không đổi được.">
+                <select class="form-select" id="@id" disabled aria-describedby="@(id)-why">
+                    <option>@(ctx.Current?.Name ?? "Rạp của bạn")</option>
+                </select>
+            </span>
+            <span id="@(id)-why" class="visually-hidden">Tài khoản của bạn gắn với rạp này nên không đổi được.</span>
+        }
+    </form>
+}

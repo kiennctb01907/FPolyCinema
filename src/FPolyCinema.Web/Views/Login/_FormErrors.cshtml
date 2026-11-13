@@ -1,0 +1,11 @@
+@* Lỗi chung của form (không gắn với ô nào), ví dụ sai email hoặc mật khẩu: ghi cụ thể chuyện gì xảy ra và cách sửa (UI mục 9). *@
+@{
+    var errors = ViewData.ModelState.TryGetValue(string.Empty, out var entry) ? entry.Errors.Select(e => e.ErrorMessage).ToList() : new List<string>();
+}
+@if (errors.Count > 0)
+{
+    <div class="alert-ui tone-danger" role="alert">
+        <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+        <div>@foreach (var e in errors) { <div>@e</div> }</div>
+    </div>
+}

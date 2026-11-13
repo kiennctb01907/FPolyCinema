@@ -1,0 +1,63 @@
+@model StaffDetailsVm
+@{
+    Layout = "_LayoutAdmin";
+    var u = Model.User;
+    ViewData["Title"] = u.FullName;
+    ViewData["Crumbs"] = new List<Crumb> { new("Nhân sự"), new("Nhân viên", "/admin/users"), new(u.FullName) };
+    var header = new PageHeaderVm { Title = u.FullName, Description = StatusDisplay.RoleLabel(u.Role), Crumbs = new() { new("Nhân viên", "/admin/users"), new(u.FullName) } };
+    header.Actions = @<text>
+        @if (Model.IsSelf)
+        {
+            <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Bạn không thể xóa tài khoản mình đang đăng nhập.">
+                <button type="button" class="btn btn-secondary" disabled><i class="bi bi-trash" aria-hidden="true"></i>Xóa</button>
+            </span>
+        }
+        else
+        {
+            <button type="button" class="btn btn-secondary" data-name="@u.FullName" data-check-url="/admin/users/@u.Id/delete-check" data-delete-url="/admin/users/@u.Id/delete"
+                    data-deactivate-url="/admin/users/@u.Id/set-active" data-deactivate-text="Khóa tài khoản" data-deactivate-done="Đã khóa tài khoản" data-after-delete="/admin/users"><i class="bi bi-trash" aria-hidden="true"></i>Xóa</button>
+        }
+        <a class="btn btn-primary" href="/admin/users/@u.Id/edit"><i class="bi bi-pencil" aria-hidden="true"></i>Sửa</a>
+    </text>;
+}
+<partial name="_PageHeader" model="header" />
+<div class="row g-4">
+    <div class="col-12 col-lg-6">
+        <section class="card-ui card-ui-body" aria-labelledby="info">
+            <div class="profile-head mb-4">
+                <span class="avatar avatar-lg" aria-hidden="true">@Fmt.Initials(u.FullName)</span>
+                <div>
+                    <h2 class="card-ui-title mb-1" id="info">@u.FullName</h2>
+                    <partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Role, u.Role))" />
+                </div>
+            </div>
+            <dl class="detail-list">
+                <dt>Email</dt><dd>@u.Email</dd>
+                <dt>Số điện thoại</dt><dd class="num">@(u.Phone ?? "–")</dd>
+                <dt>Rạp</dt><dd>@Model.CinemaName</dd>
+                <dt>Trạng thái</dt><dd><partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Active, u.Active ? "true" : "false"))" /></dd>
+                <dt>Mật khẩu</dt><dd>@(u.MustChangePassword ? "Đang dùng mật khẩu được cấp, chưa đổi" : "Đã tự đặt")</dd>
+                <dt>Hóa đơn đã lập</dt><dd class="num">@Fmt.Number(Model.BillsCreated)</dd>
+                <dt>Ngày tạo</dt><dd class="num">@Fmt.Date(u.CreatedAt)</dd>
+            </dl>
+        </section>
+    </div>
+    <div class="col-12 col-lg-6">
+        <section class="card-ui card-ui-body" aria-labelledby="lock">
+            <h2 class="card-ui-title" id="lock">Đăng nhập</h2>
+            <p class="text-muted">Khóa tài khoản để nhân viên không đăng nhập được nữa mà vẫn giữ lịch sử hóa đơn và ca làm việc. Mọi lần khóa hoặc mở đều được ghi nhật ký.</p>
+            @if (Model.IsSelf)
+            {
+                <p class="small text-muted mb-0">Bạn không thể tự khóa tài khoản mình đang đăng nhập.</p>
+            }
+            else
+            {
+                var active = StatusDisplay.Of(StatusDisplay.Active, u.Active);
+                <label class="form-check form-switch active-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" checked="@u.Active" data-active-url="/admin/users/@u.Id/set-active" data-on-done="Đã mở tài khoản" data-off-done="Đã khóa tài khoản" aria-label="Đang hoạt động: @u.FullName" />
+                    <span data-active-label>@active.Label</span>
+                </label>
+            }
+        </section>
+    </div>
+</div>

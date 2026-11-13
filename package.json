@@ -1,0 +1,11 @@
+{
+  "name": "fpolycinema-tools",
+  "private": true,
+  "description": "Công cụ Node của FPolyCinema: chụp giao diện (tools/ui-snapshots) và kiểm tra spec (tools/spec-check).",
+  "scripts": {
+    "snap": "node tools/ui-snapshots/snap.mjs"
+  },
+  "devDependencies": {
+    "playwright": "^1.65.0"
+  }
+}

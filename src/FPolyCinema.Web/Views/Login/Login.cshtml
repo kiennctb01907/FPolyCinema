@@ -1,0 +1,42 @@
+@model LoginVm
+@* C6. Đăng nhập: desktop chia đôi (trái ảnh không khí rạp phim, phải form rộng 400px); điện thoại chỉ hiện form.
+   Có nút hiện hoặc ẩn mật khẩu, lỗi ghi cụ thể, liên kết quên mật khẩu. *@
+@{
+    ViewData["Title"] = "Đăng nhập";
+    ViewData["Chrome"] = "auth";
+}
+<div class="auth-shell">
+    <partial name="_AuthArt" />
+    <div class="auth-panel">
+        <div class="auth-form">
+            <partial name="_Logo" model="@("/")" />
+            <h1>Đăng nhập</h1>
+            <p class="auth-sub">Dùng email và mật khẩu của bạn. Nhân viên đăng nhập bằng email công ty.</p>
+            <partial name="_FormErrors" />
+            <form asp-antiforgery="true" method="post" action="/Login/Login" novalidate>
+                <input type="hidden" asp-for="ReturnUrl" />
+                <div class="mb-3">
+                    <label asp-for="Email" class="form-label">Email <span class="req" aria-hidden="true">*</span></label>
+                    <input asp-for="Email" class="form-control" type="email" autocomplete="username" placeholder="ten@gmail.com" autofocus />
+                    <span asp-validation-for="Email"></span>
+                </div>
+                <div class="mb-2">
+                    <label asp-for="Password" class="form-label">Mật khẩu <span class="req" aria-hidden="true">*</span></label>
+                    <div class="input-password">
+                        <input asp-for="Password" class="form-control" autocomplete="current-password" />
+                        <button type="button" class="btn-toggle-pw" aria-label="Hiện mật khẩu" aria-pressed="false" aria-controls="Password"><i class="bi bi-eye" aria-hidden="true"></i></button>
+                    </div>
+                    <span asp-validation-for="Password"></span>
+                </div>
+                <div class="d-flex justify-content-end mb-4">
+                    <a href="/Login/ForgotPassword" class="small">Quên mật khẩu?</a>
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>Đăng nhập</button>
+            </form>
+            <p class="auth-alt">Chưa có tài khoản? <a href="/Login/Register@(string.IsNullOrEmpty(Model.ReturnUrl) ? null : "?returnUrl=" + Uri.EscapeDataString(Model.ReturnUrl))">Đăng ký thành viên</a></p>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

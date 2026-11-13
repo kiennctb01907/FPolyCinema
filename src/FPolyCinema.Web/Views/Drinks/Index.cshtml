@@ -1,0 +1,35 @@
+@model DrinkListVm
+@* A2. Danh sách đồ uống: lọc theo Loại đồ uống và tìm theo tên (Lab 5 bài 3), lọc trạng thái; bảng, phân trang, trạng thái rỗng. *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Đồ uống";
+    ViewData["Crumbs"] = new List<Crumb> { new("Kho bắp nước"), new("Đồ uống") };
+    var header = new PageHeaderVm
+    {
+        Title = "Đồ uống",
+        Description = "Món bắp nước và combo bán tại quầy và trên web, kèm định mức nguyên liệu theo từng rạp.",
+        Crumbs = new() { new("Kho bắp nước"), new("Đồ uống") },
+    };
+    if (Model.CanManage)
+    {
+        header.Actions = @<a class="btn btn-primary" href="/admin/drinks/create"><i class="bi bi-plus-lg" aria-hidden="true"></i>Thêm món</a>;
+    }
+    var filter = new FilterBarVm
+    {
+        SearchValue = Model.Query, SearchLabel = "Tìm theo tên món", SearchPlaceholder = "Ví dụ: bắp phô mai",
+        Selects = new()
+        {
+            new FilterSelect("categoryId", "Loại đồ uống", Model.Categories.Select(c => (c.Id.ToString(), c.Name)).ToList(), Model.CategoryId?.ToString(), "Tất cả các loại"),
+            new FilterSelect("status", "Trạng thái", new List<(string, string)> { ("active", "Đang hoạt động"), ("inactive", "Ngưng") }, Model.Status),
+        },
+        HasFilter = Model.HasFilter, ClearUrl = "/admin/drinks",
+    };
+}
+<partial name="_PageHeader" model="header" />
+<partial name="_FilterBar" model="filter" />
+<div data-region data-url="@QueryUrl.Current(Context.Request)">
+    <partial name="_TableSkeleton" model="@("drink")" />
+    <div data-region-content>
+        <partial name="_Table" model="Model" />
+    </div>
+</div>

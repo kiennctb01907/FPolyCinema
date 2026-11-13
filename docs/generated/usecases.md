@@ -2,11 +2,11 @@
 
 | Mã | Use case | Tác nhân | Quan hệ | Màn hình | Phase | Trạng thái | Bằng chứng |
 |---|---|---|---|---|---|---|---|
-| UC01 | Đăng nhập, đăng xuất | Khách hàng, mọi nhân viên |  | C6 | 2 | Chưa |  |
-| UC02 | Quên mật khẩu (OTP, cấp mật khẩu mới qua email) | Khách hàng, mọi nhân viên; Dịch vụ email | extend UC01 | C6 | 2 | Chưa |  |
+| UC01 | Đăng nhập, đăng xuất | Khách hàng, mọi nhân viên |  | C6 | 2 | Xong | src/FPolyCinema.Web/Controllers/LoginController.cs#public async Task<IActionResult> Login(LoginVm vm); src/FPolyCinema.Web/Controllers/LoginController.cs#public async Task<IActionResult> Logout(); test:Login_FormHasTokenAndRedirectsToRoleHome_LockedAccountRejected; ui:C6 |
+| UC02 | Quên mật khẩu (OTP, cấp mật khẩu mới qua email) | Khách hàng, mọi nhân viên; Dịch vụ email | extend UC01 | C6 | 2 | Xong | src/FPolyCinema.Web/Services/PasswordResetService.cs#public class PasswordResetService; test:ForgotPassword_OtpFlow_WrongThenRightSendsNewPasswordAndForcesChange; ui:C6 |
 | UC03 | Đổi mật khẩu | Khách hàng, mọi nhân viên | include UC01 | C5, A9 | 2, 5 | Chưa |  |
 | UC04 | Cập nhật thông tin cá nhân | Khách hàng, mọi nhân viên | include UC01 | C5, A9 | 2, 5 | Chưa |  |
-| UC05 | Đăng ký tài khoản | Khách vãng lai |  | C6 | 2 | Chưa |  |
+| UC05 | Đăng ký tài khoản | Khách vãng lai |  | C6 | 2 | Xong | src/FPolyCinema.Web/Services/AuthService.cs#public User Register(RegisterInput input); test:Register_CreatesMemberCustomerAndRejectsDuplicateEmail; ui:C6 |
 | UC06 | Xem phim, lịch chiếu, thực đơn bắp nước | Khách vãng lai |  | C1, C2 | 5 | Chưa |  |
 | UC07 | Đặt vé online | Khách hàng | include UC08, UC09 | C3 | 5 | Chưa |  |
 | UC08 | Chọn ghế với gợi ý AI | Khách hàng, Thu ngân |  | C3, P1 | 4, 5 | Chưa |  |
@@ -29,15 +29,15 @@
 | UC25 | Giải phóng ghế nội bộ | Quản lý ca |  | A7 | 6 | Chưa |  |
 | UC26 | Duyệt phiếu hủy hàng | Quản lý ca |  | A7 | 6 | Chưa |  |
 | UC27 | Hủy suất do sự cố | Quản lý ca |  | A5 | 6 | Chưa |  |
-| UC28 | Quản lý loại đồ uống | Quản lý rạp |  | A2, A3 | 2 | Chưa |  |
-| UC29 | Quản lý đồ uống và định mức | Quản lý rạp |  | A2, A3 | 2 | Chưa |  |
+| UC28 | Quản lý loại đồ uống | Quản lý rạp |  | A2, A3 | 2 | Xong | src/FPolyCinema.Web/Services/CatalogServices.cs#public class CategoryService; src/FPolyCinema.Web/Controllers/CategoriesController.cs#public class CategoriesController; test:Category_DeleteBlockedWhenHasDrinks_AllowedWhenEmpty; ui:A2 |
+| UC29 | Quản lý đồ uống và định mức | Quản lý rạp |  | A2, A3 | 2 | Xong | src/FPolyCinema.Web/Services/CatalogServices.cs#public class DrinkService; src/FPolyCinema.Web/Controllers/DrinksController.cs#public class DrinksController; test:Drink_SaveWithRecipesPerCinema_DeleteOnlyWhenNeverSold; ui:A3 |
 | UC30 | Quản lý nguyên liệu, nhập kho | Quản lý rạp |  | A2, A3 | 6 | Chưa |  |
 | UC31 | Quản lý phim, nhà phát hành, KDM, chia doanh thu | Quản lý rạp |  | A2, A3 | 3 | Chưa |  |
 | UC32 | Quản lý phòng chiếu và sơ đồ ghế | Quản lý rạp |  | A4 | 3 | Chưa |  |
 | UC33 | Quản lý bảng giá, đối tượng ưu đãi, ngày lễ | Quản lý rạp |  | A2, A3 | 3 | Chưa |  |
 | UC34 | Quản lý suất chiếu | Quản lý rạp |  | A5 | 3 | Chưa |  |
 | UC35 | Xếp lịch tự động bằng AI | Quản lý rạp | extend UC34 | A5 | 7 | Chưa |  |
-| UC36 | Quản lý nhân viên | Quản lý rạp |  | A2, A3 | 2 | Chưa |  |
+| UC36 | Quản lý nhân viên | Quản lý rạp |  | A2, A3 | 2 | Xong | src/FPolyCinema.Web/Services/StaffService.cs#public class StaffService; src/FPolyCinema.Web/Controllers/UsersController.cs#public class UsersController; test:Staff_CreateEmailsPassword_SetActiveWritesAudit_DeleteRules; ui:A2 |
 | UC37 | Quản lý hóa đơn | Quản lý rạp |  | A8 | 4 | Chưa |  |
 | UC38 | Thống kê, báo cáo | Quản lý rạp |  | A1, A6 | 4 | Chưa |  |
 | UC39 | Đối soát nhà phát hành | Quản lý rạp |  | A6 | 4 | Chưa |  |
@@ -48,7 +48,7 @@
 | Phase | Nội dung | Đã xong | Tự động |
 |---|---|---|---|
 | 1 | Nền tảng dữ liệu | 92/92 | 81 |
-| 2 | Giao diện nền, đăng nhập, CRUD cơ bản | 0/177 | 7 |
+| 2 | Giao diện nền, đăng nhập, CRUD cơ bản | 177/177 | 9 |
 | 3 | Phim, phòng chiếu, giá, suất chiếu | 0/53 | 1 |
 | 4 | POS, hóa đơn, thống kê | 0/142 | 2 |
 | 5 | Web khách và đặt vé online | 0/86 | 3 |

@@ -1,0 +1,14 @@
+@{
+    ViewData["Title"] = "Điều khoản sử dụng";
+}
+<article class="policy prose">
+    <partial name="_PageHeader" model="@(new PageHeaderVm { Title = "Điều khoản sử dụng", Description = "Áp dụng cho tài khoản thành viên và việc mua vé tại FPoly Cinema.", Crumbs = new() { new("Trang chủ", "/"), new("Điều khoản sử dụng") } })" />
+    <h2>Tài khoản thành viên</h2>
+    <p>Bạn dùng email thật để đăng ký và tự giữ mật khẩu. Mỗi tài khoản có một mã thành viên để tích điểm khi mua vé và bắp nước. Nếu quên mật khẩu, bạn dùng chức năng Quên mật khẩu: hệ thống gửi mã xác nhận 6 số tới email, mã có hiệu lực 5 phút.</p>
+    <h2>Phân loại phim và độ tuổi</h2>
+    <p>Phim được phân loại theo Thông tư 05/2023/TT-BVHTTDL (P, K, T13, T16, T18). Nhân viên có thể đề nghị bạn xuất trình CCCD hoặc VNeID khi vào phòng chiếu phim từ T13 trở lên. Trẻ em dưới 13 tuổi chỉ xem suất kết thúc trước 22:00, trẻ em dưới 16 tuổi chỉ xem suất kết thúc trước 23:00.</p>
+    <h2>Vé giảm giá theo luật</h2>
+    <p>Vé dành cho trẻ em, người cao tuổi, người có công, người khuyết tật và người có hoàn cảnh đặc biệt khó khăn chỉ bán tại quầy để nhân viên kiểm tra giấy tờ.</p>
+    <h2 id="bao-mat">Bảo mật thông tin</h2>
+    <p>Mật khẩu được lưu dạng băm, nhân viên rạp không xem được. Email và số điện thoại chỉ dùng để gửi vé, mã xác nhận và thông báo về đơn hàng của bạn.</p>
+</article>

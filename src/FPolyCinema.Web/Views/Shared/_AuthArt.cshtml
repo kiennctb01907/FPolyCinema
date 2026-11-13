@@ -1,0 +1,28 @@
+@* Ảnh không khí rạp phim của trang đăng nhập (UI C6): vẽ bằng SVG, màu lấy từ token, không dùng ảnh tải từ internet. *@
+<div class="auth-art" aria-hidden="true">
+    <svg viewBox="0 0 800 900" preserveAspectRatio="xMidYMid slice" focusable="false">
+        <rect class="aa-bg" width="800" height="900" />
+        <ellipse class="aa-glow" cx="400" cy="210" rx="380" ry="170" />
+        <path class="aa-beam" d="M400 120 L60 900 L740 900 Z" />
+        <path class="aa-screen" d="M110 150 Q400 90 690 150 L690 330 Q400 280 110 330 Z" />
+        <path class="aa-screen-edge" d="M110 150 Q400 90 690 150" />
+        @for (int r = 0; r < 6; r++)
+        {
+            var y = 470 + r * 72;
+            var w = 520 + r * 50;
+            var x0 = 400 - w / 2;
+            var n = 9 + r;
+            var gap = w / n;
+            for (int i = 0; i < n; i++)
+            {
+                <rect class="@(r == 2 && (i == 5 || i == 6) ? "aa-seat-hl" : "aa-seat")" x="@(x0 + i * gap + 4)" y="@y" width="@(gap - 8)" height="44" rx="10" />
+            }
+        }
+        <circle class="aa-dot" cx="640" cy="420" r="5" />
+        <circle class="aa-dot" cx="170" cy="380" r="3" />
+        <circle class="aa-dot" cx="560" cy="360" r="3" />
+    </svg>
+    <div class="auth-art-caption">
+        <p>Đặt vé nhanh, chọn ghế đẹp, nhận bắp nước ngay khi tới rạp.</p>
+    </div>
+</div>

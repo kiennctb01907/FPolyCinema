@@ -1,0 +1,12 @@
+@model MoneySummaryVm
+@* Khối tổng tiền (UI U5-35): liệt kê từng dòng, tạm tính, giảm giá; tổng 24px đậm 700 (POS 32px qua lớp pos-ui). *@
+<div class="money-summary" aria-label="Tổng tiền">
+    @foreach (var l in Model.Lines)
+    {
+        <div class="ms-line @(l.IsDiscount ? "ms-discount" : null)"><span class="ms-label">@l.Label</span><span class="ms-value money">@(l.IsDiscount ? "−" : null)@Fmt.Money(l.Amount)</span></div>
+    }
+    <div class="ms-sep" role="presentation"></div>
+    <div class="ms-line"><span class="ms-label">Tạm tính</span><span class="ms-value money">@Fmt.Money(Model.Subtotal)</span></div>
+    <div class="ms-line ms-discount"><span class="ms-label">Giảm giá</span><span class="ms-value money">@(Model.Discount > 0 ? "−" : null)@Fmt.Money(Model.Discount)</span></div>
+    <div class="ms-total"><span class="ms-label">@Model.TotalLabel</span><span class="ms-value money">@Fmt.Money(Model.Total)</span></div>
+</div>

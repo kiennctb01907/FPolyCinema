@@ -75,6 +75,7 @@ Lưu trong DB đúng chuỗi ở đây. Trong C# khai báo ở Domain/Constants 
 - Cờ tính toán, không lưu DB:
   - [C3-37 P3] LOCKED_HAS_TICKETS: suất có ít nhất một ghế BOOKED hoặc HELD còn hạn.
   - [C3-38 P6] Hóa đơn "đã hoàn tất": Status finish, CheckInStatus là NONE hoặc FULLY_CHECKED_IN, FnbStatus là NONE hoặc FULFILLED.
+- [C3-39 P2 auto:enum] AuditAction: USER_LOCKED, USER_UNLOCKED (hằng AuditAction ghi vào AuditLogs.Action; mỗi phase thêm hành động của mình theo SPEC 2.7)
 
 ## 4. Đối tượng vé (AudienceType)
 
@@ -208,6 +209,7 @@ Khóa nào chứa bí mật thì để chuỗi rỗng trong appsettings.json và
   - [C8-06 P3 auto:codes] KDM_INVALID, LICENSE_MISSING, RATING_C, SHOWTIME_OVERLAP, SHOWTIME_LOCKED, AGE_RESTRICTED, CHILD_CURFEW, GUARDIAN_REQUIRED
   - [C8-07 P4 auto:codes] SEAT_TAKEN (409), ORPHAN_SEAT, SWEETBOX_PAIR, WHEELCHAIR_CONFIRM_REQUIRED, SALES_CLOSED, SHIFT_NOT_OPEN, SHIFT_HAS_WAITING_BILLS, STOCK_INSUFFICIENT, APPROVAL_REQUIRED, PIN_INVALID, PIN_LOCKED, VOUCHER_INVALID, POINTS_INVALID
   - [C8-08 P5 auto:codes] AGE_CONFIRM_REQUIRED, SELF_CANCEL_NOT_ALLOWED, WALLET_INSUFFICIENT, PAYMENT_EXPIRED
+  - [C8-09 P2 auto:codes] AUTH_REQUIRED (401), ACCESS_DENIED (403), NOT_FOUND (404), SERVER_ERROR (500) – mã chung khi chưa đăng nhập, không có quyền, không tìm thấy và lỗi máy chủ
 
 ## 9. Quy ước dữ liệu và code
 
@@ -270,3 +272,23 @@ Cột và ràng buộc thêm so với SPEC mục 6:
 - UNIQUE(CinemaId, Name) của RawMaterials; UNIQUE(AuditoriumId, Label) của Seats.
 - Index lọc: UX_Users_MemberCode (MemberCode khác NULL), UX_PosShifts_OpenTerminal (CinemaId, TerminalCode khi OPEN), UX_PosShifts_OpenUser (UserId khi OPEN), UX_Tickets_ActiveSeat (ShowtimeId, SeatId khi vé NOT_CHECKED_IN hoặc CHECKED_IN), UX_Payments_ProviderTxnId (khác NULL).
 - CHECK phụ: giá, tổng tiền, tồn kho không âm; DiscountPercent ≥ LegalMinPercent; KDM và voucher ValidUntil > ValidFrom; thứ tự 4 mốc của suất chiếu; PricingRules.RuleKey thuộc hợp các RuleKey hợp lệ.
+
+### Phase 2
+
+Route và quyền (bảng đầy đủ ở docs/generated/routes.md):
+- Khách vãng lai ([AllowAnonymous]): `/`, `/policies/terms`, `/policies/cancellation`, `/Home/AccessDenied`, `/Home/Error`, `/Login/Login` (GET, POST), `/Login/Register` (GET, POST), `/Login/ForgotPassword` (GET; POST AJAX gửi OTP), `/Login/VerifyOtp` (POST AJAX), `/cinema/select` (POST).
+- Đã đăng nhập ([Authorize]): `/Login/Logout` (POST), `/Login/ChangePassword` (GET, POST, nhận cả AJAX), `/Login/Profile` (khách) và `/me` (nhân viên, UI A9) (GET, POST `/Login/Profile`).
+- EmployeeOrManager: `/admin/categories`, `/admin/categories/{id}`, `/admin/drinks`, `/admin/drinks/{id}` (danh sách nhận `?partial=1` để tải lại vùng bảng).
+- ManagerOnly: `/admin/categories|drinks/create`, `/{id}/edit` (GET, POST), `/{id}/delete-check` (GET JSON), `/{id}/delete` (POST JSON), `/{id}/set-active` (POST JSON); toàn bộ `/admin/users…` (cùng các action); `/File/Upload`, `/File/Delete` (POST, ValidateAntiForgeryToken).
+- Chỉ khi Demo:EnableTools (tắt thì 404): `/demo/switch-role?role=…&returnUrl=…`, `/dev/style-guide` (cùng `/dev/style-guide/ok|fail|slow|broken` để thử thành phần), `/dev/mailbox`, `/dev/mailbox/clear` (POST), `/dev/layouts/pos`, `/dev/layouts/display`.
+
+Tên mới thêm vào hợp đồng: mã lỗi chung C8-09 (AUTH_REQUIRED 401, ACCESS_DENIED 403, NOT_FOUND 404, SERVER_ERROR 500); hành động nhật ký C3-39 (USER_LOCKED, USER_UNLOCKED, EntityType "Users"); claim `CinemaId`, `MustChangePassword`, `PasswordStamp` (lớp AppClaims); cookie `fpc_auth`, `fpc_af` (Anti-Forgery), `fpc_cinema` (rạp đang chọn); header AJAX `RequestVerificationToken`, `X-Requested-With: XMLHttpRequest`.
+
+Lớp chính:
+- Services: `AuthService` (Login, Register, ChangePassword, UpdateProfile, BuildPrincipal, PasswordStamp, ValidateSession), `PasswordResetService` (RequestOtp, VerifyOtp), `IEmailSender` với `SmtpEmailSender` / `OutboxEmailSender`, `CategoryService`, `DrinkService` (Save kèm định mức theo rạp, Delete, SetActive), `StaffService` (Create cấp mật khẩu qua email, Update, SetActive ghi AuditLogs, Delete), `UploadService`, `CinemaContextService`, `ShellService`, `DevToolsService`, `DemoAccounts`.
+- Domain/Rules (có unit test): `OtpRules`, `PasswordRules`, `DeleteRules` (Category, Drink, Staff, CanSetStaffActive), `Paging`, `RoleRouting` (HomePath, AreaOfPath, LayoutOf, CanReturnTo). `FieldErrors` cho VALIDATION_FAILED theo ô.
+- Infrastructure: `Fmt`, `StatusDisplay`, `QrSvg` (QRCoder SVG), `AuthOptions`, `EmailOptions`, `DemoOptions`, `UploadOptions`; Web: `ApiResponse`, `RequestKinds`, `ApiErrorMiddleware`, `AntiforgeryResultFilter`, `DemoToolsMiddleware`, `MustChangePasswordMiddleware`, `Flash`, `QueryUrl`.
+- DAL thêm: `UserDAL.SearchStaff, EmailExists, UpdatePassword, UpdateProfile, UpdateStaff, CountBillsCreated, CountOperationalReferences, DeleteDependents, MaxMemberSequence`; `CategoryDAL.Search, GetActive, CountDrinks, NameExists, SetActive`; `DrinkDAL.Search, CountBillLines, SetActive, CountByImage`; `ProductRecipeDAL.GetByDrink, DeleteByDrink, CountByDrink`; `RawMaterialDAL.GetActiveByCinema`; `CinemaDAL.GetActive`; `MovieDAL.CountByPoster, GetActive`; `PasswordResetOtpDAL.GetLatestForUser, ExpireAllForUser, IncrementFailed, MarkUsed`; `EmailOutboxDAL.GetLatest, Count, DeleteAll`; `SupervisorApprovalDAL.CountPending, ListPending`; `PosShiftDAL.GetOpenByUser`. Bản ghi đọc ở `Entities.ReadModels`.
+- Giao diện: tokens.css, app.css, 4 layout, partial `_PageHeader, _AgeBadge, _StatusBadge, _EmptyState, _Pagination, _FilterBar, _MoneySummary, _Stepper, _SeatMap` và các partial phụ; `ui.js` (toast, confirm, pin, api, loadRegion, busy, connection, holdTimer, money, dateTime, shake, status).
+
+Sự kiện SignalR: chưa phát sự kiện nào (realtime từ Phase 4).

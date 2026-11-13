@@ -1,0 +1,63 @@
+@* _LayoutAdmin (theme ops, UI mục 4): sidebar 248px thu gọn còn 72px, offcanvas trên điện thoại; topbar 56px gồm breadcrumb,
+   chọn rạp, chuông phê duyệt, menu người dùng; vùng nội dung padding 24px. ViewData["Crumbs"]: List<Crumb>. *@
+@{
+    var crumbs = ViewData["Crumbs"] as List<Crumb> ?? new List<Crumb>();
+}
+<!DOCTYPE html>
+<html lang="vi" data-theme="ops" data-bs-theme="light">
+<head>
+    <partial name="_Head" />
+</head>
+<body class="@(Shell.DemoEnabled ? "has-demo-bar" : null)">
+    <a class="visually-hidden-focusable" href="#main">Bỏ qua tới nội dung chính</a>
+    <div class="admin-shell">
+        <aside class="sidebar offcanvas-lg offcanvas-start" id="admin-sidebar" tabindex="-1" aria-label="Menu quản trị">
+            <div class="sidebar-head">
+                <partial name="_Logo" model="@Shell.HomePath" />
+                <button type="button" class="btn-close d-lg-none ms-auto" data-bs-dismiss="offcanvas" data-bs-target="#admin-sidebar" aria-label="Đóng menu"></button>
+            </div>
+            <nav class="sidebar-body" aria-label="Các mục quản trị">
+                <partial name="_AdminSidebar" />
+            </nav>
+            <div class="sidebar-foot d-none d-lg-block">
+                <button type="button" class="side-link w-100 border-0 bg-transparent" data-sidebar-toggle aria-expanded="true" aria-controls="admin-sidebar" aria-label="Thu gọn hoặc mở rộng menu">
+                    <i class="bi bi-layout-sidebar-inset" aria-hidden="true"></i><span class="label">Thu gọn menu</span>
+                </button>
+            </div>
+        </aside>
+        <div class="admin-main">
+            <header class="topbar">
+                <button type="button" class="btn btn-ghost btn-icon d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#admin-sidebar" aria-controls="admin-sidebar" aria-label="Mở menu">
+                    <i class="bi bi-list" aria-hidden="true"></i>
+                </button>
+                <nav aria-label="Vị trí trang" class="d-none d-md-block">
+                    <ol class="breadcrumb">
+                        @foreach (var c in crumbs)
+                        {
+                            if (c.Url != null)
+                            {
+                                <li class="breadcrumb-item"><a href="@c.Url">@c.Label</a></li>
+                            }
+                            else
+                            {
+                                <li class="breadcrumb-item active" aria-current="page">@c.Label</li>
+                            }
+                        }
+                    </ol>
+                </nav>
+                <div class="topbar-tools">
+                    <partial name="_CinemaPicker" />
+                    <partial name="_ApprovalBell" />
+                    <partial name="_UserMenu" />
+                </div>
+            </header>
+            <main id="main" class="admin-content">
+                @RenderBody()
+            </main>
+        </div>
+    </div>
+    <partial name="_DemoBar" />
+    <partial name="_Scripts" />
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

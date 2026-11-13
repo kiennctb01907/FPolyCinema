@@ -1,0 +1,43 @@
+@{
+    ViewData["Title"] = "Trang chủ";
+    var user = Shell.User;
+}
+@* TODO(Phase 5): thay bằng trang chủ C1 (hero phim nổi bật, mua vé nhanh, lưới phim đang chiếu và sắp chiếu, combo, ưu đãi). *@
+<section class="hero-lite site-section">
+    <h1>Chào mừng tới FPoly Cinema</h1>
+    <p class="text-muted fs-5">Chuỗi rạp chiếu phim của sinh viên FPT Polytechnic. Đặt vé online, chọn ghế đẹp và nhận bắp nước ngay khi tới rạp.</p>
+    <div class="d-flex flex-wrap gap-2 mt-4">
+        @if (user == null)
+        {
+            <a class="btn btn-primary btn-lg" href="/Login/Register"><i class="bi bi-person-plus" aria-hidden="true"></i>Đăng ký thành viên</a>
+            <a class="btn btn-ghost btn-lg" href="/Login/Login">Đăng nhập</a>
+        }
+        else if (Shell.IsStaff)
+        {
+            <a class="btn btn-primary btn-lg" href="@Shell.HomePath"><i class="bi bi-speedometer2" aria-hidden="true"></i>Vào trang làm việc</a>
+        }
+        else
+        {
+            <a class="btn btn-primary btn-lg" href="/Login/Profile"><i class="bi bi-person-circle" aria-hidden="true"></i>Xem tài khoản của bạn</a>
+        }
+    </div>
+</section>
+
+<section class="site-section" aria-labelledby="cinemas-title">
+    <h2 id="cinemas-title">Hệ thống rạp</h2>
+    <div class="row g-4">
+        @foreach (var c in Shell.Cinema.Cinemas)
+        {
+            <div class="col-12 col-md-6">
+                <div class="card-ui card-ui-body h-100">
+                    <h3 class="h5 mb-1">@c.Name</h3>
+                    <p class="text-muted mb-2">@c.Address</p>
+                    @if (!string.IsNullOrEmpty(c.Phone))
+                    {
+                        <p class="mb-0"><i class="bi bi-telephone" aria-hidden="true"></i> <a href="tel:@c.Phone">@c.Phone</a></p>
+                    }
+                </div>
+            </div>
+        }
+    </div>
+</section>

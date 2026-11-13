@@ -37,7 +37,7 @@ public sealed class DatabaseFixture : IDisposable
 
 /// <summary>Các test dùng CSDL chạy tuần tự trong một collection vì DBUtil giữ một chuỗi kết nối tĩnh.</summary>
 [CollectionDefinition("Database")]
-public class DatabaseCollection : ICollectionFixture<DatabaseFixture>, ICollectionFixture<SeededDatabaseFixture> { }
+public class DatabaseCollection : ICollectionFixture<DatabaseFixture>, ICollectionFixture<SeededDatabaseFixture>, ICollectionFixture<ServiceDatabaseFixture> { }
 
 /// <summary>Test tích hợp cho DBUtil, DAL, DbInitializer và BillStatusService trên CSDL thử.</summary>
 [Collection("Database")]

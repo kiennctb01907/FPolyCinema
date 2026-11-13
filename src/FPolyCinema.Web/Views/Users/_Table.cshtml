@@ -1,0 +1,91 @@
+@model StaffListVm
+@* Bảng nhân viên: vai trò hiển thị bằng nhãn tiếng Việt (CONTRACTS mục 1), công tắc khóa hoặc mở (SetActive). *@
+@if (Model.Result.Total == 0)
+{
+    if (Model.HasFilter)
+    {
+        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-search", Title = "Không có nhân viên nào phù hợp", Text = "Không có nhân viên phù hợp – thử đổi từ khóa hoặc bỏ bớt bộ lọc.", ActionLabel = "Xóa bộ lọc", ActionUrl = "/admin/users", ActionIcon = "bi-funnel" })" />
+    }
+    else
+    {
+        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-people", Title = "Chưa có nhân viên nào", Text = "Thêm nhân viên để phân công bán hàng, soát vé và quản lý ca.", ActionLabel = "Thêm nhân viên", ActionUrl = "/admin/users/create", ActionIcon = "bi-person-plus" })" />
+    }
+}
+else
+{
+    <div class="table-wrap">
+        <table class="data-table">
+            <caption class="visually-hidden">Danh sách nhân viên</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Nhân viên</th>
+                    <th scope="col">Vai trò</th>
+                    <th scope="col">Rạp</th>
+                    <th scope="col" class="col-opt">Số điện thoại</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col" class="col-actions">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var u in Model.Result.Items)
+                {
+                    var self = u.Id == Model.CurrentUserId;
+                    var role = StatusDisplay.Of(StatusDisplay.Role, u.Role);
+                    var active = StatusDisplay.Of(StatusDisplay.Active, u.Active);
+                    var cinema = u.CinemaId is int cid ? Model.Cinemas.FirstOrDefault(c => c.Id == cid)?.Name : "Toàn chuỗi";
+                    <tr>
+                        <td class="cell-title">
+                            <div class="d-flex align-items-center gap-3">
+                                <span class="avatar" aria-hidden="true">@Fmt.Initials(u.FullName)</span>
+                                <div>
+                                    <a class="cell-main" href="/admin/users/@u.Id">@u.FullName</a>@(self ? " (bạn)" : null)
+                                    <div class="cell-sub">@u.Email</div>
+                                </div>
+                            </div>
+                        </td>
+                        <td data-label="Vai trò"><span class="status-badge tone-@role.Tone">@role.Label</span></td>
+                        <td data-label="Rạp">@cinema</td>
+                        <td class="num col-opt" data-label="Số điện thoại">@(u.Phone ?? "–")</td>
+                        <td data-label="Trạng thái">
+                            @if (self)
+                            {
+                                <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Bạn không thể tự khóa tài khoản mình đang đăng nhập.">
+                                    <label class="form-check form-switch active-switch">
+                                        <input class="form-check-input" type="checkbox" role="switch" checked="@u.Active" disabled aria-label="Đang hoạt động: @u.FullName (tài khoản của bạn)" />
+                                        <span>@active.Label</span>
+                                    </label>
+                                </span>
+                            }
+                            else
+                            {
+                                <label class="form-check form-switch active-switch">
+                                    <input class="form-check-input" type="checkbox" role="switch" checked="@u.Active" data-active-url="/admin/users/@u.Id/set-active" data-on-done="Đã mở tài khoản @u.FullName" data-off-done="Đã khóa tài khoản @u.FullName" aria-label="Đang hoạt động: @u.FullName" />
+                                    <span data-active-label>@active.Label</span>
+                                </label>
+                            }
+                        </td>
+                        <td class="col-actions">
+                            <a class="btn btn-ghost btn-icon btn-sm" href="/admin/users/@u.Id" aria-label="Xem chi tiết @u.FullName" data-bs-toggle="tooltip" title="Xem chi tiết"><i class="bi bi-eye" aria-hidden="true"></i></a>
+                            <a class="btn btn-ghost btn-icon btn-sm" href="/admin/users/@u.Id/edit" aria-label="Sửa @u.FullName" data-bs-toggle="tooltip" title="Sửa"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                            @if (self)
+                            {
+                                <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Bạn không thể xóa tài khoản mình đang đăng nhập.">
+                                    <button type="button" class="btn btn-ghost btn-icon btn-sm" disabled aria-label="Không xóa được tài khoản của bạn"><i class="bi bi-trash" aria-hidden="true"></i></button>
+                                </span>
+                            }
+                            else
+                            {
+                                <button type="button" class="btn btn-ghost btn-icon btn-sm" aria-label="Xóa @u.FullName" data-bs-toggle="tooltip" title="Xóa"
+                                        data-name="@u.FullName" data-check-url="/admin/users/@u.Id/delete-check" data-delete-url="/admin/users/@u.Id/delete"
+                                        data-deactivate-url="/admin/users/@u.Id/set-active" data-deactivate-text="Khóa tài khoản" data-deactivate-done="Đã khóa tài khoản @u.FullName">
+                                    <i class="bi bi-trash" aria-hidden="true"></i>
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_Pagination" model="@(new PaginationVm { Page = Model.Result.Page, PageCount = Model.Result.PageCount, Label = Model.Result.Label, UrlFor = p => QueryUrl.With(Context.Request, "page", p == 1 ? null : p.ToString()) })" />
+}

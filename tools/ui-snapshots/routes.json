@@ -1,0 +1,40 @@
+{
+  "baseUrl": "http://localhost:5080",
+  "areas": {
+    "customer": { "label": "Web khách", "sizes": ["390x844", "768x1024", "1440x900"] },
+    "admin": { "label": "Quản trị (vẫn dùng được ở 768)", "sizes": ["1440x900", "1280x800", "768x1024"] },
+    "pos": { "label": "POS", "sizes": ["1366x768", "1920x1080"] },
+    "display": { "label": "Màn hình phụ, bảng sảnh, bảng gọi số", "sizes": ["1920x1080"] },
+    "kitchen": { "label": "Bếp", "sizes": ["1280x800", "1920x1080"] },
+    "gate": { "label": "Máy soát vé", "sizes": ["390x844", "768x1024"] }
+  },
+  "roles": {
+    "guest": "Chưa đăng nhập",
+    "manager": "Quản lý rạp (manager@fpolycinema.vn)",
+    "shift": "Quản lý ca (shift@fpolycinema.vn)",
+    "cashier": "Thu ngân (cashier@fpolycinema.vn)",
+    "gate": "Soát vé (gate@fpolycinema.vn)",
+    "khach": "Khách hàng (khach@fpolycinema.vn)"
+  },
+  "routes": [
+    { "screen": "D1", "role": "manager", "path": "/dev/style-guide", "area": "admin", "phase": 2, "note": "Style guide, chụp đầu tiên" },
+    { "screen": "C6", "role": "guest", "path": "/Login/Login", "area": "customer", "phase": 2, "note": "Đăng nhập" },
+    { "screen": "C6", "role": "guest", "variant": "dang-ky", "path": "/Login/Register", "area": "customer", "phase": 2, "note": "Đăng ký" },
+    { "screen": "C6", "role": "guest", "variant": "quen-mat-khau", "path": "/Login/ForgotPassword", "area": "customer", "phase": 2, "note": "Quên mật khẩu bước 1" },
+    { "screen": "C6", "role": "khach", "variant": "doi-mat-khau", "path": "/Login/ChangePassword", "area": "customer", "phase": 2, "note": "Đổi mật khẩu của khách" },
+    { "screen": "A2", "role": "manager", "path": "/admin/drinks", "area": "admin", "phase": 2, "note": "Danh sách đồ uống" },
+    { "screen": "A2", "role": "manager", "variant": "loai", "path": "/admin/categories", "area": "admin", "phase": 2, "note": "Danh sách loại đồ uống" },
+    { "screen": "A2", "role": "manager", "variant": "nhan-vien", "path": "/admin/users", "area": "admin", "phase": 2, "note": "Danh sách nhân viên" },
+    { "screen": "A2", "role": "manager", "variant": "rong", "path": "/admin/drinks?q=khong-co-mon-nay", "area": "admin", "phase": 2, "note": "Trạng thái rỗng (0 kết quả)" },
+    { "screen": "A2", "role": "shift", "path": "/admin/drinks", "area": "admin", "phase": 2, "note": "Nhân viên chỉ xem" },
+    { "screen": "A3", "role": "manager", "path": "/admin/drinks/1/edit", "area": "admin", "phase": 2, "note": "Sửa món: ảnh 1:1, định mức theo rạp" },
+    { "screen": "A3", "role": "manager", "variant": "them-mon", "path": "/admin/drinks/create", "area": "admin", "phase": 2, "note": "Thêm món" },
+    { "screen": "A3", "role": "manager", "variant": "nhan-vien", "path": "/admin/users/create", "area": "admin", "phase": 2, "note": "Thêm nhân viên" },
+    { "screen": "A3", "role": "manager", "variant": "loai", "path": "/admin/categories/create", "area": "admin", "phase": 2, "note": "Thêm loại" },
+    { "screen": "A9", "role": "manager", "path": "/me", "area": "admin", "phase": 2, "note": "Trang cá nhân với layout quản trị" },
+    { "screen": "A9", "role": "cashier", "path": "/me", "area": "pos", "phase": 2, "note": "Trang cá nhân với layout POS" },
+    { "screen": "D2", "role": "guest", "path": "/dev/mailbox", "area": "customer", "phase": 2, "note": "Hộp thư thử" },
+    { "screen": "D3", "role": "cashier", "path": "/Home/AccessDenied?ReturnUrl=%2Fadmin%2Fusers", "area": "admin", "phase": 2, "note": "Từ chối truy cập trong khu vực quản trị" },
+    { "screen": "D3", "role": "guest", "variant": "loi", "path": "/Home/Error?code=404", "area": "customer", "phase": 2, "note": "Trang lỗi 404 của web khách" }
+  ]
+}

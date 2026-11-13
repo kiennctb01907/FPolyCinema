@@ -1,0 +1,24 @@
+@model string?
+@* Skeleton của bảng danh sách (UI U5-30): khối nhấp nháy đúng theo bố cục bảng thật, chỉ hiện khi tải lâu hơn 250ms (ui.loadRegion).
+   Model: "category" (tên, số món, trạng thái, thao tác), "staff" (avatar tròn, nhân viên, vai trò, rạp, điện thoại, trạng thái, thao tác),
+   mặc định "drink" (ảnh vuông, món, loại, giá, định mức, trạng thái, thao tác). Trên điện thoại skeleton thành thẻ như bảng thật. *@
+@{
+    var kind = Model ?? "drink";
+    var cells = kind switch
+    {
+        "category" => new[] { "", "", "", "" },
+        "staff" => new[] { "round", "", "", "", "", "", "" },
+        _ => new[] { "sq", "", "", "", "", "", "" },
+    };
+}
+<div class="table-wrap skeleton-table skeleton-@kind" data-region-skeleton aria-hidden="true">
+    @for (int i = 0; i < 6; i++)
+    {
+        <div class="skeleton-row">
+            @foreach (var c in cells)
+            {
+                <span class="skeleton @c"></span>
+            }
+        </div>
+    }
+</div>

@@ -1,0 +1,6 @@
+@model StatusBadgeVm
+@* Nhãn trạng thái (UI U5-10): viên thuốc 12px, nền nhạt, chữ đậm hơn nền; nhãn tiếng Việt từ StatusDisplay, không hiện mã enum. *@
+@{
+    var s = StatusDisplay.Of(Model.Group, Model.Value);
+}
+<span class="status-badge tone-@s.Tone">@s.Label</span>

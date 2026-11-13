@@ -1,0 +1,21 @@
+@model AgeBadgeVm
+@* Nhãn độ tuổi (Thông tư 05/2023, UI U5-11): bo góc 6px, chữ đậm 700, rộng tối thiểu 36px, chữ màu --age-fg (nhãn C chữ trắng),
+   tooltip giải thích. Dùng chung ở mọi nơi bán vé và hiển thị suất chiếu (SPEC 3.1 mục 7). *@
+@{
+    var explain = StatusDisplay.AgeExplanation(Model.Rating);
+    var known = StatusDisplay.All[StatusDisplay.Age].ContainsKey(Model.Rating);
+}
+@if (known)
+{
+    if (Model.ShowExplanation)
+    {
+        <span class="age-explain">
+            <span class="age-badge age-@Model.Rating @(Model.Large ? "age-badge-lg" : null)" aria-hidden="true">@Model.Rating</span>
+            <span>@explain</span>
+        </span>
+    }
+    else
+    {
+        <span class="age-badge age-@Model.Rating @(Model.Large ? "age-badge-lg" : null)" role="img" aria-label="@explain" title="@explain" data-bs-toggle="tooltip" tabindex="0">@Model.Rating</span>
+    }
+}

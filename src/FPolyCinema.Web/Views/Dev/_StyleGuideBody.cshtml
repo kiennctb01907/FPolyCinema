@@ -1,0 +1,477 @@
+@model StyleGuideVm
+@{
+    var p = ViewData["SgPrefix"] as string ?? "sg";
+    string Id(string s) => p + "-" + s;
+    var tones = new[] { "primary", "success", "warning", "danger", "info" };
+}
+
+@* ---------------------------------------------------------------- Token màu *@
+<div class="sg-block">
+    <h3>Màu (token)</h3>
+    <p class="sg-note">Chỉ dùng biến trong tokens.css. Nút chính của quản trị và POS màu xanh dương; màu đỏ thương hiệu chỉ cho logo và nút chính của web khách.</p>
+    <div class="sg-grid">
+        @foreach (var t in new[] { "--bg", "--surface", "--surface-2", "--border", "--text", "--text-muted", "--primary", "--success", "--warning", "--danger", "--info", "--brand-red", "--brand-gold" })
+        {
+            <div class="sg-swatch"><div class="chip" style="--sw: var(@t)"></div><div class="meta">@t</div></div>
+        }
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Chữ *@
+<div class="sg-block">
+    <h3>Chữ</h3>
+    <p class="sg-note">Be Vietnam Pro 400, 500, 600, 700; line-height tối thiểu 1.4; tiền, giờ, số lượng dùng tabular-nums.</p>
+    <p class="fs-4 fw-bold mb-1">Tiêu đề lớn – Phim hay cuối tuần</p>
+    <p class="fw-semibold mb-1">Đậm 600 – Suất chiếu 19:30 hôm nay</p>
+    <p class="fw-500 mb-1">Đậm 500 – Ghế G7, phòng 3</p>
+    <p class="mb-1">Thường 400 – Tiếng Việt đủ dấu: Ặ Ỷ Ữ Ộ ẫ ở ự ỳ.</p>
+    <p class="text-muted small mb-1">Chữ phụ 12px màu muted – cập nhật lúc @Fmt.DateTime(Model.Now)</p>
+    <p class="num mb-0">Số đơn sắc: 1.234.000 ₫ · 19:30 · 08 ghế · @Fmt.WeekdayDate(Model.Now) · @Fmt.Duration(125)</p>
+</div>
+
+@* ---------------------------------------------------------------- Nút *@
+<div class="sg-block">
+    <h3>Nút</h3>
+    <p class="sg-note">Các kiểu primary, secondary (viền), ghost, danger, success; trạng thái thường, hover, đang xử lý (spinner thay icon, khóa nút, giữ nguyên rộng), bị khóa (có lý do).</p>
+    @foreach (var (cls, label) in new[] { ("btn-primary", "Lưu"), ("btn-secondary", "Xuất CSV"), ("btn-ghost", "Hủy"), ("btn-danger", "Xóa"), ("btn-success", "Duyệt") })
+    {
+        <div class="sg-row">
+            <span class="sg-cap w-100">@cls</span>
+            <button type="button" class="btn @cls"><i class="bi bi-check2" aria-hidden="true"></i>@label</button>
+            <button type="button" class="btn @cls is-hover"><i class="bi bi-check2" aria-hidden="true"></i>@label (hover)</button>
+            <button type="button" class="btn @cls is-busy" disabled aria-busy="true"><span class="spinner-border" aria-hidden="true"></span><i class="bi bi-check2" aria-hidden="true"></i>Đang xử lý</button>
+            <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Ví dụ lý do: bạn chưa chọn ghế nào.">
+                <button type="button" class="btn @cls" disabled><i class="bi bi-check2" aria-hidden="true"></i>@label (bị khóa)</button>
+            </span>
+        </div>
+    }
+    <div class="sg-row mt-4">
+        <span class="sg-cap w-100">Cỡ: 32, 40, 48, 56px; nút thanh toán POS 64px</span>
+        <button type="button" class="btn btn-secondary btn-sm">32px</button>
+        <button type="button" class="btn btn-secondary">40px</button>
+        <button type="button" class="btn btn-secondary btn-lg">48px</button>
+        <button type="button" class="btn btn-secondary btn-xl">56px</button>
+        <button type="button" class="btn btn-primary btn-pay"><i class="bi bi-cash-coin" aria-hidden="true"></i>Tiền mặt <kbd>F4</kbd></button>
+    </div>
+    <div class="sg-row">
+        <span class="sg-cap w-100">Nút chỉ có icon (có aria-label và tooltip)</span>
+        <button type="button" class="btn btn-ghost btn-icon btn-sm" aria-label="Sửa" data-bs-toggle="tooltip" title="Sửa"><i class="bi bi-pencil" aria-hidden="true"></i></button>
+        <button type="button" class="btn btn-ghost btn-icon" aria-label="Xóa" data-bs-toggle="tooltip" title="Xóa"><i class="bi bi-trash" aria-hidden="true"></i></button>
+        <button type="button" class="btn btn-secondary" data-sg-busy><i class="bi bi-arrow-repeat" aria-hidden="true"></i>Bấm để thử đang xử lý</button>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Ô nhập *@
+<div class="sg-block">
+    <h3>Ô nhập</h3>
+    <p class="sg-note">Cao 40px (POS 48px); nhãn ở trên 14px đậm 500; chữ trợ giúp 12px muted; lỗi 13px màu danger có icon ngay dưới ô; trường bắt buộc có dấu *.</p>
+    <div class="row g-4">
+        <div class="col-12 col-md-6 col-xl-4">
+            <label class="form-label" for="@Id("in-normal")">Họ tên <span class="req" aria-hidden="true">*</span></label>
+            <input class="form-control" id="@Id("in-normal")" placeholder="Nguyễn Văn An" />
+            <div class="form-text">Ghi đầy đủ họ và tên như trên giấy tờ.</div>
+        </div>
+        <div class="col-12 col-md-6 col-xl-4">
+            <label class="form-label" for="@Id("in-error")">Email <span class="req" aria-hidden="true">*</span></label>
+            <input class="form-control is-invalid" id="@Id("in-error")" value="khach@@" aria-invalid="true" aria-describedby="@Id("in-error-msg")" />
+            <div class="field-error" id="@Id("in-error-msg")">Email chưa đúng định dạng, ví dụ ten@gmail.com.</div>
+        </div>
+        <div class="col-12 col-md-6 col-xl-4">
+            <label class="form-label" for="@Id("in-disabled")">Rạp</label>
+            <input class="form-control" id="@Id("in-disabled")" value="FPoly Cinema Hà Nội" disabled aria-describedby="@Id("in-disabled-why")" />
+            <div class="form-text" id="@Id("in-disabled-why")">Bị khóa: tài khoản gắn với một rạp.</div>
+        </div>
+        <div class="col-12 col-md-6 col-xl-4">
+            <label class="form-label" for="@Id("in-money")">Giá bán (ô tiền)</label>
+            <div class="input-money"><input class="form-control" id="@Id("in-money")" inputmode="numeric" data-money="@Id("in-money-raw")" value="125.000" /></div>
+            <input type="hidden" id="@Id("in-money-raw")" value="125000" />
+            <div class="form-text">Tự chấm phân cách hàng nghìn, hậu tố ₫.</div>
+        </div>
+        <div class="col-12 col-md-6 col-xl-4">
+            <label class="form-label" for="@Id("in-date")">Ngày chiếu</label>
+            <div class="date-field"><input type="date" class="form-control" id="@Id("in-date")" value="@Model.Now.ToString("yyyy-MM-dd")" /><span class="date-display" aria-hidden="true"></span></div>
+            <div class="form-text">Ô ngày gốc, hiển thị dd/MM/yyyy.</div>
+        </div>
+        <div class="col-12 col-md-6 col-xl-4">
+            <label class="form-label" for="@Id("in-select")">Loại đồ uống</label>
+            <select class="form-select" id="@Id("in-select")"><option>Combo</option><option>Bắp rang</option><option>Nước uống</option></select>
+        </div>
+        <div class="col-12 col-md-6 col-xl-4">
+            <label class="form-label" for="@Id("in-pw")">Mật khẩu (hiện, ẩn, độ mạnh)</label>
+            <div class="input-password">
+                <input type="password" class="form-control" id="@Id("in-pw")" value="Rap2026" data-pw-meter="@Id("meter")" />
+                <button type="button" class="btn-toggle-pw" aria-label="Hiện mật khẩu" aria-pressed="false" aria-controls="@Id("in-pw")"><i class="bi bi-eye" aria-hidden="true"></i></button>
+            </div>
+            <div class="pw-meter" id="@Id("meter")" data-score="0" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+            <div class="pw-meter-label" id="@Id("meter")-label"></div>
+        </div>
+        <div class="col-12 col-md-6 col-xl-4">
+            <span class="form-label d-block" id="@Id("otp-l")">Mã OTP 6 ô (dán được cả chuỗi)</span>
+            <input type="hidden" id="@Id("otp")" />
+            <div class="otp-inputs" data-otp="@Id("otp")" role="group" aria-labelledby="@Id("otp-l")">
+                @for (int i = 0; i < 6; i++)
+                {
+                    <input class="form-control" data-otp-cell inputmode="numeric" maxlength="@(i == 0 ? 6 : 1)" aria-label="Chữ số thứ @(i + 1)" />
+                }
+            </div>
+        </div>
+        <div class="col-12 col-md-6 col-xl-4 pos-ui">
+            <label class="form-label" for="@Id("in-pos")">Ô nhập POS (48px)</label>
+            <input class="form-control" id="@Id("in-pos")" placeholder="Quét mã hoặc nhập mã thành viên" />
+        </div>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Công tắc Active *@
+<div class="sg-block">
+    <h3>Công tắc Active</h3>
+    <p class="sg-note">Bật tắt ngay tại chỗ, đổi trạng thái lạc quan; nếu lỗi thì trả về như cũ và báo bằng toast.</p>
+    <div class="sg-row">
+        <label class="form-check form-switch active-switch"><input class="form-check-input" type="checkbox" role="switch" checked data-active-url="/dev/style-guide/ok" aria-label="Ví dụ công tắc lưu được" /><span data-active-label>Đang hoạt động</span></label>
+        <label class="form-check form-switch active-switch"><input class="form-check-input" type="checkbox" role="switch" checked data-active-url="/dev/style-guide/fail" aria-label="Ví dụ công tắc gặp lỗi" /><span data-active-label>Đang hoạt động</span></label>
+        <span class="sg-cap mb-0">← công tắc thứ hai luôn lỗi để thử trả về như cũ</span>
+        <label class="form-check form-switch active-switch is-busy"><input class="form-check-input" type="checkbox" role="switch" aria-label="Ví dụ công tắc đang lưu" /><span>Ngưng (đang lưu)</span></label>
+        <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Bạn không thể tự khóa tài khoản mình đang đăng nhập.">
+            <label class="form-check form-switch active-switch"><input class="form-check-input" type="checkbox" role="switch" checked disabled aria-label="Ví dụ công tắc bị khóa" /><span>Bị khóa (có lý do)</span></label>
+        </span>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Nhãn *@
+<div class="sg-block">
+    <h3>Nhãn</h3>
+    <p class="sg-note">Trạng thái dạng viên thuốc 12px (nhãn tiếng Việt từ StatusDisplay); nhãn tuổi bo góc 6px, chữ --age-fg (C chữ trắng), có tooltip giải thích; định dạng phòng và ngôn ngữ dạng viền.</p>
+    <div class="sg-row">
+        @foreach (var v in new[] { BillStatus.Waiting, BillStatus.Finish, BillStatus.Cancel })
+        {
+            <partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Bill, v))" />
+        }
+        @foreach (var v in new[] { FnbStatus.PendingPickup, FnbStatus.Preparing, FnbStatus.ReadyForPickup, FnbStatus.Fulfilled })
+        {
+            <partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Fnb, v))" />
+        }
+        <partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Active, "false"))" />
+    </div>
+    <div class="sg-row">
+        @foreach (var r in new[] { AgeRating.P, AgeRating.K, AgeRating.T13, AgeRating.T16, AgeRating.T18, AgeRating.C })
+        {
+            <partial name="_AgeBadge" model="@(new AgeBadgeVm(r))" />
+        }
+        <partial name="_AgeBadge" model="@(new AgeBadgeVm(AgeRating.T16, ShowExplanation: true))" />
+    </div>
+    <div class="sg-row">
+        @foreach (var f in new[] { AuditoriumFormat.F2D, AuditoriumFormat.F3D, AuditoriumFormat.IMAX, AuditoriumFormat.F4DX })
+        {
+            <span class="outline-badge">@f</span>
+        }
+        @foreach (var l in LanguageFormat.All)
+        {
+            <span class="outline-badge">@StatusDisplay.Of(StatusDisplay.Language, l).Label</span>
+        }
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Thẻ phim *@
+<div class="sg-block">
+    <h3>Thẻ phim</h3>
+    <p class="sg-note">Poster 2:3 bo góc 10px, nhãn tuổi góc trên trái, tên tối đa 2 dòng, dòng phụ "thể loại · thời lượng", nút "Đặt vé"; hover nâng 2px. Thẻ cuối là ví dụ tên dài khoảng 40 ký tự, không có poster.</p>
+    <div class="row g-4 row-cols-2 row-cols-md-3 row-cols-xl-5">
+        @foreach (var m in Model.Movies)
+        {
+            <div class="col"><partial name="_MovieCard" model="m" /></div>
+        }
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Thẻ KPI *@
+<div class="sg-block">
+    <h3>Thẻ KPI</h3>
+    <p class="sg-note">Ví dụ: icon trong vòng tròn màu nhạt; nhãn 13px muted; giá trị 28px đậm 600; chip tăng hoặc giảm so với kỳ trước.</p>
+    <div class="row g-4">
+        <div class="col-12 col-md-4"><partial name="_KpiCard" model="@(new KpiCardVm("bi-cash-stack", "Doanh thu hôm nay", Fmt.Money(38_450_000), 12.5m, "success"))" /></div>
+        <div class="col-12 col-md-4"><partial name="_KpiCard" model="@(new KpiCardVm("bi-ticket-perforated", "Vé đã bán", Fmt.Number(412), -4.2m, "info"))" /></div>
+        <div class="col-12 col-md-4"><partial name="_KpiCard" model="@(new KpiCardVm("bi-people", "Tỷ lệ lấp đầy", "63%", null, "warning"))" /></div>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Thẻ món *@
+<div class="sg-block">
+    <h3>Thẻ món bắp nước</h3>
+    <p class="sg-note">Ảnh 1:1, tên, giá, bộ tăng giảm (− số +) nút 40px (POS 48px); hết hàng có lớp phủ "Tạm hết".</p>
+    <div class="row g-4 row-cols-2 row-cols-md-4">
+        @foreach (var f in Model.Foods)
+        {
+            <div class="col"><partial name="_FoodCard" model="f" /></div>
+        }
+        @if (Model.Foods.Count > 0)
+        {
+            <div class="col pos-ui"><partial name="_FoodCard" model="@(Model.Foods[0] with { Quantity = 1 })" /></div>
+        }
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Bảng dữ liệu *@
+<div class="sg-block">
+    <h3>Bảng dữ liệu</h3>
+    <p class="sg-note">Tiêu đề cột 13px đậm 600 muted; dòng cao 48px, đổi nền khi hover; số canh phải; trạng thái bằng nhãn; cột thao tác bên phải dùng nút icon có tooltip; tiêu đề dính khi cuộn; phân trang "1–20 trên 135"; điện thoại chuyển thành danh sách thẻ.</p>
+    <div class="table-wrap">
+        <table class="data-table">
+            <thead><tr><th scope="col">Món</th><th scope="col">Loại</th><th scope="col" class="num">Giá bán</th><th scope="col">Trạng thái</th><th scope="col" class="col-actions">Thao tác</th></tr></thead>
+            <tbody>
+                @foreach (var r in Model.SampleTable.Items)
+                {
+                    <tr>
+                        <td class="cell-title"><div class="d-flex align-items-center gap-3"><img class="thumb" src="@(r.Drink.Image ?? "/img/placeholder-food.svg")" width="40" height="40" alt="" loading="lazy" onerror="this.onerror=null;this.src='/img/placeholder-food.svg'" /><span class="cell-main">@r.Drink.Name</span></div></td>
+                        <td data-label="Loại">@r.CategoryName</td>
+                        <td class="num money" data-label="Giá bán">@Fmt.Money(r.Drink.Price)</td>
+                        <td data-label="Trạng thái"><partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Active, r.Drink.Active ? "true" : "false"))" /></td>
+                        <td class="col-actions"><a class="btn btn-ghost btn-icon btn-sm" href="/admin/drinks/@r.Drink.Id" aria-label="Xem @r.Drink.Name" data-bs-toggle="tooltip" title="Xem chi tiết"><i class="bi bi-eye" aria-hidden="true"></i></a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_Pagination" model="@(new PaginationVm { Page = 1, PageCount = Model.SampleTable.PageCount, Label = Model.SampleTable.Label, UrlFor = n => "/admin/drinks?page=" + n })" />
+</div>
+
+@* ---------------------------------------------------------------- Thanh lọc, đầu trang *@
+<div class="sg-block">
+    <h3>Thanh lọc</h3>
+    <p class="sg-note">Ô tìm có icon và nút xóa (tìm sau 300ms ngừng gõ, giữ trên query string); chọn trạng thái; khoảng ngày với mốc nhanh; nút "Xóa bộ lọc".</p>
+    <partial name="_FilterBar" model="@(new FilterBarVm { SearchValue = "bắp", Selects = new() { new FilterSelect("status", "Trạng thái", new List<(string, string)> { ("active", "Đang hoạt động"), ("inactive", "Ngưng") }, null) }, ShowDateRange = true })" />
+</div>
+<div class="sg-block">
+    <h3>Đầu trang (_PageHeader)</h3>
+    <p class="sg-note">Breadcrumb, tiêu đề 24px đậm 600, mô tả 14px muted, các nút bên phải (tối đa một nút primary).</p>
+    @{
+        var ph = new PageHeaderVm { Title = "Đồ uống", Description = "Món bắp nước và combo bán tại quầy và trên web.", Crumbs = new() { new("Kho bắp nước", "#"), new("Đồ uống") } };
+        ph.Actions = @<text><button type="button" class="btn btn-secondary"><i class="bi bi-download" aria-hidden="true"></i>Xuất CSV</button><button type="button" class="btn btn-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i>Thêm món</button></text>;
+    }
+    <div class="sg-pageheader"><partial name="_PageHeader" model="ph" /></div>
+</div>
+
+@* ---------------------------------------------------------------- Stepper *@
+<div class="sg-block">
+    <h3>Stepper 4 bước</h3>
+    <p class="sg-note">Số trong vòng tròn, bước hiện tại màu primary, bước đã xong có dấu ✓; điện thoại hiện gọn "Bước 2/4 · Chọn ghế".</p>
+    <partial name="_Stepper" model="@(new StepperVm { Steps = new() { "Chọn suất", "Chọn ghế", "Bắp nước và ưu đãi", "Thanh toán" }, Current = 2 })" />
+    <partial name="_Stepper" model="@(new StepperVm { Steps = new() { "Chọn suất", "Chọn ghế", "Bắp nước và ưu đãi", "Thanh toán" }, Current = 4 })" />
+</div>
+
+@* ---------------------------------------------------------------- Toast, hộp xác nhận, PIN *@
+<div class="sg-block">
+    <h3>Toast</h3>
+    <p class="sg-note">Góc phải trên (điện thoại: giữa phía trên); 4 loại; tự ẩn sau 4 giây (lỗi 6 giây); hiện tối đa 3 cái.</p>
+    <div class="sg-row">
+        <button type="button" class="btn btn-secondary" data-sg-toast="success">Thành công</button>
+        <button type="button" class="btn btn-secondary" data-sg-toast="held">Thành công: giữ ghế</button>
+        <button type="button" class="btn btn-secondary" data-sg-toast="error">Lỗi</button>
+        <button type="button" class="btn btn-secondary" data-sg-toast="warning">Cảnh báo</button>
+        <button type="button" class="btn btn-secondary" data-sg-toast="info">Thông tin</button>
+        <button type="button" class="btn btn-ghost" data-sg-toast="many">Hiện 5 toast liên tiếp (giữ 3)</button>
+    </div>
+</div>
+<div class="sg-block">
+    <h3>Hộp xác nhận</h3>
+    <p class="sg-note">Tiêu đề, nội dung, danh sách hậu quả, hai nút Hủy và Xác nhận; giữ focus bên trong, Esc để đóng; thao tác hàng loạt nguy hiểm phải gõ lại mã.</p>
+    <div class="sg-row">
+        <button type="button" class="btn btn-secondary" data-sg-confirm="normal">Xác nhận thường</button>
+        <button type="button" class="btn btn-secondary" data-sg-confirm="danger">Xóa có hậu quả</button>
+        <button type="button" class="btn btn-secondary" data-sg-confirm="code">Hàng loạt: gõ lại mã</button>
+    </div>
+</div>
+<div class="sg-block">
+    <h3>Bàn phím PIN</h3>
+    <p class="sg-note">6 chấm, phím số 3 × 4 cỡ 64px; nhập sai thì rung và báo số lần còn lại, hoặc thời gian bị khóa. Ví dụ: PIN đúng là 135790, sai 3 lần thì khóa.</p>
+    <div class="sg-row"><button type="button" class="btn btn-secondary" data-sg-pin><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>Mở bàn phím PIN</button></div>
+</div>
+
+@* ---------------------------------------------------------------- Rỗng, lỗi, skeleton *@
+<div class="sg-block">
+    <h3>Trạng thái rỗng, lỗi, đang tải</h3>
+    <p class="sg-note">Rỗng: icon 48px trong vòng tròn màu nhạt, tiêu đề, một câu, một nút. Lỗi có nút Thử lại. Skeleton nhấp nháy theo bố cục thật, chỉ hiện khi tải lâu hơn 250ms.</p>
+    <div class="row g-4">
+        <div class="col-12 col-lg-6"><div class="card-ui"><partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-receipt", Title = "Chưa có hóa đơn nào hôm nay", Text = "Hóa đơn bán tại quầy và online sẽ hiện ở đây.", ActionLabel = "Mở màn hình bán hàng", ActionUrl = "#", ActionIcon = "bi-shop" })" /></div></div>
+        <div class="col-12 col-lg-6"><div class="card-ui"><partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-calendar-x", Title = "Không có suất chiếu phù hợp", Text = "Không có suất chiếu phù hợp – thử đổi ngày hoặc bỏ bớt bộ lọc.", ActionLabel = "Xóa bộ lọc", ActionUrl = "#", ActionIcon = "bi-funnel" })" /></div></div>
+        <div class="col-12 col-lg-6"><div class="card-ui"><partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-wifi-off", Title = "Chưa tải được dữ liệu", Text = "Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.", Tone = "error", IsRetry = true })" /></div></div>
+        <div class="col-12">
+            <div class="d-flex flex-wrap gap-2 mb-3">
+                <button type="button" class="btn btn-secondary" data-sg-region="/dev/style-guide/slow" data-target="@Id("region")">Tải chậm (thấy skeleton)</button>
+                <button type="button" class="btn btn-secondary" data-sg-region="/dev/style-guide/broken" data-target="@Id("region")">Tải lỗi (thấy nút Thử lại)</button>
+            </div>
+            <div data-region id="@Id("region")" data-url="/dev/style-guide/slow">
+                <div data-region-skeleton aria-hidden="true">
+                    <div class="skeleton skeleton-line w-50"></div>
+                    <div class="skeleton skeleton-line w-75"></div>
+                    <div class="skeleton skeleton-line w-25"></div>
+                </div>
+                <div data-region-content><p class="text-muted mb-0">Bấm một nút ở trên để thử vùng tải dữ liệu.</p></div>
+            </div>
+        </div>
+        <div class="col-12"><partial name="_TableSkeleton" model="@("drink")" /></div>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Đồng hồ giữ ghế, chỉ báo kết nối *@
+<div class="sg-block">
+    <h3>Đồng hồ giữ ghế</h3>
+    <p class="sg-note">Viên thuốc mm:ss; còn ≤ 2 phút màu warning; ≤ 1 phút màu danger và nhấp nhẹ; về 0 mở hộp "Hết thời gian giữ ghế" với nút "Chọn lại".</p>
+    <div class="sg-row">
+        <partial name="_HoldTimer" model="@Model.Now.AddMinutes(9).AddSeconds(42)" />
+        <partial name="_HoldTimer" model="@Model.Now.AddSeconds(110)" />
+        <partial name="_HoldTimer" model="@Model.Now.AddSeconds(50)" />
+        <button type="button" class="btn btn-secondary btn-sm" data-sg-expire>Thử hết giờ sau 3 giây</button>
+        <span data-sg-expire-slot></span>
+    </div>
+</div>
+<div class="sg-block">
+    <h3>Chỉ báo kết nối</h3>
+    <p class="sg-note">Chấm xanh, vàng hoặc đỏ kèm chữ. Màn hình hiển thị phủ lớp "Đang kết nối lại…" khi mất kết nối thời gian thực.</p>
+    <div class="sg-row">
+        <span class="conn-indicator" data-conn-indicator data-conn-static data-state="connected"><span class="dot" aria-hidden="true"></span><span class="conn-text">Đã kết nối</span></span>
+        <span class="conn-indicator" data-conn-indicator data-conn-static data-state="reconnecting"><span class="dot" aria-hidden="true"></span><span class="conn-text">Đang kết nối lại</span></span>
+        <span class="conn-indicator" data-conn-indicator data-conn-static data-state="lost"><span class="dot" aria-hidden="true"></span><span class="conn-text">Mất kết nối</span></span>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Tổng tiền, QR, ảnh *@
+<div class="sg-block">
+    <h3>Khối tổng tiền</h3>
+    <p class="sg-note">Ví dụ: liệt kê từng dòng, tạm tính, giảm giá; tổng 24px đậm 700 (POS 32px).</p>
+    @{
+        var ms = new MoneySummaryVm { Lines = new() { new("2 vé VIP · G7, G8", 190_000), new("Combo bắp phô mai", 95_000) }, Subtotal = 285_000, Discount = 40_000, Total = 245_000 };
+    }
+    <div class="row g-4">
+        <div class="col-12 col-md-6"><div class="card-ui card-ui-body"><partial name="_MoneySummary" model="ms" /></div></div>
+        <div class="col-12 col-md-6 pos-ui"><div class="card-ui card-ui-body"><partial name="_MoneySummary" model="ms" /></div></div>
+    </div>
+</div>
+<div class="sg-block">
+    <h3>Khối QR</h3>
+    <p class="sg-note">Nền trắng bo góc 16px, QR 240px (màn hình phụ 360px), mã ghi bên dưới, có đồng hồ đếm ngược.</p>
+    @if (Model.Qr != null)
+    {
+        <partial name="_QrBlock" model="Model.Qr" />
+    }
+</div>
+<div class="sg-block">
+    <h3>Ảnh</h3>
+    <p class="sg-note">Luôn có width, height hoặc tỉ lệ cố định, object-fit cover, loading lazy; khi lỗi chuyển sang ảnh thay thế.</p>
+    <div class="sg-row">
+        <img class="img-fixed ratio-2x3 rounded-3" src="/uploads/seed/khong-co-anh.png" width="120" height="180" loading="lazy" alt="Ví dụ ảnh poster lỗi, đã thay bằng ảnh thay thế" onerror="this.onerror=null;this.src='/img/placeholder-poster.svg'" />
+        <img class="img-fixed ratio-1x1 rounded-3" src="/uploads/seed/khong-co-anh.png" width="120" height="120" loading="lazy" alt="Ví dụ ảnh món lỗi, đã thay bằng ảnh thay thế" onerror="this.onerror=null;this.src='/img/placeholder-food.svg'" />
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Bố cục form, thông báo, thẻ thông tin (dùng ở A3, A9, C6, D2) *@
+<div class="sg-block">
+    <h3>Form thêm, sửa và thẻ thông tin</h3>
+    <p class="sg-note">Thẻ form chia phần có tiêu đề (card-section), lưới 2 cột từ 992px (form-grid), vùng kéo thả ảnh 1:1, thanh nút dính chân form; khung báo (alert-ui); danh sách chi tiết (detail-list); đầu thẻ có ảnh đại diện chữ cái đầu; danh sách thư.</p>
+    <div class="card-ui form-card">
+        <div class="form-grid cols-2 card-section">
+            <section>
+                <h4 class="card-section-title">Thông tin món</h4>
+                <p class="card-section-desc">Ví dụ phần form có tiêu đề và mô tả.</p>
+                <div class="alert-ui tone-danger" role="alert"><i class="bi bi-exclamation-circle" aria-hidden="true"></i><div>Email hoặc mật khẩu chưa đúng. Bạn kiểm tra lại, hoặc bấm Quên mật khẩu.</div></div>
+                <div class="alert-ui tone-warning"><i class="bi bi-shield-exclamation" aria-hidden="true"></i><div>Bạn đang dùng mật khẩu được cấp. Đặt mật khẩu mới để tiếp tục.</div></div>
+                <div class="alert-ui tone-info"><i class="bi bi-envelope-check" aria-hidden="true"></i><div>Nếu email này có tài khoản, mã xác nhận đã được gửi tới hộp thư.</div></div>
+            </section>
+            <section>
+                <h4 class="card-section-title">Ảnh món</h4>
+                <p class="card-section-desc">Vùng kéo thả 1:1 (ví dụ, không tải lên).</p>
+                <div class="dropzone" aria-label="Ví dụ vùng kéo thả ảnh">
+                    <div class="dz-hint"><i class="bi bi-cloud-arrow-up" aria-hidden="true"></i><span>Kéo thả ảnh vào đây<br />hoặc bấm để chọn</span></div>
+                </div>
+            </section>
+        </div>
+        <div class="card-section">
+            <div class="profile-head mb-3">
+                <span class="avatar avatar-lg" aria-hidden="true">TQ</span>
+                <div><h4 class="card-section-title mb-1">Trần Minh Quân</h4><span class="status-badge tone-success">Quản lý rạp (quản trị)</span></div>
+            </div>
+            <dl class="detail-list">
+                <dt>Email</dt><dd>manager@@fpolycinema.vn</dd>
+                <dt>Rạp</dt><dd>Toàn chuỗi</dd>
+                <dt>Ngày tạo</dt><dd class="num">@Fmt.Date(Model.Now)</dd>
+            </dl>
+        </div>
+        <div class="form-actions-sticky">
+            <button type="button" class="btn btn-ghost">Hủy</button>
+            <button type="button" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Lưu</button>
+        </div>
+    </div>
+    <div class="card-ui mt-4">
+        <ul class="mail-list">
+            <li><a href="/dev/mailbox" class="active"><span class="mail-subject">Mã xác nhận đặt lại mật khẩu FPoly Cinema</span><span class="mail-meta">Tới khach@@fpolycinema.vn · <span class="num">@Fmt.DateTime(Model.Now)</span></span></a></li>
+            <li><a href="/dev/mailbox"><span class="mail-subject">Mật khẩu mới của bạn tại FPoly Cinema</span><span class="mail-meta">Tới khach@@fpolycinema.vn · <span class="num">@Fmt.DateTime(Model.Now)</span></span></a></li>
+        </ul>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Ma trận trạng thái của từng thành phần (UI D1) *@
+<div class="sg-block">
+    <h3>Trạng thái của thành phần</h3>
+    <p class="sg-note">Mỗi thành phần ở năm trạng thái: thường, hover, đang xử lý, lỗi, bị khóa (có lý do).</p>
+    <div class="table-wrap">
+        <table class="data-table sg-states">
+            <thead><tr><th scope="col">Thành phần</th><th scope="col">Thường</th><th scope="col">Hover</th><th scope="col">Đang xử lý</th><th scope="col">Lỗi</th><th scope="col">Bị khóa</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td class="cell-title">Ô nhập</td>
+                    <td data-label="Thường"><input class="form-control" aria-label="Ô nhập thường" value="Combo Solo" /></td>
+                    <td data-label="Hover"><input class="form-control is-hover" aria-label="Ô nhập khi rê chuột" value="Combo Solo" /></td>
+                    <td data-label="Đang xử lý"><div class="input-busy"><input class="form-control" aria-label="Ô nhập đang kiểm tra" value="Combo Solo" disabled aria-busy="true" /><span class="spinner-border" aria-hidden="true"></span></div></td>
+                    <td data-label="Lỗi"><input class="form-control is-invalid" aria-label="Ô nhập lỗi" value="" aria-invalid="true" /><div class="field-error">Bạn chưa nhập tên món.</div></td>
+                    <td data-label="Bị khóa"><input class="form-control" aria-label="Ô nhập bị khóa" value="manager@@fpolycinema.vn" disabled /><div class="form-text">Chỉ quản lý rạp đổi được.</div></td>
+                </tr>
+                <tr>
+                    <td class="cell-title">Thẻ phim</td>
+                    @{ var mv = Model.Movies.FirstOrDefault(); }
+                    @if (mv != null)
+                    {
+                        <td data-label="Thường"><div class="sg-mini"><partial name="_MovieCard" model="@(mv with { BookUrl = "#" })" /></div></td>
+                        <td data-label="Hover"><div class="sg-mini sg-hover"><partial name="_MovieCard" model="@(mv with { BookUrl = "#" })" /></div></td>
+                        <td data-label="Đang xử lý"><div class="sg-mini sg-busy"><partial name="_MovieCard" model="@(mv with { BookUrl = "#" })" /></div></td>
+                        <td data-label="Lỗi"><div class="sg-mini"><partial name="_MovieCard" model="@(mv with { PosterUrl = "/uploads/seed/khong-co-anh.png", BookUrl = "#" })" /></div></td>
+                        <td data-label="Bị khóa"><div class="sg-mini"><partial name="_MovieCard" model="mv" /></div></td>
+                    }
+                </tr>
+                <tr>
+                    <td class="cell-title">Thẻ món</td>
+                    @{ var fd = Model.Foods.FirstOrDefault(); }
+                    @if (fd != null)
+                    {
+                        <td data-label="Thường"><div class="sg-mini"><partial name="_FoodCard" model="@(fd with { SoldOut = false })" /></div></td>
+                        <td data-label="Hover"><div class="sg-mini sg-hover"><partial name="_FoodCard" model="@(fd with { SoldOut = false })" /></div></td>
+                        <td data-label="Đang xử lý"><div class="sg-mini sg-busy-card"><partial name="_FoodCard" model="@(fd with { SoldOut = false })" /></div></td>
+                        <td data-label="Lỗi"><div class="sg-mini"><partial name="_FoodCard" model="@(fd with { Image = "/uploads/seed/khong-co-anh.png", SoldOut = false })" /></div></td>
+                        <td data-label="Bị khóa"><div class="sg-mini"><partial name="_FoodCard" model="@(fd with { SoldOut = true })" /></div></td>
+                    }
+                </tr>
+                <tr>
+                    <td class="cell-title">Dòng bảng</td>
+                    <td data-label="Thường"><span class="sg-row-sample">Bắp caramel (M) · <span class="money">59.000 ₫</span></span></td>
+                    <td data-label="Hover"><span class="sg-row-sample is-hover">Bắp caramel (M) · <span class="money">59.000 ₫</span></span></td>
+                    <td data-label="Đang xử lý"><div class="skeleton skeleton-line" aria-label="Đang tải dòng"></div></td>
+                    <td data-label="Lỗi"><button type="button" class="btn btn-secondary btn-sm" data-region-retry disabled title="Ví dụ nút Thử lại của vùng lỗi"><i class="bi bi-arrow-clockwise" aria-hidden="true"></i>Thử lại</button></td>
+                    <td data-label="Bị khóa"><span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Bạn không thể tự khóa tài khoản mình đang đăng nhập."><label class="form-check form-switch active-switch"><input class="form-check-input" type="checkbox" role="switch" checked disabled aria-label="Công tắc bị khóa" /><span>Đang hoạt động</span></label></span></td>
+                </tr>
+                <tr>
+                    <td class="cell-title">Thanh lọc và phân trang</td>
+                    <td data-label="Thường"><div class="search-box"><i class="bi bi-search" aria-hidden="true"></i><input class="form-control" aria-label="Tìm thường" value="bắp" /></div></td>
+                    <td data-label="Hover"><ul class="pagination"><li class="page-item"><span class="page-link is-hover">2</span></li></ul></td>
+                    <td data-label="Đang xử lý"><div class="input-busy"><input class="form-control" aria-label="Đang tìm" value="bắp" aria-busy="true" disabled /><span class="spinner-border" aria-hidden="true"></span></div></td>
+                    <td data-label="Lỗi"><div class="field-error">Không kết nối được máy chủ. Kiểm tra mạng rồi thử lại.</div></td>
+                    <td data-label="Bị khóa"><ul class="pagination"><li class="page-item disabled"><span class="page-link" aria-label="Đang ở trang đầu"><i class="bi bi-chevron-left" aria-hidden="true"></i></span></li></ul><div class="form-text">Đang ở trang đầu.</div></td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@* ---------------------------------------------------------------- Sơ đồ ghế *@
+<div class="sg-block">
+    <h3>Sơ đồ ghế (_SeatMap)</h3>
+    <p class="sg-note">Ví dụ, luôn dùng theme cinema: ghế thường, VIP, ghế đôi, xe lăn; đang chọn, người khác giữ, đã bán, ghế nội bộ, bảo trì – thể hiện bằng cả màu lẫn ký hiệu.</p>
+    <partial name="_SeatMap" model="Model.SeatMap" />
+</div>
