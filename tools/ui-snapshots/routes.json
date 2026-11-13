@@ -52,6 +52,22 @@
     { "screen": "A3", "role": "manager", "variant": "thu-gia", "path": "/admin/pricing/try?startTime=2026-11-14T19:00&format=IMAX&seatType=VIP&blockbuster=true", "area": "admin", "phase": 3, "note": "Thử tính giá" },
     { "screen": "A4", "role": "manager", "path": "/admin/auditoriums/1/design", "area": "admin", "phase": 3, "note": "Thiết kế phòng chiếu" },
     { "screen": "A5", "role": "manager", "path": "/scheduler", "area": "admin", "phase": 3, "note": "Lịch chiếu chế độ Bảng" },
-    { "screen": "A5", "role": "manager", "variant": "them-suat", "path": "/scheduler/create", "area": "admin", "phase": 3, "note": "Form thêm suất" }
+    { "screen": "A5", "role": "manager", "variant": "them-suat", "path": "/scheduler/create", "area": "admin", "phase": 3, "note": "Form thêm suất" },
+    { "screen": "D1", "role": "manager", "path": "/dev/style-guide", "area": "admin", "phase": 4, "note": "Style guide: thành phần mới của Phase 4 (chip suất, thẻ món POS, bàn phím số, KPI, tỷ lệ phim Việt, biểu đồ)" },
+    { "screen": "P1", "role": "cashier", "path": "/pos/index", "area": "pos", "phase": 4, "note": "POS 3 cột: suất hôm nay, sơ đồ ghế và bắp nước, hóa đơn tạm tính" },
+    { "screen": "P1", "role": "cashier", "variant": "hoa-don-cua-toi", "path": "/pos/my-bills", "area": "pos", "phase": 4, "note": "Hóa đơn của tôi" },
+    { "screen": "P1", "role": "cashier", "variant": "in-ve", "path": "/pos/print?billId=1", "area": "pos", "phase": 4, "note": "Trang in vé khổ 80mm" },
+    { "screen": "P7", "role": "cashier", "variant": "dong-ca", "path": "/pos/close-shift", "area": "pos", "phase": 4, "note": "Đóng ca mù bước 1: đếm tiền theo mệnh giá" },
+    { "screen": "P7", "role": "manager", "variant": "mo-ca", "path": "/pos/open-shift", "area": "pos", "phase": 4, "note": "Mở ca: chọn máy, tiền đầu ca" },
+    { "screen": "P7", "role": "manager", "variant": "bien-ban", "path": "/pos/shift-report/30", "area": "pos", "phase": 4, "note": "Biên bản ca đã chốt" },
+    { "screen": "A1", "role": "manager", "path": "/admin", "area": "admin", "phase": 4, "note": "Dashboard quản lý" },
+    { "screen": "A6", "role": "manager", "path": "/admin/reports", "area": "admin", "phase": 4, "note": "Báo cáo doanh thu: KPI, biểu đồ, bảng, CSV" },
+    { "screen": "A6", "role": "manager", "variant": "phim-viet", "path": "/admin/reports?tab=vietnamese", "area": "admin", "phase": 4, "note": "Tỷ lệ phim Việt" },
+    { "screen": "A6", "role": "manager", "variant": "lap-day", "path": "/admin/reports?tab=occupancy&from=2026-11-10&to=2026-11-13", "area": "admin", "phase": 4, "note": "Tỷ lệ lấp đầy theo suất" },
+    { "screen": "A6", "role": "manager", "variant": "bien-ban-ca", "path": "/admin/reports?tab=shifts", "area": "admin", "phase": 4, "note": "Biên bản ca" },
+    { "screen": "A6", "role": "manager", "variant": "doi-soat", "path": "/admin/reports/settlement?movieId=6&week=3", "area": "admin", "phase": 4, "note": "Đối soát nhà phát hành" },
+    { "screen": "A8", "role": "manager", "path": "/admin/bills", "area": "admin", "phase": 4, "note": "Danh sách hóa đơn" },
+    { "screen": "A8", "role": "manager", "variant": "chi-tiet", "path": "/admin/bills/1", "area": "admin", "phase": 4, "note": "Chi tiết hóa đơn" },
+    { "screen": "A8", "role": "manager", "variant": "rong", "path": "/admin/bills?q=KHONGCOMA", "area": "admin", "phase": 4, "note": "Danh sách rỗng" }
   ]
 }

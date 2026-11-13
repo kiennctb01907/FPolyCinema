@@ -67,7 +67,7 @@ public class UsersController : AppControllerBase
         try
         {
             var u = _service.Get(id);
-            return FormView(new StaffFormVm { Id = u.Id, Email = u.Email, FullName = u.FullName, Phone = u.Phone, Role = u.Role, CinemaId = u.CinemaId });
+            return FormView(new StaffFormVm { Id = u.Id, Email = u.Email, FullName = u.FullName, Phone = u.Phone, Role = u.Role, CinemaId = u.CinemaId, HasPin = u.ManagerPinHash != null });
         }
         catch (BusinessRuleException ex) when (ex.Code == ErrorCodes.NotFound) { return NotFoundPage(); }
     }
@@ -81,7 +81,7 @@ public class UsersController : AppControllerBase
         if (!ModelState.IsValid) return FormView(vm);
         try
         {
-            var input = new StaffInput(vm.Email, vm.FullName, vm.Phone, vm.Role, vm.CinemaId);
+            var input = new StaffInput(vm.Email, vm.FullName, vm.Phone, vm.Role, vm.CinemaId, vm.ManagerPin);
             if (id == null)
             {
                 var u = _service.Create(input);

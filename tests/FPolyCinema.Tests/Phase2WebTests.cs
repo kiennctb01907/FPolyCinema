@@ -176,7 +176,7 @@ public class Phase2WebTests
             ["Email"] = "shift@fpolycinema.vn", ["Password"] = "123456", ["__RequestVerificationToken"] = formToken,
         }));
         Assert.Equal(HttpStatusCode.Redirect, post.StatusCode);
-        Assert.Equal("/admin/drinks", post.Headers.Location!.OriginalString);
+        Assert.Equal("/pos/index", post.Headers.Location!.OriginalString);
 
         var c2 = Client(f);
         var html2 = await (await c2.GetAsync("/Login/Login")).Content.ReadAsStringAsync();

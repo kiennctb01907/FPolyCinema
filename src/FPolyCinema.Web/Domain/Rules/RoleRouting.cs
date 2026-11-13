@@ -16,13 +16,13 @@ public static class UiArea
 /// </summary>
 public static class RoleRouting
 {
-    // TODO(Phase 4): Manager và ShiftManager về /admin (dashboard A1), POSCashier về /pos/index khi các màn hình đó có.
     // TODO(Phase 6): TicketInspector về /pos/gate-inspector khi có máy soát vé.
-    /// <summary>Trang chính sau khi đăng nhập.</summary>
+    /// <summary>Trang chính sau khi đăng nhập: Manager về dashboard /admin (UI A1, ManagerOnly); ShiftManager và POSCashier về màn hình bán /pos/index.</summary>
     public static string HomePath(string? role) => role switch
     {
-        Roles.Manager or Roles.ShiftManager => "/admin/drinks",
-        Roles.POSCashier or Roles.TicketInspector => "/me",
+        Roles.Manager => "/admin",
+        Roles.ShiftManager or Roles.POSCashier => "/pos/index",
+        Roles.TicketInspector => "/me",
         _ => "/",
     };
 

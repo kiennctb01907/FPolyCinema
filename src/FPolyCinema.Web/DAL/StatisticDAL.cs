@@ -7,7 +7,7 @@ namespace FPolyCinema.Web.DAL;
 /// Thống kê theo slide bài 6: gọi 4 stored procedure bằng EXEC (CONTRACTS mục 10, SPEC 3.12).
 /// Khoảng ngày [startDate, endDate] gồm cả hai đầu, tính theo Bills.PaidAt.
 /// </summary>
-public static class StatisticDAL
+public static partial class StatisticDAL
 {
     public static List<TopDrinkStat> TopBestSellingDrinks(DateTime startDate, DateTime endDate)
     {

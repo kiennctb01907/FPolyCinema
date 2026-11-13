@@ -56,6 +56,19 @@ builder.Services.AddScoped<ScheduleService>();
 builder.Services.AddScoped<CinemaContextService>();
 builder.Services.AddScoped<ShellService>();
 builder.Services.AddScoped<DevToolsService>();
+// Phase 4: bán hàng tại quầy, hóa đơn, thống kê, thời gian thực
+builder.Services.AddScoped<RealtimeNotifier>();
+builder.Services.AddScoped<SeatMapService>();
+builder.Services.AddScoped<InventoryService>();
+builder.Services.AddScoped<LoyaltyService>();
+builder.Services.AddScoped<BillService>();
+builder.Services.AddScoped<SeatHoldService>();
+builder.Services.AddScoped<ShiftService>();
+builder.Services.AddScoped<ManagerPinService>();
+builder.Services.AddScoped<StatisticsService>();
+builder.Services.AddScoped<BillQueryService>();
+builder.Services.AddSignalR();
+builder.Services.AddHostedService<FPolyCinema.Web.Background.SeatHoldSweeper>();
 
 // ---------------------------------------------------------------- xác thực và phân quyền (SPEC 2.5, slide bài 4)
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
@@ -218,6 +231,7 @@ app.UseAuthentication();
 app.UseMiddleware<MustChangePasswordMiddleware>();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<FPolyCinema.Web.Hubs.CinemaHub>(FPolyCinema.Web.Hubs.CinemaHub.Path);
 app.MapControllerRoute(name: "default", pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

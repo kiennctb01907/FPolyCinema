@@ -1,0 +1,106 @@
+@model PrintVm
+@* Trang in vé khổ 80mm (SPEC 3.6-16, 3.6-18): mỗi vé một cuống có QR, phim kèm nhãn tuổi và câu giải thích (SPEC 3.1 mục 7), suất, phòng, ghế, đối tượng,
+   giá; phần bắp nước có số gọi; tổng tiền, VAT, phương thức thanh toán. Mở với auto=1 thì tự gọi lệnh in. In lại dùng cùng trang này. *@
+@{
+    Layout = null;
+    var b = Model.Bill;
+    ViewData["Title"] = "In hóa đơn " + b.Code;
+}
+<!DOCTYPE html>
+<html lang="vi" data-theme="ops" data-bs-theme="light">
+<head>
+    <partial name="_Head" />
+</head>
+<body class="print-80 @(Model.AutoPrint ? "is-auto-print" : null)">
+    <div class="print-toolbar no-print">
+        <a class="btn btn-ghost" href="@Model.BackUrl"><i class="bi bi-arrow-left" aria-hidden="true"></i>Quay lại</a>
+        <button type="button" class="btn btn-primary" data-print><i class="bi bi-printer" aria-hidden="true"></i>In</button>
+    </div>
+    <main class="receipt" id="main">
+        <header class="receipt-head">
+            <partial name="_Logo" model="@("/")" />
+            <p class="mb-0 fw-semibold">@Model.CinemaName</p>
+            @if (!string.IsNullOrEmpty(Model.CinemaAddress))
+            {
+                <p class="mb-0 small">@Model.CinemaAddress</p>
+            }
+            <p class="mb-0 small">Hóa đơn @b.Code · @Fmt.DateTime(b.PaidAt ?? b.CreatedAt)</p>
+            @if (b.Status != BillStatus.Finish)
+            {
+                <p class="receipt-void">@StatusDisplay.Of(StatusDisplay.Bill, b.Status).Label – không có giá trị sử dụng</p>
+            }
+        </header>
+
+        @foreach (var t in Model.Tickets)
+        {
+            <section class="receipt-ticket">
+                <div class="receipt-movie">
+                    <strong>@t.MovieTitle</strong>
+                    <partial name="_AgeBadge" model="@(new AgeBadgeVm(t.AgeRating, ShowExplanation: true))" />
+                </div>
+                <dl class="receipt-grid">
+                    <dt>Suất</dt><dd>@Fmt.WeekdayDate(t.StartTime) · @Fmt.Time(t.StartTime)–@Fmt.Time(t.EndTime)</dd>
+                    <dt>Phòng</dt><dd>@t.AuditoriumName · @t.AuditoriumFormat · @StatusDisplay.Of(StatusDisplay.Language, t.LanguageFormat).Label</dd>
+                    <dt>Ghế</dt><dd class="receipt-seat">@t.SeatLabel <span class="small">(@StatusDisplay.Of(StatusDisplay.Seat, t.SeatType).Label)</span></dd>
+                    <dt>Đối tượng</dt><dd>@StatusDisplay.Of(StatusDisplay.Audience, t.AudienceType).Label</dd>
+                    <dt>Giá</dt><dd class="money">@Fmt.Money(t.FinalPrice)</dd>
+                </dl>
+                <figure class="receipt-qr">
+                    <img src="@QrSvg.DataUri(t.QrCode)" width="160" height="160" alt="Mã QR vé ghế @t.SeatLabel" />
+                    <figcaption>@t.QrCode</figcaption>
+                </figure>
+                @if (t.CheckInStatus == TicketCheckInStatus.Voided)
+                {
+                    <p class="receipt-void">Vé đã hủy</p>
+                }
+            </section>
+        }
+
+        @if (Model.Lines.Count > 0)
+        {
+            <section class="receipt-fnb">
+                @if (b.PickupNumber is int pn)
+                {
+                    <p class="receipt-pickup">Số gọi bắp nước <strong>@CodeGenerator.FormatPickupNumber(pn)</strong></p>
+                }
+                <table class="receipt-table">
+                    <thead><tr><th scope="col">Món</th><th scope="col" class="text-end">SL</th><th scope="col" class="text-end">Thành tiền</th></tr></thead>
+                    <tbody>
+                        @foreach (var l in Model.Lines)
+                        {
+                            <tr><td>@l.DrinkName</td><td class="text-end">@l.Quantity</td><td class="text-end money">@Fmt.Money(l.Price * l.Quantity)</td></tr>
+                        }
+                    </tbody>
+                </table>
+            </section>
+        }
+
+        <section class="receipt-total">
+            <div><span>Tạm tính</span><span class="money">@Fmt.Money(b.TicketSubtotal + b.FnbSubtotal)</span></div>
+            @if (b.DiscountTotal > 0)
+            {
+                <div><span>Giảm giá</span><span class="money">−@Fmt.Money(b.DiscountTotal)</span></div>
+            }
+            <div><span>Trong đó VAT</span><span class="money">@Fmt.Money(Model.VatTotal)</span></div>
+            <div class="receipt-grand"><span>Tổng cộng</span><span class="money">@Fmt.Money(b.Total)</span></div>
+            @foreach (var p in Model.Payments)
+            {
+                <div class="small"><span>@(p.Direction == PaymentDirection.Refund ? "Hoàn tiền" : "Thanh toán") · @StatusDisplay.Of(StatusDisplay.Payment, p.Method).Label</span><span class="money">@Fmt.Money(p.Amount)</span></div>
+            }
+        </section>
+        <footer class="receipt-foot small">
+            @if (!string.IsNullOrEmpty(Model.StaffName))
+            {
+                <p class="mb-0">Thu ngân: @Model.StaffName</p>
+            }
+            @if (!string.IsNullOrEmpty(Model.CustomerName))
+            {
+                <p class="mb-0">Thành viên: @Model.CustomerName</p>
+            }
+            <p class="mb-0">Đưa mã QR cho nhân viên soát vé khi vào phòng. Phim có nhãn tuổi T13 trở lên có thể được kiểm tra CCCD hoặc VNeID.</p>
+        </footer>
+    </main>
+    <partial name="_Scripts" />
+    <script src="~/js/pages/shift.js" asp-append-version="true"></script>
+</body>
+</html>

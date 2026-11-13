@@ -8,16 +8,14 @@
     // (nhãn, icon, đường dẫn hoặc null nếu chưa có, chỉ quản lý rạp)
     var groups = new List<(string Title, List<(string Label, string Icon, string? Url, bool ManagerOnly)> Items)>
     {
-        // TODO(Phase 4): Bảng điều khiển /admin, Bán vé tại quầy /pos/index, Hóa đơn /admin/bills
-        ("Tổng quan", new() { ("Bảng điều khiển", "bi-speedometer2", null, false) }),
-        ("Bán hàng", new() { ("Bán vé tại quầy", "bi-shop", null, false), ("Hóa đơn", "bi-receipt", null, true) }),
+        ("Tổng quan", new() { ("Bảng điều khiển", "bi-speedometer2", "/admin", true) }),
+        ("Bán hàng", new() { ("Bán vé tại quầy", "bi-shop", "/pos/index", false), ("Hóa đơn", "bi-receipt", "/admin/bills", true) }),
         ("Phim và lịch chiếu", new() { ("Phim", "bi-film", "/admin/movies", false), ("Nhà phát hành", "bi-building", "/admin/distributors", true), ("Lịch chiếu", "bi-calendar3", "/scheduler", true) }),
         ("Rạp và phòng", new() { ("Phòng chiếu", "bi-grid-3x3-gap", "/admin/auditoriums", true), ("Bảng giá", "bi-tags", "/admin/pricing", true) }),
         // TODO(Phase 6): Nguyên liệu và nhập kho
         ("Kho bắp nước", new() { ("Loại đồ uống", "bi-collection", "/admin/categories", false), ("Đồ uống", "bi-cup-straw", "/admin/drinks", false), ("Nguyên liệu", "bi-box-seam", null, true) }),
         ("Nhân sự", new() { ("Nhân viên", "bi-people", "/admin/users", true) }),
-        // TODO(Phase 4): Thống kê, Đối soát nhà phát hành
-        ("Báo cáo", new() { ("Thống kê", "bi-bar-chart", null, true), ("Đối soát nhà phát hành", "bi-file-earmark-spreadsheet", null, true) }),
+        ("Báo cáo", new() { ("Thống kê", "bi-bar-chart", "/admin/reports", true), ("Đối soát nhà phát hành", "bi-file-earmark-spreadsheet", "/admin/reports/settlement", true) }),
         ("Cấu hình", new() { ("Cấu hình rạp", "bi-gear", null, true) }),
     };
 }
@@ -25,7 +23,8 @@
 {
     @foreach (var g in groups)
     {
-        var items = g.Items.Where(i => !i.ManagerOnly || isManager).ToList();
+        // Soát vé (TicketInspector) không dùng màn hình bán hàng (PosStaff)
+        var items = g.Items.Where(i => (!i.ManagerOnly || isManager) && !(i.Url == "/pos/index" && Shell.User?.Role == Roles.TicketInspector)).ToList();
         if (items.Count == 0) { continue; }
         <div class="nav-group">
             <h2 class="nav-group-title">@g.Title</h2>
@@ -33,7 +32,8 @@
             {
                 if (i.Url != null)
                 {
-                    var active = path.StartsWith(i.Url, StringComparison.OrdinalIgnoreCase);
+                    var active = i.Url == "/admin" ? path.TrimEnd('/').Equals("/admin", StringComparison.OrdinalIgnoreCase)
+                        : path.StartsWith(i.Url, StringComparison.OrdinalIgnoreCase) && !(i.Url == "/admin/reports" && path.StartsWith("/admin/reports/settlement", StringComparison.OrdinalIgnoreCase));
                     <a class="side-link @(active ? "active" : null)" href="@i.Url" aria-current="@(active ? "page" : null)" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-trigger="hover" title="@i.Label">
                         <i class="bi @i.Icon" aria-hidden="true"></i><span class="label">@i.Label</span>
                     </a>

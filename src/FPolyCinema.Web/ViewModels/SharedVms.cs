@@ -91,7 +91,18 @@ public class StepperVm
 }
 
 /// <summary>Một ô ghế của sơ đồ (_SeatMap).</summary>
-public sealed record SeatCell(int Row, int Col, string Label, string SeatType, string Status, bool IsHouse = false);
+public sealed record SeatCell(int Row, int Col, string Label, string SeatType, string Status, bool IsHouse = false)
+{
+    public int SeatId { get; init; }
+    public int? PairGroupId { get; init; }
+    /// <summary>Điểm góc nhìn và âm thanh BaseViewScore (0–100); 0 là không hiện.</summary>
+    public int Score { get; init; }
+    /// <summary>Ghi chú điểm, ví dụ "tọa độ vàng".</summary>
+    public string ScoreNote { get; init; } = string.Empty;
+    /// <summary>Giá vé người lớn của ghế; 0 là không hiện.</summary>
+    public long Price { get; init; }
+    public int? HoldBillId { get; init; }
+}
 
 /// <summary>Sơ đồ ghế (_SeatMap, UI mục 8): lưới TotalRows × TotalCols, hàng 1 (A) gần màn hình nhất.</summary>
 public class SeatMapVm
@@ -100,6 +111,24 @@ public class SeatMapVm
     public int Cols { get; set; }
     public List<SeatCell> Seats { get; set; } = new();
     public bool ShowLegend { get; set; } = true;
+
+    /// <summary>Trạng thái hiển thị của ghế thuộc hóa đơn của người đang xem (CONTRACTS C3-08).</summary>
+    public const string Selected = FPolyCinema.Web.Services.SeatMapService.Selected;
+
+    /// <summary>Sơ đồ ghế của một suất (có chọn ghế, bàn phím, tooltip giá và điểm, cập nhật thời gian thực).</summary>
+    public static SeatMapVm From(FPolyCinema.Web.Services.SeatMapModel m, bool showLegend = true) => new()
+    {
+        Rows = m.Rows, Cols = m.Cols, ShowtimeId = m.ShowtimeId, HoldBillId = m.HoldBillId, Interactive = true, ShowLegend = showLegend,
+        Seats = m.Seats.Select(s => new SeatCell(s.Row, s.Col, s.Label, s.SeatType, s.Status, s.IsHouse)
+        {
+            SeatId = s.SeatId, PairGroupId = s.PairGroupId, Score = s.Score, ScoreNote = s.ScoreNote, Price = s.Price, HoldBillId = s.HoldBillId,
+        }).ToList(),
+    };
+
+    /// <summary>Suất của sơ đồ (0 khi là sơ đồ mẫu); sơ đồ có suất thì seatmap.js gắn chọn ghế, bàn phím và cập nhật thời gian thực.</summary>
+    public int ShowtimeId { get; set; }
+    public bool Interactive { get; set; }
+    public int? HoldBillId { get; set; }
 }
 
 /// <summary>Nhãn trạng thái (_StatusBadge): nhóm trong StatusDisplay và giá trị gốc.</summary>

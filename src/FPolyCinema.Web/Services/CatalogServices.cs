@@ -65,6 +65,8 @@ public class CategoryService
 
     internal static BusinessRuleException NotFound() => new(ErrorCodes.NotFound, ApiResponseText.NotFound);
 
+    internal static BusinessRuleException NotFound(string message) => new(ErrorCodes.NotFound, message);
+
     internal static BusinessRuleException Blocked(DeleteDecision d) =>
         new(ErrorCodes.DeleteBlocked, d.Reason ?? "Không xóa được mục này. Bạn tải lại trang để xem trạng thái mới nhất.", new { reason = d.Reason, canDeactivate = d.CanDeactivate, suggestion = d.CanDeactivate ? "deactivate" : null });
 }

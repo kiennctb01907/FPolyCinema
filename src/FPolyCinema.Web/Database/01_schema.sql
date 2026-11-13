@@ -324,6 +324,8 @@ CREATE TABLE Bills (
     VoucherId INT NULL CONSTRAINT FK_Bills_Vouchers REFERENCES Vouchers(Id),
     PointsUsed INT NOT NULL CONSTRAINT DF_Bills_PointsUsed DEFAULT 0,
     HoldExpiresAt DATETIME2(0) NULL,
+    -- Thu ngân đã gia hạn giữ ghế (chỉ được một lần, SPEC 3.5)
+    HoldExtended BIT NOT NULL CONSTRAINT DF_Bills_HoldExtended DEFAULT 0,
     [CheckInStatus] VARCHAR(30) NOT NULL CONSTRAINT DF_Bills_CheckInStatus DEFAULT 'NONE'
         CONSTRAINT CK_Bills_CheckInStatus CHECK (CheckInStatus IN ('NONE', 'NOT_CHECKED_IN', 'PARTIALLY_CHECKED_IN', 'FULLY_CHECKED_IN', 'VOIDED')),
     FnbStatus VARCHAR(30) NOT NULL CONSTRAINT DF_Bills_FnbStatus DEFAULT 'NONE'
@@ -384,6 +386,8 @@ CREATE TABLE ShowtimeSeats (
     Status VARCHAR(20) NOT NULL CONSTRAINT DF_ShowtimeSeats_Status DEFAULT 'AVAILABLE' CONSTRAINT CK_ShowtimeSeats_Status CHECK (Status IN ('AVAILABLE', 'HELD', 'BOOKED', 'HOUSE_HOLD')),
     HoldBillId INT NULL CONSTRAINT FK_ShowtimeSeats_Bills REFERENCES Bills(Id),
     HoldExpiresAt DATETIME2(0) NULL,
+    -- Đối tượng vé đã chọn cho ghế đang giữ; vé thật tạo lúc thanh toán (SPEC 3.6)
+    HoldAudienceType VARCHAR(20) NULL CONSTRAINT CK_ShowtimeSeats_HoldAudienceType CHECK (HoldAudienceType IS NULL OR HoldAudienceType IN ('ADULT', 'U22', 'CHILD_U13', 'CHILD_13_15', 'SENIOR', 'MERIT', 'HARDSHIP', 'DISABLED_SEVERE', 'DISABLED_EXTREME')),
     TicketId INT NULL CONSTRAINT FK_ShowtimeSeats_Tickets REFERENCES Tickets(Id),
     CONSTRAINT PK_ShowtimeSeats PRIMARY KEY (ShowtimeId, SeatId)
 );

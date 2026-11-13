@@ -1,8 +1,16 @@
 # Tiến độ
 ## Trạng thái
-- [x] Phase 1  - [x] Phase 2  - [x] Phase 3  - [ ] Phase 4
+- [x] Phase 1  - [x] Phase 2  - [x] Phase 3  - [x] Phase 4
 - [ ] Phase 5  - [ ] Phase 6  - [ ] Phase 7  - [ ] Phase 8
 ## Phase đang làm
+Phase 4 – POS, hóa đơn, thống kê: xong ngày 13/11/2026 (verify 4 --final ĐẠT, commit "Phase 4: …", tag lab-6). Phase kế tiếp: Phase 5 – Web khách và đặt vé online.
+
+### Việc đã làm ở Phase 4
+- Domain/Rules (logic thuần, có unit test): SeatHoldRules (trạng thái hiệu lực, hạn giữ, giờ ngừng bán theo kênh), SweetboxRule, OrphanSeatValidator (đoạn ghế, ngoại lệ đoạn ngắn, gợi ý dời), CashDropCalculator (đếm mệnh giá, Expected, Discrepancy, PIN), StockCalculator, LoyaltyCalculator (điểm, hạng, voucher, phân bổ giảm giá), SettlementCalculator.
+- Services: SeatHoldService (giữ ghế trong transaction có UPDLOCK, HOLDLOCK; bỏ qua luật ghế mồ côi có lý do và AuditLogs), BillService (hóa đơn tạm tính, đối tượng vé, bắp nước theo định mức, thành viên, voucher, điểm, gia hạn giữ ghế một lần, thanh toán tiền mặt và VietQR mô phỏng, hủy waiting, hủy đã thanh toán bằng PIN quản lý), ShiftService (mở ca tại máy, đóng ca mù), InventoryService, LoyaltyService, ManagerPinService, StatisticsService, BillQueryService; SeatHoldSweeper (BackgroundService dọn ghế hết hạn); CinemaHub /hubs/cinema với SEAT_MAP_UPDATED.
+- Màn hình: P1 POS 3 cột (sơ đồ ghế thời gian thực, bắp nước, hóa đơn tạm tính, phím tắt F1, F4, Esc), trang in vé 80mm có QR SVG, Hóa đơn của tôi, P7 mở ca, đóng ca mù, biên bản ca; A1 dashboard, A6 báo cáo 4 tab có CSV và đối soát nhà phát hành, A8 quản lý hóa đơn.
+- Kiểm tra độc lập: lượt đầu 138/144 Đạt, 6 Thiếu (S3.6-08, S3.6-23, S3.6-27, S8.4-10, U8-11, U7.A8-03); đã sửa (BUG-027..030, quyết định 49–56) và kiểm lại (docs/audit/phase-4.md).
+
 Phase 3 – Phim, phòng chiếu, giá, suất chiếu: xong ngày 13/11/2026 (verify 3 --final ĐẠT, commit "Phase 3: …"; Phase 3 không có tag lab). Phase kế tiếp: Phase 4 – POS, hóa đơn, thống kê.
 
 ### Việc đã làm ở Phase 3
@@ -93,8 +101,17 @@ Phase 3 – Phim, phòng chiếu, giá, suất chiếu: xong ngày 13/11/2026 (v
 46. 13/11/2026 – Phòng mới tạo với lưới đầy ghế thường; số hàng, số cột đổi trong công cụ thiết kế. Nhãn, cặp ghế đôi, điểm và gợi ý ghế nội bộ của công cụ do server tính (POST /admin/auditoriums/{id}/preview) để công cụ và lúc lưu dùng chung AuditoriumLayout. Gợi ý ghế nội bộ: hàng gần r_ideal nhất có đủ ghế thường hoặc VIP liền nhau không bảo trì, đoạn gần giữa phòng nhất.
 47. 13/11/2026 – Route Phase 3 theo kiểu chữ thường gạch ngang: /admin/movies, /admin/distributors, /admin/auditoriums (…/{id}/design, …/{id}/preview, …/{id}/layout), /admin/pricing (…/audiences, …/holidays, …/try), /scheduler (…/create, …/{id}/edit, …/check, …/save). Phim xem được với EmployeeOrManager; nhà phát hành, phòng chiếu, bảng giá, lịch chiếu là ManagerOnly (cấu hình, xếp lịch theo CONTRACTS mục 2).
 48. 13/11/2026 – Mức giảm đối tượng dùng chung cho mọi rạp (bảng AudienceDiscounts không có CinemaId); trang chỉ sửa phần trăm giảm, cột bán online và cần giấy tờ giữ theo luật (CONTRACTS mục 4).
+49. 13/11/2026 – Máy POS nhận biết bằng cookie fpc_terminal đặt lúc mở ca; mọi thao tác bán chỉ chạy khi cookie đúng mã máy của ca OPEN (trình duyệt chưa có cookie hoặc mang mã máy khác bị chuyển về Mở ca, SHIFT_NOT_OPEN). Đóng ca tìm ca OPEN của chính người dùng ở bất kỳ máy nào (đóng ca không phải thao tác bán). Thanh đổi vai trò demo đặt cookie mã máy của ca đang mở để bán được ngay – SPEC 3.6 "có ca OPEN tại máy đó".
+50. 13/11/2026 – Tiền đầu ca bắt buộc nhập (két trống thì nhập 0), từ 0 đến 50.000.000 ₫ – SPEC 3.6 "khi mở ca phải nhập OpeningCashFloat".
+51. 13/11/2026 – Hủy hóa đơn đã thanh toán có khoản tiền mặt cần người hủy có ca OPEN tại rạp của hóa đơn, tiền hoàn ghi vào ca đó (SHIFT_NOT_OPEN nếu không có ca); chuyển khoản và ví không cần ca – SPEC 3.6 "tiền mặt trừ vào két của ca hiện tại".
+52. 13/11/2026 – Quản lý gắn một rạp chỉ xem, in, hủy hóa đơn và đối soát của rạp mình; quản lý toàn chuỗi (CinemaId trống) chọn rạp ở ô rạp. Tab doanh thu, top đồ uống, top phim theo sp_RevenueByDay, sp_TopDrinks, sp_TopMovies của SPEC 3.12 (tham số khoảng ngày, không có rạp) nên là số toàn chuỗi, tiêu đề ghi "toàn chuỗi".
+53. 13/11/2026 – Mốc nhanh của báo cáo (Hôm nay, 7 ngày, 30 ngày, Tháng này, Tháng trước) gửi tham số preset, server tính khoảng ngày theo IClock (giờ Việt Nam); sửa tay ô ngày thì bỏ mốc nhanh.
+54. 13/11/2026 – Bộ lọc trạng thái ở /admin/bills dùng nhãn của UI mục 6 ("Đã thanh toán" cho finish) thay cho chữ "Hoàn thành" ở UI A8 – một trạng thái chỉ có một nhãn trên toàn hệ thống.
+55. 13/11/2026 – Drinks không có cột kích cỡ (SPEC 6); mỗi cỡ là một món riêng có cỡ trong tên (ví dụ "Bắp ngọt L"). Cột "Kích cỡ" ở chi tiết hóa đơn hiện "Combo" hoặc "Tiêu chuẩn".
+56. 13/11/2026 – Chip giờ suất ở POS tô "sắp hết" khi còn từ 10 ghế trống trở xuống – UI P1 không nêu ngưỡng.
 
 ## Thay đổi mô hình (ngày – bảng/cột/use case/màn hình – trước – sau)
+- 13/11/2026 – Bills thêm cột HoldExtended BIT NOT NULL DEFAULT 0 (thu ngân đã gia hạn giữ ghế một lần, SPEC 3.5); ShowtimeSeats thêm HoldAudienceType VARCHAR(20) NULL (đối tượng vé đã chọn cho ghế đang giữ, vé thật tạo khi thanh toán). Đã sửa S6-19, S6-23 trong docs/spec/s05-07-realtime-csdl-kiem-thu.md, chạy sync. CONTRACTS C3-39 thêm AuditAction VOID_BILL, ORPHAN_SEAT_OVERRIDE; C8-07 mã lỗi Phase 4 khai báo trong ErrorCodes.
 - 13/11/2026 – CONTRACTS C3-39 – thêm AuditAction PRICING_UPDATED (sửa bảng giá và mức giảm đối tượng, SPEC 2.7) theo quy tắc "mỗi phase thêm hành động của mình". Không đổi bảng, cột, use case hay màn hình.
 - 11/11/2026 – CONTRACTS – thêm C3-39 AuditAction (USER_LOCKED, USER_UNLOCKED) và C8-09 mã lỗi chung (AUTH_REQUIRED, ACCESS_DENIED, NOT_FOUND, SERVER_ERROR) theo quy tắc "cần tên mới thì thêm vào CONTRACTS trước". Không đổi bảng, cột, use case hay màn hình.
 - 06/11/2026 – SchemaVersions – (Version, AppliedAt) – (Id INT IDENTITY khóa chính, Version UNIQUE, AppliedAt), theo quy ước khóa chính Id của CONTRACTS mục 9. Đã sửa dòng S6-35 trong docs/spec/s05-07-realtime-csdl-kiem-thu.md, chạy sync, và ghi ở CONTRACTS mục 12.
@@ -113,6 +130,7 @@ Phase 3 – Phim, phòng chiếu, giá, suất chiếu: xong ngày 13/11/2026 (v
 ## Đang bị chặn (câu hỏi cần người dùng trả lời)
 Không có. (07/11/2026: câu hỏi về SDK .NET 8 của S8.1-01 đã xong, người dùng cài SDK 8.0.427.)
 ## Kết quả kiểm tra giao diện (phase – màn hình – kích thước – đạt/chưa)
+- Phase 4 – 13/11/2026, `node tools/ui-snapshots/snap.mjs --phase 4`: 16 đường dẫn, 42 ảnh trong artifacts/ui/phase-4, 0 lỗi HTTP 5xx, 0 cuộn ngang, 0 ảnh vỡ, 0 lỗi JS. Mở từng ảnh đối chiếu UI mục 13 và sửa: P1 (chữ nút thanh toán và tên món bị cắt ở 1366 – BUG-022), A1, A6 (biểu đồ không vẽ – BUG-023; KPI tràn chữ, lề bảng – BUG-026), P1 Hóa đơn của tôi (ô ngày trống – BUG-024). Kết quả cuối: P1, P7 đạt ở 1366 và 1920; A1, A6, A8 đạt ở 1440, 1280, dùng được ở 768.
 - Phase 3 – 13/11/2026, `node tools/ui-snapshots/snap.mjs --phase 3`: 17 đường dẫn, 51 ảnh trong artifacts/ui/phase-3, 0 lỗi HTTP 5xx, 0 cuộn ngang, 0 ảnh vỡ, 0 lỗi JS. Mở từng ảnh đối chiếu UI mục 13 và sửa: A4 (ô mẫu và chú thích heatmap mất màu – BUG-015; lưới bị cắt – BUG-019), A3 phim (ô ngày giờ kiểu Mỹ – BUG-016; ô rạp KDM bị cắt – BUG-017), A5 (nhóm phòng cuộn dọc riêng – BUG-018), A2 bảng giá (số tiền không dấu phân cách – BUG-020), A3 đối tượng (dải trống đầu thẻ). Kết quả cuối: A2, A3, A4, A5 đạt ở 1440, 1280; ở 768 dùng được, bảng lịch chiếu và lưới thiết kế chỉ cuộn ngang trong vùng của chúng.
 - Phase 2 – 11/11/2026, `node tools/ui-snapshots/snap.mjs --phase 2`: 19 đường dẫn, 56 ảnh trong artifacts/ui/phase-2, 0 lỗi HTTP 5xx, 0 cuộn ngang, 0 ảnh vỡ, 0 lỗi JS. Đã mở từng ảnh đối chiếu UI mục 13 và sửa: D1 (thẻ phim lệch nút do dòng phụ), C6 (đạt ở 390, 768, 1440), A2 (cột phụ và nhãn công tắc ở 768px, link trong bảng), A3 (đạt, form 960px hai cột), A9 (lỗi 500 ở layout POS – BUG-007; thanh demo che nút – BUG-012), D2 (cuộn ngang ở 390px – BUG-009), D3 (đạt, layout theo khu vực). Kết quả cuối: D1, C6, A2, A3, A9, D2, D3 đạt ở mọi kích thước của UI mục 11.
 - Phase 1 – không có màn hình (ảnh mẫu SVG được kiểm bằng unit test SvgArtGeneratorTests).

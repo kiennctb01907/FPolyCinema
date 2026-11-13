@@ -55,6 +55,9 @@ public class DemoController : AppControllerBase
         }
         await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, AuthService.BuildPrincipal(user),
             new AuthenticationProperties { IsPersistent = true });
+        // Công cụ demo coi trình duyệt này là máy POS của ca đang mở (nếu có) để bán được ngay sau khi đổi vai trò.
+        if (FPolyCinema.Web.DAL.PosShiftDAL.GetOpenByUser(user.Id) is { } openShift)
+            Response.Cookies.Append(ShiftService.TerminalCookie, openShift.TerminalCode, new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Lax, IsEssential = true });
         if (user.MustChangePassword) return Redirect("/Login/ChangePassword");
         var target = SafeReturn(returnUrl, user.Role);
         if (!RoleRouting.CanReturnTo(target, user.Role)) target = RoleRouting.HomePath(user.Role);

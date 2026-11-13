@@ -1,0 +1,56 @@
+@model ShiftReportVm
+@* Biên bản ca (UI P7 bước 3, SPEC 3.6): so sánh số đếm được với số hệ thống tính (ExpectedCash = tiền đầu ca + tiền mặt thu − tiền mặt hoàn);
+   chênh lệch tô xanh (thừa hoặc khớp) hoặc đỏ (thiếu), gắn với nhân viên; có nút in; không sửa được sau khi chốt. *@
+@{
+    Layout = "_LayoutPos";
+    ViewData["Title"] = "Biên bản ca";
+    var s = Model.Row.Shift;
+    var diff = s.Discrepancy ?? 0;
+    var tone = diff < 0 ? "danger" : "success";
+}
+<div class="pos-scroll">
+    <div class="shift-card card-ui card-ui-body print-area">
+        <div class="no-print">
+            <partial name="_Stepper" model="@(new StepperVm { Steps = new List<string> { "Đếm tiền", "Xác nhận", "Biên bản" }, Current = 3 })" />
+        </div>
+        <h1 class="h4 mt-4">Biên bản đóng ca @s.TerminalCode</h1>
+        <dl class="info-grid">
+            <dt>Rạp</dt><dd>@Model.Row.CinemaName</dd>
+            <dt>Nhân viên</dt><dd>@Model.Row.UserName</dd>
+            <dt>Mở ca</dt><dd>@Fmt.DateTime(s.OpenedAt)</dd>
+            <dt>Đóng ca</dt><dd>@Fmt.DateTime(s.ClosedAt)</dd>
+            <dt>Số hóa đơn đã thanh toán</dt><dd>@Fmt.Number(Model.Row.BillCount)</dd>
+        </dl>
+        <div class="table-wrap">
+            <table class="data-table">
+                <tbody>
+                    <tr><th scope="row">Tiền đầu ca</th><td class="text-end money">@Fmt.Money(s.OpeningCashFloat)</td></tr>
+                    <tr><th scope="row">Tiền mặt thu trong ca</th><td class="text-end money">@Fmt.Money(Model.Row.CashIn)</td></tr>
+                    <tr><th scope="row">Tiền mặt hoàn trong ca</th><td class="text-end money">@(Model.Row.CashRefund > 0 ? "−" : null)@Fmt.Money(Model.Row.CashRefund)</td></tr>
+                    <tr><th scope="row">Số hệ thống tính phải có</th><td class="text-end money fw-semibold">@Fmt.Money(s.ExpectedCash)</td></tr>
+                    <tr><th scope="row">Số nhân viên đếm được</th><td class="text-end money fw-semibold">@Fmt.Money(s.ActualCashCounted)</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <div class="discrepancy tone-@tone" role="status">
+            <i class="bi @(diff < 0 ? "bi-exclamation-octagon" : "bi-check2-circle")" aria-hidden="true"></i>
+            <span>@(diff == 0 ? "Khớp, không chênh lệch" : diff > 0 ? "Thừa" : "Thiếu")</span>
+            <strong class="money">@(diff > 0 ? "+" : diff < 0 ? "−" : null)@Fmt.Money(Math.Abs(diff))</strong>
+        </div>
+        <p class="text-muted small mt-3">Biên bản đã chốt, không sửa được. Chênh lệch ghi theo nhân viên @Model.Row.UserName.</p>
+        <div class="d-flex flex-wrap gap-2 justify-content-end no-print">
+            @if (Model.IsOwn)
+            {
+                <a class="btn btn-ghost" href="/pos/open-shift"><i class="bi bi-door-open" aria-hidden="true"></i>Mở ca mới</a>
+            }
+            else
+            {
+                <a class="btn btn-ghost" href="/admin/reports?tab=shifts"><i class="bi bi-arrow-left" aria-hidden="true"></i>Về báo cáo biên bản ca</a>
+            }
+            <button type="button" class="btn btn-primary" data-print><i class="bi bi-printer" aria-hidden="true"></i>In biên bản</button>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/js/pages/shift.js" asp-append-version="true"></script>
+}

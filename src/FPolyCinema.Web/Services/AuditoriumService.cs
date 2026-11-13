@@ -147,7 +147,7 @@ public class AuditoriumService
                         SeatDAL.Update(seat, conn, tx);
                     }
                 }
-                // TODO(Phase 4): ghế vừa chuyển bảo trì mà đã bán ở suất tương lai thì vào danh sách "Cần đổi ghế" của dashboard (SPEC 3.2).
+                // Ghế vừa chuyển bảo trì mà đã bán ở suất tương lai tự hiện trong danh sách "Cần đổi ghế" của dashboard (StatisticDAL.SeatsNeedingChange, SPEC 3.2).
                 return false;
             }
             if (locked)

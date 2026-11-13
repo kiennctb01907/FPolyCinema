@@ -1,0 +1,172 @@
+@model BillDetailsVm
+@* A8. Chi tiết /admin/bills/{id}: đầu trang ghi mã, badge trạng thái, lý do hủy nếu có. Khối thông tin: nhân viên lập, ca, thời gian tạo, thời gian thanh toán,
+   khách hàng. Bảng vé (phim, suất, phòng, ghế, đối tượng, đơn giá, giảm, thành tiền) và bảng bắp nước (món, kích cỡ, số lượng, đơn giá, thành tiền).
+   Khối tổng: tạm tính, giảm giá, VAT, tổng cộng. Lịch sử thanh toán, hoàn tiền và phê duyệt dạng dòng thời gian. Nút "In lại hóa đơn" và nút hủy theo quy tắc. *@
+@{
+    Layout = "_LayoutAdmin";
+    var d = Model.Data;
+    var b = d.Bill;
+    ViewData["Title"] = "Hóa đơn " + b.Code;
+    var crumbs = new List<Crumb> { new("Bán hàng"), new("Hóa đơn", "/admin/bills"), new(b.Code) };
+    ViewData["Crumbs"] = crumbs;
+    bool canCancel = b.Status == BillStatus.Waiting || (b.Status == BillStatus.Finish && d.Tickets.All(t => t.CheckInStatus != TicketCheckInStatus.CheckedIn));
+    var events = new List<(DateTime At, string Icon, string Tone, string Text)>();
+    events.Add((b.CreatedAt, "bi-receipt", "info", $"Lập hóa đơn{(d.Row.StaffName != null ? " · " + d.Row.StaffName : null)}"));
+    foreach (var p in d.Payments)
+    {
+        events.Add((p.CreatedAt, p.Direction == PaymentDirection.Refund ? "bi-arrow-counterclockwise" : "bi-cash-coin", p.Direction == PaymentDirection.Refund ? "warning" : "success",
+            $"{(p.Direction == PaymentDirection.Refund ? "Hoàn tiền" : "Thanh toán")} {Fmt.Money(p.Amount)} · {StatusDisplay.Of(StatusDisplay.Payment, p.Method).Label}{(p.Status == PaymentStatus.Failed ? " (thất bại)" : p.Status == PaymentStatus.Pending ? " (đang chờ)" : null)}"));
+    }
+    foreach (var a in d.Approvals)
+    {
+        events.Add((a.CreatedAt, "bi-shield-exclamation", "warning", $"{a.RequesterName} yêu cầu hủy: {a.Reason}"));
+        if (a.DecidedAt is DateTime da)
+            events.Add((da, "bi-shield-check", a.Status == ApprovalStatus.Approved ? "success" : "danger",
+                $"{a.DeciderName} {StatusDisplay.Of(StatusDisplay.Approval, a.Status).Label.ToLowerInvariant()}{(a.Method == ApprovalMethod.Pin ? " bằng PIN" : a.Method == ApprovalMethod.Remote ? " từ xa" : null)}"));
+    }
+    if (b.CancelledAt is DateTime ca && b.CancelReason != null) events.Add((ca, "bi-x-circle", "danger", "Hủy: " + StatusDisplay.Of(StatusDisplay.CancelReasons, b.CancelReason).Label));
+    var header = new PageHeaderVm { Title = "Hóa đơn " + b.Code, Crumbs = crumbs };
+}
+<partial name="_PageHeader" model="header" />
+<div class="bill-head">
+    <partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Bill, b.Status))" />
+    @if (b.CancelReason != null)
+    {
+        <span class="text-muted">Lý do hủy: @StatusDisplay.Of(StatusDisplay.CancelReasons, b.CancelReason).Label</span>
+    }
+    <div class="ms-auto d-flex flex-wrap gap-2">
+        @if (canCancel)
+        {
+            <button type="button" class="btn btn-ghost text-danger" data-bill-cancel="@b.Id" data-code="@b.Code" data-status="@b.Status"><i class="bi bi-x-circle" aria-hidden="true"></i>Hủy hóa đơn</button>
+        }
+        <a class="btn btn-primary" href="/admin/bills/@b.Id/print" target="_blank" rel="noopener"><i class="bi bi-printer" aria-hidden="true"></i>In lại hóa đơn</a>
+    </div>
+</div>
+
+<div class="detail-grid">
+    <section class="card-ui card-ui-body">
+        <h2 class="h6">Thông tin</h2>
+        <dl class="info-grid">
+            <dt>Rạp</dt><dd>@d.Row.CinemaName</dd>
+            <dt>Kênh</dt><dd>@StatusDisplay.Of(StatusDisplay.Channel, b.Channel).Label@(b.TerminalCode != null ? " · " + b.TerminalCode : null)</dd>
+            <dt>Nhân viên lập</dt><dd>@(b.Channel == BillChannel.Online ? "Khách tự đặt online" : d.Row.StaffName ?? "–")</dd>
+            <dt>Ca</dt><dd>@(d.Shift != null ? $"{d.Shift.TerminalCode} · mở {Fmt.DateTime(d.Shift.OpenedAt)}" : "–")</dd>
+            <dt>Thời gian tạo</dt><dd>@Fmt.DateTime(b.CreatedAt)</dd>
+            <dt>Thời gian thanh toán</dt><dd>@Fmt.DateTime(b.PaidAt)</dd>
+            <dt>Khách hàng</dt><dd>@(d.CustomerName != null ? $"{d.CustomerName}{(d.CustomerCode != null ? " · " + d.CustomerCode : null)}" : "Khách lẻ")</dd>
+            @if (b.ShowtimeId != null)
+            {
+                <dt>Vào cửa</dt><dd><partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.BillCheckIn, b.CheckInStatus))" /></dd>
+            }
+            @if (b.FnbStatus != FnbStatus.None)
+            {
+                <dt>Bắp nước</dt><dd><partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Fnb, b.FnbStatus))" />@(b.PickupNumber is int pn ? " · số gọi " + CodeGenerator.FormatPickupNumber(pn) : null)</dd>
+            }
+        </dl>
+    </section>
+    <section class="card-ui card-ui-body">
+        <h2 class="h6">Tổng tiền</h2>
+        <div class="money-summary">
+            <div class="ms-line"><span class="ms-label">Tiền vé</span><span class="ms-value money">@Fmt.Money(b.TicketSubtotal)</span></div>
+            <div class="ms-line"><span class="ms-label">Bắp nước</span><span class="ms-value money">@Fmt.Money(b.FnbSubtotal)</span></div>
+            <div class="ms-sep" role="presentation"></div>
+            <div class="ms-line"><span class="ms-label">Tạm tính</span><span class="ms-value money">@Fmt.Money(b.TicketSubtotal + b.FnbSubtotal)</span></div>
+            <div class="ms-line ms-discount"><span class="ms-label">Giảm giá@(d.VoucherCode != null ? " (voucher " + d.VoucherCode + ")" : null)@(b.PointsUsed > 0 ? $" ({Fmt.Number(b.PointsUsed)} điểm)" : null)</span><span class="ms-value money">@(b.DiscountTotal > 0 ? "−" : null)@Fmt.Money(b.DiscountTotal)</span></div>
+            <div class="ms-line"><span class="ms-label">Trong đó VAT</span><span class="ms-value money">@Fmt.Money(d.VatTotal)</span></div>
+            <div class="ms-total"><span class="ms-label">Tổng cộng</span><span class="ms-value money">@Fmt.Money(b.Total)</span></div>
+        </div>
+    </section>
+</div>
+
+<section class="card-ui card-ui-body mt-4">
+    <h2 class="h6">Vé</h2>
+    @if (d.Tickets.Count == 0)
+    {
+        <p class="text-muted mb-0">Hóa đơn không có vé@(b.Status == BillStatus.Waiting ? " (vé được tạo khi thanh toán)" : null).</p>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th scope="col">Phim</th><th scope="col">Suất</th><th scope="col">Phòng</th><th scope="col">Ghế</th><th scope="col">Đối tượng</th><th scope="col" class="num">Đơn giá</th><th scope="col" class="num">Giảm</th><th scope="col" class="num">Thành tiền</th><th scope="col">Vào cửa</th></tr></thead>
+                <tbody>
+                    @foreach (var t in d.Tickets)
+                    {
+                        <tr>
+                            <td><span class="d-inline-flex align-items-center gap-2">@t.MovieTitle <partial name="_AgeBadge" model="@(new AgeBadgeVm(t.AgeRating))" /></span></td>
+                            <td class="text-nowrap">@Fmt.DateTime(t.StartTime)</td>
+                            <td>@t.AuditoriumName</td>
+                            <td>@t.SeatLabel <span class="small text-muted">@StatusDisplay.Of(StatusDisplay.Seat, t.SeatType).Label</span></td>
+                            <td>@StatusDisplay.Of(StatusDisplay.Audience, t.AudienceType).Label</td>
+                            <td class="num money">@Fmt.Money(t.ListPrice)</td>
+                            <td class="num money">@(t.ListPrice > t.FinalPrice ? "−" + Fmt.Money(t.ListPrice - t.FinalPrice) : "–")</td>
+                            <td class="num money">@Fmt.Money(t.FinalPrice)</td>
+                            <td><partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Ticket, t.CheckInStatus))" /></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="card-ui card-ui-body mt-4">
+    <h2 class="h6">Bắp nước</h2>
+    @if (d.Lines.Count == 0)
+    {
+        <p class="text-muted mb-0">Hóa đơn không có bắp nước.</p>
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead><tr><th scope="col">Món</th><th scope="col">Kích cỡ</th><th scope="col" class="num">Số lượng</th><th scope="col" class="num">Đơn giá</th><th scope="col" class="num">Thành tiền</th></tr></thead>
+                <tbody>
+                    @foreach (var l in d.Lines)
+                    {
+                        <tr>
+                            <td>@l.DrinkName</td>
+                            <td>@(l.IsCombo ? "Combo" : "Tiêu chuẩn")</td>
+                            <td class="num">@l.Quantity</td>
+                            <td class="num money">@Fmt.Money(l.Price)</td>
+                            <td class="num money">@Fmt.Money(l.LineFinalAmount)@if (l.LineFinalAmount != l.Price * l.Quantity)
+                                {
+                                    <span class="d-block small text-muted">gốc @Fmt.Money(l.Price * l.Quantity)</span>
+                                }</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</section>
+
+<section class="card-ui card-ui-body mt-4">
+    <h2 class="h6">Lịch sử thanh toán, hoàn tiền và phê duyệt</h2>
+    <ol class="timeline">
+        @foreach (var e in events.OrderBy(e => e.At))
+        {
+            <li class="tl-@e.Tone"><i class="bi @e.Icon" aria-hidden="true"></i><time>@Fmt.DateTime(e.At)</time><span>@e.Text</span></li>
+        }
+    </ol>
+</section>
+
+<div class="modal fade" id="cancel-reason" tabindex="-1" aria-labelledby="cancel-reason-title" aria-modal="true" role="dialog" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" novalidate autocomplete="off">
+            <div class="modal-header"><h2 class="modal-title" id="cancel-reason-title">Lý do hủy hóa đơn @b.Code</h2></div>
+            <div class="modal-body">
+                <label class="form-label" for="cancel-reason-text">Lý do</label>
+                <textarea id="cancel-reason-text" name="reason" class="form-control" rows="3" maxlength="500" placeholder="Ví dụ: khách khiếu nại, rạp hoàn tiền"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Không hủy</button>
+                <button type="submit" class="btn btn-danger"><i class="bi bi-shield-lock" aria-hidden="true"></i>Nhập PIN để duyệt</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/bills.js" asp-append-version="true"></script>
+}

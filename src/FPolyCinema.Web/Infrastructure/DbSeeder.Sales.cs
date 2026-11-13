@@ -505,7 +505,7 @@ public sealed partial class DbSeeder
         AuditLogDAL.Insert(new AuditLog
         {
             UserId = _shiftManagerOf[cinema],
-            Action = "VOID_BILL",
+            Action = AuditAction.VoidBill,
             EntityType = "Bill",
             EntityId = sale.BillId.ToString(),
             Detail = $"Hủy hóa đơn {sale.Code} đã thanh toán, duyệt bằng PIN",

@@ -1,35 +1,59 @@
 @model SeatMapVm
-@* Sơ đồ ghế (UI mục 8), luôn theme cinema: màn hình cong SVG ở trên, nhãn hàng ở hai đầu, lối đi chừa khoảng bằng một ghế,
-   trạng thái thể hiện bằng cả màu lẫn ký hiệu. TODO(Phase 4): chọn ghế, bàn phím mũi tên, tooltip giá và điểm, cập nhật thời gian thực. *@
+@* Sơ đồ ghế (UI mục 8), luôn theme cinema: màn hình cong SVG có quầng sáng ở trên, nhãn hàng ở hai đầu mỗi hàng, lối đi chừa khoảng bằng một ghế,
+   trạng thái thể hiện bằng cả màu lẫn ký hiệu. Mỗi ghế là một <button> có aria-label đầy đủ (UI U10-04); ghế đôi là hai nút dính nhau.
+   Sơ đồ có suất (Interactive) được wwwroot/js/seatmap.js gắn: chọn ghế (cả cặp ghế đôi), phím mũi tên và Enter/Space, tooltip điểm và giá,
+   cập nhật thời gian thực (SEAT_MAP_UPDATED), rung và nháy viền khi vi phạm luật. *@
 @{
     var byPos = Model.Seats.ToDictionary(s => (s.Row, s.Col));
+    var partner = Model.Seats.Where(s => s.PairGroupId != null && s.SeatType == SeatType.Sweetbox).GroupBy(s => s.PairGroupId)
+        .SelectMany(g => g.Select(s => (s.SeatId, Other: g.FirstOrDefault(o => o.SeatId != s.SeatId)?.SeatId ?? 0)))
+        .Where(x => x.SeatId != 0).ToDictionary(x => x.SeatId, x => x.Other);
     string Row(int r) => SeatLabeler.RowLetter(r).ToString();
-    string StatusText(SeatCell s) => s.Status switch
+    string StatusKey(SeatCell s) => s.Status switch
     {
-        "SELECTED" => "đang chọn",
-        SeatDisplayStatus.Held => "người khác đang giữ",
-        SeatDisplayStatus.Booked => "đã bán",
-        SeatDisplayStatus.HouseHold => "ghế nội bộ",
-        SeatDisplayStatus.Maintenance => "đang bảo trì",
-        _ => "còn trống",
-    };
-    string Cls(SeatCell s) => "seat t-" + s.SeatType.ToLowerInvariant() + " s-" + s.Status switch
-    {
-        "SELECTED" => "selected",
+        SeatMapVm.Selected => "selected",
         SeatDisplayStatus.Held => "held",
         SeatDisplayStatus.Booked => "booked",
         SeatDisplayStatus.HouseHold => "house",
         SeatDisplayStatus.Maintenance => "maint",
         _ => "free",
     };
-    string Icon(SeatCell s) => s.Status switch
+    string StatusText(SeatCell s) => s.Status switch
     {
-        "SELECTED" => "✓",
+        SeatMapVm.Selected => "đang chọn",
+        SeatDisplayStatus.Held => "người khác đang giữ",
+        SeatDisplayStatus.Booked => "đã bán",
+        SeatDisplayStatus.HouseHold => "ghế nội bộ",
+        SeatDisplayStatus.Maintenance => "đang bảo trì",
+        _ => "còn trống",
+    };
+    string Aria(SeatCell s, string typeLabel)
+    {
+        // Loại ghế bỏ chữ "Ghế" đứng đầu cho gọn: "Ghế G7, VIP, còn trống, 96 điểm, 95.000 ₫"
+        var shortType = typeLabel.StartsWith("Ghế ") ? typeLabel[4..] : typeLabel;
+        var parts = new List<string> { "Ghế " + s.Label, shortType, StatusText(s) };
+        if (s.Score > 0) parts.Add(s.Score + " điểm");
+        if (s.Price > 0) parts.Add(Fmt.Money(s.Price));
+        return string.Join(", ", parts);
+    }
+    string Tip(SeatCell s, string typeLabel)
+    {
+        var parts = new List<string> { (s.SeatType == SeatType.Standard ? "Ghế thường " : typeLabel + " ") + s.Label };
+        if (s.Score > 0) parts.Add($"Điểm góc nhìn và âm thanh {s.Score}/100" + (string.IsNullOrEmpty(s.ScoreNote) ? "" : $" ({s.ScoreNote})"));
+        if (s.Price > 0) parts.Add(Fmt.Money(s.Price));
+        if (s.Status != SeatDisplayStatus.Available && s.Status != SeatMapVm.Selected) parts.Add(StatusText(s));
+        return string.Join(" · ", parts);
+    }
+    string Content(SeatCell s) => s.Status switch
+    {
+        SeatMapVm.Selected => "✓",
         SeatDisplayStatus.Booked => "✕",
         _ => s.Label[1..],
     };
+    bool locked(SeatCell s) => s.Status is SeatDisplayStatus.Held or SeatDisplayStatus.Booked or SeatDisplayStatus.Maintenance or SeatDisplayStatus.HouseHold;
 }
-<div class="seatmap" data-theme="cinema" data-bs-theme="dark">
+<div class="seatmap" data-theme="cinema" data-bs-theme="dark" @(Model.Interactive ? "data-seatmap" : null)
+     data-showtime-id="@(Model.Interactive ? Model.ShowtimeId : null)" data-bill-id="@Model.HoldBillId">
     <svg class="screen" viewBox="0 0 560 40" aria-hidden="true" focusable="false">
         <path class="screen-halo" d="M20 30 Q280 -6 540 30 L540 40 Q280 6 20 40 Z" />
         <path class="screen-line" d="M20 30 Q280 -6 540 30" />
@@ -43,10 +67,19 @@
             {
                 if (byPos.TryGetValue((r, c), out var s))
                 {
-                    // Ghế nội bộ (HOUSE_HOLD) hiện ra nhưng không chọn được (SPEC 3.2)
-                    var disabled = s.Status is SeatDisplayStatus.Held or SeatDisplayStatus.Booked or SeatDisplayStatus.Maintenance or SeatDisplayStatus.HouseHold;
                     var typeLabel = StatusDisplay.Of(StatusDisplay.Seat, s.SeatType).Label;
-                    <button type="button" class="@Cls(s)" disabled="@disabled" aria-label="Ghế @s.Label, @typeLabel, @StatusText(s)" title="Ghế @s.Label · @typeLabel · @StatusText(s)">
+                    var pairId = partner.TryGetValue(s.SeatId, out var p) ? p : 0;
+                    var pairSide = s.SeatType == SeatType.Sweetbox && pairId != 0
+                        ? (Model.Seats.First(o => o.SeatId == pairId).Col > s.Col ? "pair-l" : "pair-r") : null;
+                    var isLocked = locked(s);
+                    <button type="button" class="seat t-@s.SeatType.ToLowerInvariant() s-@StatusKey(s) @pairSide"
+                            disabled="@(!Model.Interactive && isLocked)" aria-disabled="@(Model.Interactive && isLocked ? "true" : null)"
+                            aria-pressed="@(Model.Interactive ? (s.Status == SeatMapVm.Selected ? "true" : "false") : null)"
+                            aria-label="@Aria(s, typeLabel)" title="@(Model.Interactive ? null : Tip(s, typeLabel))" data-tip="@Tip(s, typeLabel)"
+                            data-seat-id="@(s.SeatId == 0 ? null : s.SeatId)" data-label="@s.Label" data-type="@s.SeatType" data-type-label="@typeLabel"
+                            data-row="@s.Row" data-col="@s.Col" data-status="@s.Status" data-pair="@(pairId == 0 ? null : pairId)"
+                            data-score="@(s.Score > 0 ? s.Score : null)" data-score-note="@s.ScoreNote" data-price="@(s.Price > 0 ? s.Price : null)"
+                            data-hold-bill="@s.HoldBillId" tabindex="@(Model.Interactive ? "-1" : null)">
                         @if (s.Status == SeatDisplayStatus.Held)
                         {
                             <i class="bi bi-clock" aria-hidden="true"></i>
@@ -65,10 +98,10 @@
                         }
                         else
                         {
-                            <span aria-hidden="true">@Icon(s)</span>
+                            <span aria-hidden="true">@Content(s)</span>
                         }
                     </button>
-                    if (s.SeatType == SeatType.Sweetbox) { c++; }
+                    if (s.SeatType == SeatType.Sweetbox && pairId == 0) { c++; }
                 }
                 else
                 {

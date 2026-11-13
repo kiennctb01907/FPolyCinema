@@ -263,6 +263,7 @@ Ràng buộc nhiều cột: Index (AuditoriumId, StartTime); Index (MovieId, Sta
 | Status | VARCHAR(20) | Không |  |  | CHECK: AVAILABLE, HELD, BOOKED, HOUSE_HOLD; DEFAULT 'AVAILABLE' |
 | HoldBillId | INT | Có | FK | Bills.Id |  |
 | HoldExpiresAt | DATETIME2(0) | Có |  |  |  |
+| HoldAudienceType | VARCHAR(20) | Có |  |  | CHECK: ADULT, U22, CHILD_U13, CHILD_13_15, SENIOR, MERIT, HARDSHIP, DISABLED_SEVERE, DISABLED_EXTREME |
 | TicketId | INT | Có | FK | Tickets.Id |  |
 
 Ràng buộc nhiều cột: Khóa chính (ShowtimeId, SeatId); Index (HoldBillId)
@@ -321,6 +322,7 @@ Ràng buộc nhiều cột: UNIQUE(CinemaId, RuleType, RuleKey)
 | VoucherId | INT | Có | FK | Vouchers.Id |  |
 | PointsUsed | INT | Không |  |  | DEFAULT 0 |
 | HoldExpiresAt | DATETIME2(0) | Có |  |  |  |
+| HoldExtended | BIT | Không |  |  | DEFAULT 0 |
 | CheckInStatus | VARCHAR(30) | Không |  |  | CHECK: NONE, NOT_CHECKED_IN, PARTIALLY_CHECKED_IN, FULLY_CHECKED_IN, VOIDED; DEFAULT 'NONE' |
 | FnbStatus | VARCHAR(30) | Không |  |  | CHECK: NONE, PENDING_PICKUP, PREPARING, READY_FOR_PICKUP, FULFILLED, VOIDED; DEFAULT 'NONE' |
 | PickupNumber | INT | Có |  |  | CHECK: PickupNumber IS NULL OR PickupNumber BETWEEN 1 AND 999 |

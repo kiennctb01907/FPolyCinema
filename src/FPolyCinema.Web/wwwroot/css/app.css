@@ -308,6 +308,10 @@ textarea.form-control { min-height: 96px; }
 }
 .data-table tbody td { padding: var(--sp-2) var(--sp-4); height: 48px; border-bottom: 1px solid var(--border); vertical-align: middle; }
 .data-table tbody tr:last-child td { border-bottom: 0; }
+.data-table tbody th, .data-table tfoot th, .data-table tfoot td { padding: var(--sp-2) var(--sp-4); height: 48px; border-bottom: 1px solid var(--border); vertical-align: middle; font-weight: 600; text-align: left; }
+.data-table tfoot td.num { text-align: right; }
+.data-table tbody tr:last-child th, .data-table tfoot tr:last-child th, .data-table tfoot tr:last-child td { border-bottom: 0; }
+.data-table tfoot tr { border-top: 2px solid var(--border); background: var(--surface-2); }
 .data-table tbody tr { transition: background-color var(--dur-fast) var(--ease); }
 .data-table tbody tr:hover { background: var(--surface-2); }
 .data-table .col-num, .data-table td.num, .data-table th.num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -883,3 +887,191 @@ fieldset.check-fieldset legend { font-size: var(--fs-sm); font-weight: 500; marg
 .recipe-table.kdm-table .form-select { min-width: 190px; }
 .kdm-table .date-field { min-width: 210px; }
 .recipe-table.kdm-table input[data-name="Note"] { min-width: 180px; }
+
+/* ================================================================ 30. Phase 4 – sơ đồ ghế có tương tác (UI mục 8) */
+@media (max-width: 991.98px) { .seatmap { --seat-size: 28px; } }
+.seatmap[data-seatmap] .seat:not([aria-disabled="true"]) { cursor: pointer; }
+.seatmap[data-seatmap] .seat[aria-disabled="true"] { cursor: not-allowed; }
+.seatmap[data-seatmap] .seat.s-free:not([aria-disabled="true"]):hover, .seat.is-pair-hover.s-free { border-color: var(--seat-selected); }
+.seat.t-sweetbox.pair-l, .seat.t-sweetbox.pair-r { grid-column: auto; width: calc(var(--seat-size) + var(--seat-gap) / 2); }
+.seat.t-sweetbox.pair-l { border-radius: var(--radius-md) 0 0 var(--radius-md); border-right-width: 0; }
+.seat.t-sweetbox.pair-r { margin-left: calc(var(--seat-gap) / -2); border-radius: 0 var(--radius-md) var(--radius-md) 0; border-left-width: 0; }
+.seat.is-pending { opacity: .6; }
+.seat.is-updated { transition: background-color var(--dur-base) var(--ease), border-color var(--dur-base) var(--ease), color var(--dur-base) var(--ease); }
+.seat.is-violation { animation: shake 320ms var(--ease), seat-flash 320ms var(--ease) 2; }
+@keyframes seat-flash { 50% { box-shadow: 0 0 0 2px var(--danger); border-color: var(--danger); } }
+.seat-tip { position: fixed; left: var(--tip-x, 0); top: var(--tip-y, 0); z-index: 1090; max-width: 320px; padding: var(--sp-1) var(--sp-2); border-radius: var(--radius-sm);
+  background: var(--ink); color: var(--white); font-size: var(--fs-xs); line-height: 1.4; pointer-events: none; opacity: 0; transition: opacity var(--dur-fast) var(--ease); }
+.seat-tip.is-visible { opacity: 1; }
+
+/* ================================================================ 31. Phase 4 – màn hình POS (UI P1) */
+.pos-grid { display: grid; grid-template-columns: 300px minmax(0, 1fr) 380px; width: 100%; min-height: 0; height: 100%; position: relative; }
+.pos-grid > .pos-col { min-height: 0; overflow-y: auto; background: var(--surface); border-right: 1px solid var(--border); padding: var(--sp-4); }
+.pos-grid > .pos-cart { border-right: 0; padding: 0; display: flex; flex-direction: column; overflow: hidden; }
+.pos-grid > .pos-main { background: var(--bg); }
+.pos-col-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); margin-bottom: var(--sp-3); }
+.pos-drawer-close, .pos-drawer-open, .pos-drawer-scrim { display: none; }
+.pos-movie { padding: var(--sp-3) 0; border-bottom: 1px solid var(--border); }
+.pos-movie-head { display: flex; gap: var(--sp-3); align-items: flex-start; margin-bottom: var(--sp-2); }
+.pos-poster { width: 40px; height: 60px; object-fit: cover; border-radius: var(--radius-sm); flex: none; background: var(--surface-2); }
+.pos-movie-title { font-size: var(--fs-sm); font-weight: 600; margin: 0 0 var(--sp-1); line-height: 1.4; }
+.pos-chips { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.min-w-0 { min-width: 0; }
+.showtime-chip { display: inline-flex; flex-direction: column; align-items: flex-start; min-width: 84px; min-height: 48px; padding: var(--sp-1) var(--sp-2); border-radius: var(--radius-md);
+  border: 1px solid var(--border); background: var(--surface); color: var(--text); line-height: 1.4; text-align: left; }
+.showtime-chip .chip-time { font-size: var(--fs-md); font-weight: 700; font-variant-numeric: tabular-nums; }
+.showtime-chip .chip-sub { font-size: var(--fs-xs); color: var(--text-muted); }
+.showtime-chip .chip-seats { font-size: var(--fs-xs); font-weight: 600; display: inline-flex; gap: var(--sp-1); align-items: center; }
+.showtime-chip.is-many .chip-seats { color: var(--success-fg); }
+.showtime-chip.is-low { border-color: var(--warning); }
+.showtime-chip.is-low .chip-seats { color: var(--warning-fg); }
+.showtime-chip.is-full { background: var(--surface-2); color: var(--text-muted); cursor: not-allowed; }
+.showtime-chip:hover:not(:disabled) { border-color: var(--primary); }
+.showtime-chip.is-active { border-color: var(--primary); box-shadow: 0 0 0 2px var(--primary); }
+.pos-main-head { display: flex; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-3); }
+.page-tabs button { display: inline-flex; align-items: center; gap: var(--sp-2); min-height: 48px; padding: var(--sp-2) var(--sp-5); color: var(--text-muted); font-weight: 600; font-size: var(--fs-md);
+  background: transparent; border: 0; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+.page-tabs button.is-active { color: var(--primary); border-bottom-color: var(--primary); }
+.pos-tabs { margin-bottom: 0; flex: 1; }
+.pos-seat-region { min-height: 320px; }
+.pos-seat-region.is-loading { opacity: .6; }
+.pos-seat-head { display: flex; flex-wrap: wrap; justify-content: space-between; gap: var(--sp-2); align-items: flex-end; margin-bottom: var(--sp-3); }
+.pos-seat-panel .seatmap { border: 1px solid var(--border); }
+.filter-chip { min-height: 40px; padding: 0 var(--sp-4); border-radius: var(--radius-pill); border: 1px solid var(--border); background: var(--surface); color: var(--text); font-weight: 500; }
+.filter-chip.is-active { background: var(--info-bg); color: var(--info-fg); border-color: var(--info); }
+.chip-filter { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.pos-food-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: var(--sp-3); }
+.pos-food { display: flex; flex-direction: column; gap: var(--sp-2); padding: var(--sp-3); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface); }
+.pos-food-body { flex: 1; display: flex; flex-direction: column; gap: var(--sp-1); }
+.pos-food img { width: 64px; height: 64px; object-fit: cover; border-radius: var(--radius-sm); background: var(--surface-2); }
+.pos-food-name { font-size: var(--fs-sm); font-weight: 600; margin: 0; line-height: 1.4; }
+.pos-food-state { font-size: var(--fs-xs); font-weight: 600; color: var(--danger-fg); }
+.pos-food-add { min-height: 48px; font-size: var(--fs-xl); }
+.pos-food.is-soldout { opacity: .65; }
+.pos-food.in-cart { border-color: var(--primary); }
+.pos-cart-scroll { flex: 1; min-height: 0; overflow-y: auto; padding: var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-4); }
+.pos-cart-foot { flex: none; border-top: 1px solid var(--border); padding: var(--sp-3) var(--sp-4); display: flex; flex-direction: column; gap: var(--sp-2); background: var(--surface); }
+.pos-cart-foot .money-summary .ms-line { font-size: var(--fs-sm); }
+.pos-pay { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
+.pos-pay .btn-pay { min-height: 64px; font-size: var(--fs-md); font-weight: 700; white-space: normal; line-height: 1.4; padding-left: var(--sp-2); padding-right: var(--sp-2); }
+.pos-hold { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+.pos-member-card { margin-top: var(--sp-2); padding: var(--sp-2) var(--sp-3); border-radius: var(--radius-md); background: var(--surface-2); }
+.pos-cart-show { padding: var(--sp-2) var(--sp-3); border-radius: var(--radius-md); border: 1px solid var(--border); }
+.pos-section-head { display: flex; align-items: center; justify-content: space-between; gap: var(--sp-2); margin-bottom: var(--sp-2); }
+.pos-aud-all { max-width: 190px; }
+.pos-lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+.pos-line { padding: var(--sp-2) var(--sp-3); border: 1px solid var(--border); border-radius: var(--radius-md); display: flex; flex-direction: column; gap: var(--sp-2); }
+.pos-line.has-warning { border-color: var(--warning); background: var(--warning-bg); }
+.pos-line-main { display: flex; align-items: center; gap: var(--sp-2); }
+.seat-chip { display: inline-grid; place-items: center; min-width: 40px; padding: 0 var(--sp-2); border-radius: var(--radius-sm); background: var(--seat-selected); color: var(--seat-selected-text); font-weight: 700; font-variant-numeric: tabular-nums; }
+.line-warning { display: flex; gap: var(--sp-1); margin: 0; font-size: var(--fs-xs); color: var(--warning-fg); font-weight: 500; }
+.pos-guardian { margin-top: var(--sp-2); min-height: 44px; display: flex; align-items: center; gap: var(--sp-2); }
+.pos-discounts { display: flex; flex-direction: column; gap: var(--sp-2); }
+.pos-ui .money-summary .ms-total .ms-value { font-size: var(--fs-32); font-weight: 700; }
+@media (max-width: 1279.98px) {
+  .pos-grid { grid-template-columns: minmax(0, 1fr) 360px; }
+  .pos-grid > .pos-showtimes { position: absolute; inset: 0 auto 0 0; width: 320px; z-index: 30; transform: translateX(-100%); transition: transform var(--dur-base) var(--ease); box-shadow: var(--shadow-md); }
+  .pos-grid.drawer-open > .pos-showtimes { transform: none; }
+  .pos-drawer-close, .pos-drawer-open { display: inline-flex; }
+  .pos-grid.drawer-open > .pos-drawer-scrim { display: block; position: absolute; inset: 0; z-index: 25; background: var(--scrim); }
+  .pos-food-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.cash-quick { display: flex; flex-wrap: wrap; gap: var(--sp-2); }
+.num-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--sp-2); }
+.num-pad button { min-height: 64px; border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface-2); color: var(--text); font-size: var(--fs-2xl); font-weight: 600; font-variant-numeric: tabular-nums; }
+.num-pad button:hover { background: var(--border); }
+.num-pad-lg { max-width: 360px; }
+.pay-total { font-size: var(--fs-lg); }
+.pay-total .money, .pay-change .money { font-size: var(--fs-2xl); }
+
+/* ================================================================ 32. Phase 4 – mở ca, đóng ca, biên bản (UI P7) */
+.shift-card { max-width: 720px; margin: 0 auto; }
+.terminal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: var(--sp-3); }
+.terminal-option { position: relative; }
+.terminal-option input { position: absolute; opacity: 0; }
+.terminal-option span { display: flex; flex-direction: column; align-items: center; gap: var(--sp-1); padding: var(--sp-4); border: 2px solid var(--border); border-radius: var(--radius-md); font-weight: 700; font-size: var(--fs-lg); cursor: pointer; }
+.terminal-option span .bi { font-size: 24px; color: var(--text-muted); }
+.terminal-option input:checked + span { border-color: var(--primary); background: var(--info-bg); }
+.terminal-option input:focus-visible + span { outline: 2px solid var(--focus); outline-offset: 2px; }
+.denom-input { max-width: 120px; margin-left: auto; text-align: right; }
+.denom-total { font-size: var(--fs-xl); font-weight: 700; }
+.discrepancy { display: flex; align-items: center; gap: var(--sp-3); margin-top: var(--sp-4); padding: var(--sp-4); border-radius: var(--radius-md); font-weight: 600; font-size: var(--fs-lg); }
+.discrepancy .bi { font-size: 24px; }
+.discrepancy .money { margin-left: auto; font-size: var(--fs-2xl); }
+.discrepancy.tone-success { background: var(--success-bg); color: var(--success-fg); }
+.discrepancy.tone-danger { background: var(--danger-bg); color: var(--danger-fg); }
+.info-grid { display: grid; grid-template-columns: minmax(140px, max-content) 1fr; gap: var(--sp-2) var(--sp-4); margin: var(--sp-4) 0; }
+.info-grid dt { color: var(--text-muted); font-weight: 500; }
+.info-grid dd { margin: 0; }
+.text-success-fg { color: var(--success-fg); }
+.text-danger-fg { color: var(--danger-fg); }
+
+/* ================================================================ 33. Phase 4 – trang in vé khổ 80mm */
+.print-80 { background: var(--bg); }
+.print-toolbar { display: flex; justify-content: center; gap: var(--sp-2); padding: var(--sp-3); }
+.receipt { width: 80mm; max-width: 100%; margin: 0 auto var(--sp-6); background: var(--white); color: var(--ink); padding: var(--sp-3); font-size: var(--fs-13); line-height: 1.4; }
+.receipt p { max-width: none; }
+.receipt-head { text-align: center; border-bottom: 1px dashed var(--border); padding-bottom: var(--sp-2); }
+.receipt-head .brand { justify-content: center; }
+.receipt-ticket { border-bottom: 1px dashed var(--border); padding: var(--sp-2) 0; break-inside: avoid; }
+.receipt-movie { display: flex; flex-direction: column; gap: var(--sp-1); margin-bottom: var(--sp-1); }
+.receipt-grid { display: grid; grid-template-columns: max-content 1fr; gap: 0 var(--sp-2); margin: 0; }
+.receipt-grid dt { font-weight: 500; }
+.receipt-grid dd { margin: 0; }
+.receipt-seat { font-size: var(--fs-lg); font-weight: 700; }
+.receipt-qr { text-align: center; margin: var(--sp-2) 0 0; }
+.receipt-qr img { width: 160px; height: 160px; }
+.receipt-qr figcaption { letter-spacing: .05em; font-variant-numeric: tabular-nums; }
+.receipt-void { font-weight: 700; color: var(--danger); text-align: center; margin: var(--sp-1) 0 0; }
+.receipt-pickup { text-align: center; margin: var(--sp-2) 0; }
+.receipt-pickup strong { display: block; font-size: var(--fs-3xl); }
+.receipt-table { width: 100%; border-collapse: collapse; }
+.receipt-table th, .receipt-table td { padding: var(--sp-half) 0; font-size: var(--fs-13); }
+.receipt-total { padding: var(--sp-2) 0; border-bottom: 1px dashed var(--border); }
+.receipt-total > div { display: flex; justify-content: space-between; gap: var(--sp-2); }
+.receipt-grand { font-weight: 700; font-size: var(--fs-lg); }
+.receipt-foot { padding-top: var(--sp-2); text-align: center; }
+@media print {
+  @page { size: 80mm auto; margin: 0; }
+  .no-print, .print-toolbar, .demo-bar, .pos-topbar { display: none !important; }
+  .print-80, body { background: var(--white); }
+  .receipt { margin: 0; width: 80mm; padding: 2mm; }
+  .print-area { box-shadow: none; border: 0; }
+}
+
+/* ================================================================ 34. Phase 4 – quản trị: hóa đơn, dashboard, báo cáo */
+.bill-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); margin-bottom: var(--sp-4); }
+.detail-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: var(--sp-4); }
+@media (max-width: 991.98px) { .detail-grid { grid-template-columns: 1fr; } }
+.timeline { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-3); border-left: 2px solid var(--border); }
+.timeline li { position: relative; display: grid; grid-template-columns: 24px 140px 1fr; gap: var(--sp-2); align-items: start; padding-left: var(--sp-3); }
+.timeline li .bi { font-size: 16px; }
+.timeline li time { color: var(--text-muted); font-variant-numeric: tabular-nums; }
+.timeline li.tl-success .bi { color: var(--success-fg); }
+.timeline li.tl-warning .bi { color: var(--warning-fg); }
+.timeline li.tl-danger .bi { color: var(--danger-fg); }
+.timeline li.tl-info .bi { color: var(--info-fg); }
+.kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: var(--sp-4); }
+.kpi-row .kpi-card { padding: var(--sp-4); gap: var(--sp-2); flex-direction: column; }
+.kpi-row .kpi-value { font-size: var(--fs-28); white-space: nowrap; }
+.chart-card { margin: 0; height: 100%; display: flex; flex-direction: column; }
+.chart-title { font-weight: 600; margin-bottom: var(--sp-3); }
+.chart-box { position: relative; height: 300px; }
+.chart-box-bar { height: 280px; }
+.alert-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+.alert-list li { display: flex; gap: var(--sp-3); align-items: flex-start; padding: var(--sp-2) var(--sp-3); border-radius: var(--radius-md); border: 1px solid var(--border); }
+.alert-list li .bi { font-size: 20px; margin-top: var(--sp-half); }
+.alert-list li.tone-danger { border-color: var(--danger); }
+.alert-list li.tone-danger .bi { color: var(--danger-fg); }
+.alert-list li.tone-warning .bi { color: var(--warning-fg); }
+.share-list { list-style: none; margin: 0 0 var(--sp-3); padding: 0; display: flex; flex-direction: column; gap: var(--sp-4); }
+.share-list li.is-chain { padding-top: var(--sp-3); border-top: 1px solid var(--border); }
+.share-head { display: flex; justify-content: space-between; gap: var(--sp-2); margin-bottom: var(--sp-1); }
+.share-value { display: inline-flex; align-items: center; gap: var(--sp-1); font-weight: 700; font-variant-numeric: tabular-nums; }
+.share-bar { position: relative; height: 12px; border-radius: var(--radius-pill); background: var(--surface-2); margin-bottom: var(--sp-1); }
+.share-fill { position: absolute; inset: 0 auto 0 0; width: min(var(--share, 0%), 100%); border-radius: var(--radius-pill); }
+.share-fill.is-ok { background: var(--success); }
+.share-fill.is-low { background: var(--danger); }
+.share-mark { position: absolute; top: -4px; bottom: -4px; left: var(--mark, 20%); width: 2px; background: var(--text); }
+.share-mark-legend { display: inline-block; width: 2px; height: 12px; background: var(--text); margin-right: var(--sp-2); vertical-align: middle; }
+.row-highlight { background: var(--warning-bg); }

@@ -1,0 +1,141 @@
+@model SettlementVm
+@* A6. Đối soát nhà phát hành (UC39, SPEC 3.12): chọn phim và tuần (một rạp hoặc toàn chuỗi); kết quả từ sp_box_office_settlement; bảng theo mức giá
+   tính bằng SettlementCalculator ghi rõ phần rạp tự chịu do giá sàn (Net dưới FloorNet). Xuất CSV. *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Đối soát nhà phát hành";
+    var crumbs = new List<Crumb> { new("Báo cáo"), new("Đối soát nhà phát hành") };
+    ViewData["Crumbs"] = crumbs;
+    var r = Model.Report;
+    var header = new PageHeaderVm
+    {
+        Title = "Đối soát nhà phát hành",
+        Description = "Tuần n là khoảng [ngày khởi chiếu + 7(n − 1), ngày khởi chiếu + 7n), theo ngày vận hành của suất. Tiền trả nhà phát hành tính trên max(giá thuần, giá sàn thuần).",
+        Crumbs = crumbs,
+    };
+    if (r != null)
+    {
+        var url = $"/admin/reports/settlement/export?movieId={r.Movie.Id}&week={Model.Week}{(Model.CinemaId != null ? "&cinemaId=" + Model.CinemaId : null)}";
+        header.Actions = @<a class="btn btn-secondary" href="@url"><i class="bi bi-filetype-csv" aria-hidden="true"></i>Xuất CSV</a>;
+    }
+}
+<partial name="_PageHeader" model="header" />
+<nav class="page-tabs" aria-label="Các báo cáo">
+    <a href="/admin/reports?tab=revenue"><i class="bi bi-graph-up" aria-hidden="true"></i>Doanh thu</a>
+    <a href="/admin/reports?tab=vietnamese"><i class="bi bi-flag" aria-hidden="true"></i>Tỷ lệ phim Việt</a>
+    <a href="/admin/reports?tab=occupancy"><i class="bi bi-people" aria-hidden="true"></i>Tỷ lệ lấp đầy</a>
+    <a href="/admin/reports?tab=shifts"><i class="bi bi-journal-check" aria-hidden="true"></i>Biên bản ca</a>
+    <a href="/admin/reports/settlement" class="active" aria-current="page"><i class="bi bi-file-earmark-spreadsheet" aria-hidden="true"></i>Đối soát nhà phát hành</a>
+</nav>
+<form class="filter-bar" method="get" action="/admin/reports/settlement" aria-label="Chọn phim và tuần">
+    <div class="filter-item filter-search">
+        <label class="form-label" for="s-movie">Phim</label>
+        <select class="form-select" id="s-movie" name="movieId">
+            <option value="">Chọn phim cần đối soát</option>
+            @foreach (var m in Model.Movies)
+            {
+                <option value="@m.Id" selected="@(m.Id == Model.MovieId)">@m.Title (khởi chiếu @Fmt.Date(m.ReleaseDate))</option>
+            }
+        </select>
+    </div>
+    <div class="filter-item">
+        <label class="form-label" for="s-week">Tuần</label>
+        <select class="form-select" id="s-week" name="week">
+            @for (int w = 1; w <= Model.MaxWeek; w++)
+            {
+                <option value="@w" selected="@(w == Model.Week)">Tuần @w</option>
+            }
+        </select>
+    </div>
+    <div class="filter-item">
+        <label class="form-label" for="s-cinema">Rạp</label>
+        <select class="form-select" id="s-cinema" name="cinemaId">
+            @if (Model.Cinemas.Count > 1)
+            {
+                <option value="">Toàn chuỗi</option>
+            }
+            @foreach (var c in Model.Cinemas)
+            {
+                <option value="@c.Id" selected="@(c.Id == Model.CinemaId)">@c.Name</option>
+            }
+        </select>
+    </div>
+    <div class="filter-item"><button type="submit" class="btn btn-primary"><i class="bi bi-calculator" aria-hidden="true"></i>Đối soát</button></div>
+</form>
+
+@if (Model.Error != null)
+{
+    <div class="alert alert-danger" role="alert">@Model.Error</div>
+}
+@if (r == null)
+{
+    <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-file-earmark-spreadsheet", Title = "Chọn phim và tuần", Text = "Chọn một phim để xem số tiền trả nhà phát hành theo tuần chiếu." })" />
+}
+else
+{
+    var s = r.Result;
+    <p class="text-muted">@s.Title · tuần @s.WeekNumber (@Fmt.Date(s.WeekStartDate)–@Fmt.Date(s.WeekEndDate)) · @(Model.CinemaId == null ? "toàn chuỗi" : Model.Cinemas.FirstOrDefault(c => c.Id == Model.CinemaId)?.Name) · tỷ lệ nhà phát hành @s.DistributorSharePercent.ToString("0.##", Fmt.Vi)% · giá sàn @Fmt.Money(r.Movie.MinimumTicketPrice)</p>
+    <section class="kpi-row" aria-label="Kết quả đối soát">
+        <partial name="_KpiCard" model="@(new KpiCardVm("bi-ticket-perforated", "Số vé", Fmt.Number(s.TicketCount), null, "info"))" />
+        <partial name="_KpiCard" model="@(new KpiCardVm("bi-cash", "Doanh thu gộp (gồm VAT)", Fmt.Money(s.GrossRevenue), null, "info"))" />
+        <partial name="_KpiCard" model="@(new KpiCardVm("bi-cash-stack", "Doanh thu thuần", Fmt.Money(s.NetRevenue), null, "info"))" />
+        <partial name="_KpiCard" model="@(new KpiCardVm("bi-building", "Trả nhà phát hành", Fmt.Money(s.DistributorAmount), null, "warning"))" />
+        <partial name="_KpiCard" model="@(new KpiCardVm("bi-shop", "Rạp giữ lại", Fmt.Money(s.CinemaRetainedAmount), null, "success"))" />
+    </section>
+    <section class="card-ui card-ui-body mt-4">
+        <h2 class="h6">Bảng kết quả</h2>
+        <div class="table-wrap">
+            <table class="data-table">
+                <tbody>
+                    <tr><th scope="row">Số vé</th><td class="num">@Fmt.Number(s.TicketCount)</td></tr>
+                    <tr><th scope="row">Doanh thu gộp (gồm VAT)</th><td class="num money">@Fmt.Money(s.GrossRevenue)</td></tr>
+                    <tr><th scope="row">Doanh thu thuần (trước VAT)</th><td class="num money">@Fmt.Money(s.NetRevenue)</td></tr>
+                    <tr><th scope="row">Số vé dưới giá sàn</th><td class="num">@Fmt.Number(s.BelowFloorTickets)</td></tr>
+                    <tr class="row-highlight"><th scope="row">Phần rạp tự chịu do giá sàn</th><td class="num money fw-semibold">@Fmt.Money(s.FloorAbsorbedAmount)</td></tr>
+                    <tr><th scope="row">Tiền trả nhà phát hành (Σ max(giá thuần, giá sàn) × @s.DistributorSharePercent.ToString("0.##", Fmt.Vi)%)</th><td class="num money fw-semibold">@Fmt.Money(s.DistributorAmount)</td></tr>
+                    <tr><th scope="row">Tiền rạp giữ lại (doanh thu thuần − tiền trả nhà phát hành)</th><td class="num money fw-semibold">@Fmt.Money(s.CinemaRetainedAmount)</td></tr>
+                </tbody>
+            </table>
+        </div>
+        @if (r.Check.DistributorAmount != s.DistributorAmount || r.Check.FloorAbsorbedAmount != s.FloorAbsorbedAmount)
+        {
+            <p class="small text-muted mt-2 mb-0">Kiểm tra chéo bằng công thức trên ứng dụng: trả nhà phát hành @Fmt.Money(r.Check.DistributorAmount), rạp tự chịu @Fmt.Money(r.Check.FloorAbsorbedAmount) (lệch do làm tròn).</p>
+        }
+    </section>
+    <section class="card-ui card-ui-body mt-4">
+        <h2 class="h6">Theo mức giá vé</h2>
+        @if (r.Lines.Count == 0)
+        {
+            <p class="text-muted mb-0">Không có vé nào trong tuần này.</p>
+        }
+        else
+        {
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead><tr><th scope="col" class="num">Giá vé (gồm VAT)</th><th scope="col" class="num">VAT</th><th scope="col" class="num">Số vé</th><th scope="col" class="num">Giá thuần</th><th scope="col" class="num">Giá sàn thuần</th><th scope="col">So với giá sàn</th><th scope="col" class="num">Rạp tự chịu</th></tr></thead>
+                    <tbody>
+                        @foreach (var l in r.Lines)
+                        {
+                            <tr class="@(l.BelowFloor ? "row-highlight" : null)">
+                                <td class="num money">@Fmt.Money(l.Line.FinalPrice)</td>
+                                <td class="num">@l.Line.VatRate.ToString("0.##", Fmt.Vi)%</td>
+                                <td class="num">@Fmt.Number(l.Line.Count)</td>
+                                <td class="num money">@Fmt.Money((long)Math.Round(l.Net))</td>
+                                <td class="num money">@Fmt.Money((long)Math.Round(l.FloorNet))</td>
+                                <td>@if (l.BelowFloor)
+                                    {
+                                        <span class="status-badge tone-warning"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i>Dưới giá sàn</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="status-badge tone-success">Đạt giá sàn</span>
+                                    }</td>
+                                <td class="num money">@(l.BelowFloor ? Fmt.Money((long)Math.Round((l.FloorNet - l.Net) * l.Line.Count)) : "–")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </section>
+}

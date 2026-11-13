@@ -61,10 +61,54 @@ public static class ErrorCodes
     /// <summary>Phim K: vé trẻ dưới 13 tuổi cần người lớn hoặc người giám hộ đi cùng (SPEC 3.1 mục 3).</summary>
     public const string GuardianRequired = "GUARDIAN_REQUIRED";
 
+    // ---------------------------------------------------------------- Phase 4 (CONTRACTS C8-07)
+    /// <summary>Ghế vừa có người khác giữ hoặc mua (HTTP 409); details.seats là danh sách nhãn ghế.</summary>
+    public const string SeatTaken = "SEAT_TAKEN";
+
+    /// <summary>Cách chọn để lại một ghế trống lẻ (SPEC 3.5.1); details có ghế bị bỏ lẻ và gợi ý.</summary>
+    public const string OrphanSeat = "ORPHAN_SEAT";
+
+    /// <summary>Ghế đôi phải chọn, giữ, bán cả cặp (SPEC 3.2).</summary>
+    public const string SweetboxPair = "SWEETBOX_PAIR";
+
+    /// <summary>Chọn chỗ xe lăn phải xác nhận "Vị trí dành cho khách dùng xe lăn" (SPEC 3.2).</summary>
+    public const string WheelchairConfirmRequired = "WHEELCHAIR_CONFIRM_REQUIRED";
+
+    /// <summary>Suất đã hết giờ bán (online đến FeatureStartTime + OnlineSalesCutoffMinutes, quầy + PosSalesCutoffMinutes).</summary>
+    public const string SalesClosed = "SALES_CLOSED";
+
+    /// <summary>Người dùng chưa có ca OPEN tại máy POS này (SPEC 3.6).</summary>
+    public const string ShiftNotOpen = "SHIFT_NOT_OPEN";
+
+    /// <summary>Ca còn hóa đơn waiting nên chưa đóng được (SPEC 3.6).</summary>
+    public const string ShiftHasWaitingBills = "SHIFT_HAS_WAITING_BILLS";
+
+    /// <summary>Món không đủ nguyên liệu theo định mức (SPEC 3.11).</summary>
+    public const string StockInsufficient = "STOCK_INSUFFICIENT";
+
+    /// <summary>Hủy hóa đơn đã thanh toán cần quản lý duyệt (CONTRACTS C5-03).</summary>
+    public const string ApprovalRequired = "APPROVAL_REQUIRED";
+
+    /// <summary>PIN quản lý chưa đúng; details.remaining là số lần thử còn lại.</summary>
+    public const string PinInvalid = "PIN_INVALID";
+
+    /// <summary>PIN quản lý đang bị khóa do nhập sai quá ManagerPinMaxAttempts lần; details.lockedUntil.</summary>
+    public const string PinLocked = "PIN_LOCKED";
+
+    /// <summary>Voucher không dùng được; message ghi lý do cụ thể (SPEC 3.13).</summary>
+    public const string VoucherInvalid = "VOUCHER_INVALID";
+
+    /// <summary>Số điểm đổi không hợp lệ (vượt số dư hoặc vượt MaxPointsRedeemPercent giá trị hóa đơn).</summary>
+    public const string PointsInvalid = "POINTS_INVALID";
+
+    /// <summary>Đã hết thời gian giữ ghế của hóa đơn (CONTRACTS C8-08; quầy dùng khi thanh toán sau lúc hết hạn).</summary>
+    public const string PaymentExpired = "PAYMENT_EXPIRED";
+
     /// <summary>Mã HTTP của từng mã lỗi; mặc định 422 (vi phạm quy tắc nghiệp vụ).</summary>
     public static int HttpStatusOf(string code) => code switch
     {
         InvalidTransition => 409,
+        SeatTaken => 409,
         ValidationFailed => 400,
         AuthRequired => 401,
         AccessDenied => 403,

@@ -69,6 +69,12 @@
                     <span asp-validation-for="CinemaId"></span>
                     <div class="form-text" id="cinema-help">Thu ngân, soát vé và quản lý ca phải gắn với một rạp.</div>
                 </div>
+                <div class="mb-3">
+                    <label asp-for="ManagerPin" class="form-label">PIN quản lý (6 số)</label>
+                    <input asp-for="ManagerPin" class="form-control" type="password" inputmode="numeric" maxlength="6" autocomplete="new-password" aria-describedby="pin-help" value="" />
+                    <span asp-validation-for="ManagerPin"></span>
+                    <div class="form-text" id="pin-help">Chỉ quản lý ca và quản lý rạp: dùng để duyệt hủy hóa đơn trên máy POS. PIN được lưu dạng băm.@(Model.HasPin ? " Để trống nếu giữ PIN hiện tại." : null)</div>
+                </div>
             </section>
         </div>
         <div class="form-actions-sticky">

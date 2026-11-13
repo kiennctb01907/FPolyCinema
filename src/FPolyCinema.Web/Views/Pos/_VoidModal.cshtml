@@ -1,0 +1,51 @@
+@model VoidModalVm
+@* Hủy hóa đơn đã thanh toán (UI U7.P1-11, SPEC 3.6): thu ngân nhập lý do, chọn quản lý duyệt; quản lý nhập PIN ngay trên máy bằng bàn phím PIN (ui.pin).
+   Dùng chung ở POS (nhập mã hóa đơn) và Hóa đơn của tôi (mã có sẵn). Không đóng bằng Esc (UI U10-08). TODO(Phase 6): nút "Gửi quản lý duyệt từ xa". *@
+<div class="modal fade" id="void-bill" tabindex="-1" aria-labelledby="void-title" aria-modal="true" role="dialog" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" data-void-form autocomplete="off" novalidate>
+            <div class="modal-header"><h2 class="modal-title" id="void-title">Hủy hóa đơn đã thanh toán</h2></div>
+            <div class="modal-body">
+                <div class="confirm-icon tone-danger"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></div>
+                <ul class="consequences">
+                    <li>Hoàn tiền theo phương thức gốc; tiền mặt trừ vào két của ca hiện tại.</li>
+                    <li>Vé bị hủy, ghế trả về trống; điểm đã cộng bị thu hồi.</li>
+                    <li>Không hủy được nếu đã có vé vào cửa.</li>
+                </ul>
+                <input type="hidden" name="billId" data-void-bill-id />
+                @if (Model.AskCode)
+                {
+                    <div class="mb-3">
+                        <label class="form-label" for="void-code">Mã hóa đơn hoặc mã vé</label>
+                        <input id="void-code" name="billCode" class="form-control" placeholder="Quét hoặc nhập HD… / TK…" />
+                    </div>
+                }
+                else
+                {
+                    <p class="mb-3">Hóa đơn <strong data-void-code></strong></p>
+                }
+                <div class="mb-3">
+                    <label class="form-label" for="void-reason">Lý do hủy</label>
+                    <textarea id="void-reason" name="reason" class="form-control" rows="2" maxlength="500" placeholder="Ví dụ: khách đổi ý trước giờ chiếu"></textarea>
+                </div>
+                <div>
+                    <label class="form-label" for="void-approver">Quản lý duyệt</label>
+                    <select id="void-approver" name="approverId" class="form-select">
+                        @foreach (var s in Model.Supervisors)
+                        {
+                            <option value="@s.Id">@s.FullName · @StatusDisplay.RoleLabel(s.Role)</option>
+                        }
+                    </select>
+                    @if (Model.Supervisors.Count == 0)
+                    {
+                        <p class="field-error">Rạp chưa có quản lý nào có PIN để duyệt.</p>
+                    }
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Không hủy</button>
+                <button type="submit" class="btn btn-danger" disabled="@(Model.Supervisors.Count == 0)"><i class="bi bi-shield-lock" aria-hidden="true"></i>Quản lý nhập PIN</button>
+            </div>
+        </form>
+    </div>
+</div>

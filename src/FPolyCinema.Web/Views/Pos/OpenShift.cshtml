@@ -1,0 +1,81 @@
+@model OpenShiftVm
+@* Mở ca (UI P7, SPEC 3.6): wizard ngắn 2 bước – chọn máy POS, rồi nhập tiền đầu ca bằng bàn phím số lớn. Mã máy lưu trong cookie của máy. *@
+@{
+    Layout = "_LayoutPos";
+    ViewData["Title"] = "Mở ca";
+    string? Err(string k) => Model.Errors.TryGetValue(k, out var v) ? v : null;
+}
+<div class="pos-scroll">
+    <div class="shift-card card-ui card-ui-body">
+        <partial name="_Stepper" model="@(new StepperVm { Steps = new List<string> { "Chọn máy", "Tiền đầu ca" }, Current = 1 })" />
+        <h1 class="h4 mt-4">Mở ca bán hàng</h1>
+        <p class="text-muted">@Model.CinemaName · Mọi thao tác bán vé và bắp nước cần một ca đang mở tại máy này.</p>
+        @if (Model.OpenElsewhere != null)
+        {
+            <div class="alert alert-warning" role="alert">
+                <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+                Bạn đang có ca mở ở máy @Model.OpenElsewhere.TerminalCode (từ @Fmt.DateTime(Model.OpenElsewhere.OpenedAt)). Trình duyệt này không phải máy đó nên chưa bán được.
+                Đóng ca ở máy @Model.OpenElsewhere.TerminalCode trước, hoặc <a href="/pos/close-shift">đóng ca đó tại đây</a>.
+            </div>
+        }
+        @if (Err("") is string general)
+        {
+            <div class="alert alert-danger" role="alert">@general</div>
+        }
+        <form method="post" action="/pos/open-shift" data-shift-wizard novalidate autocomplete="off">
+            <fieldset data-step="1">
+                <legend class="h6">Bước 1 · Chọn máy POS</legend>
+                <div class="terminal-grid" role="radiogroup" aria-label="Máy POS">
+                    @foreach (var t in Model.Terminals)
+                    {
+                        <label class="terminal-option">
+                            <input type="radio" name="terminal" value="@t" checked="@(t == Model.Terminal)" />
+                            <span><i class="bi bi-display" aria-hidden="true"></i>@t</span>
+                        </label>
+                    }
+                </div>
+                @if (Err("Terminal") is string te)
+                {
+                    <p class="field-error" data-valmsg-for="terminal">@te</p>
+                }
+                <div class="d-flex justify-content-end mt-4">
+                    <button type="button" class="btn btn-primary" data-next>Tiếp tục<i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+                </div>
+            </fieldset>
+            <fieldset data-step="2" hidden>
+                <legend class="h6">Bước 2 · Tiền đầu ca trong két</legend>
+                <label class="form-label" for="open-cash">Số tiền</label>
+                <div class="input-money">
+                    <input id="open-cash" class="form-control form-control-lg @(Err("OpeningCashFloat") != null ? "is-invalid" : null)" inputmode="numeric" data-money="open-cash-raw"
+                           value="@(Model.OpeningCashFloat is long cash ? Fmt.Number(cash) : null)" aria-describedby="open-cash-help" />
+                </div>
+                <input type="hidden" id="open-cash-raw" name="openingCashFloat" value="@Model.OpeningCashFloat" />
+                <p class="form-text" id="open-cash-help">Đếm tiền lẻ có sẵn trong két rồi nhập tổng.</p>
+                @if (Err("OpeningCashFloat") is string ce)
+                {
+                    <p class="field-error">@ce</p>
+                }
+                <div class="num-pad num-pad-lg mt-3" data-num-pad data-target="#open-cash" role="group" aria-label="Bàn phím số">
+                    @foreach (var k in new[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "000", "0", "back" })
+                    {
+                        if (k == "back")
+                        {
+                            <button type="button" data-k="back" aria-label="Xóa một số"><i class="bi bi-backspace" aria-hidden="true"></i></button>
+                        }
+                        else
+                        {
+                            <button type="button" data-k="@k">@k</button>
+                        }
+                    }
+                </div>
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="button" class="btn btn-ghost" data-prev><i class="bi bi-arrow-left" aria-hidden="true"></i>Quay lại</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-door-open" aria-hidden="true"></i>Mở ca</button>
+                </div>
+            </fieldset>
+        </form>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/js/pages/shift.js" asp-append-version="true"></script>
+}

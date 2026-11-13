@@ -21,19 +21,20 @@
 - chart.js@4.4.9 → wwwroot/lib/chart.js/
 - html5-qrcode@2.3.8 → wwwroot/lib/html5-qrcode/
 - @fontsource/be-vietnam-pro@5.2.5 → wwwroot/lib/be-vietnam-pro/
+- @microsoft/signalr@8.0.7 → wwwroot/lib/signalr/
 - jquery@3.7.1 → wwwroot/lib/jquery/
 - jquery-validation@1.21.0 → wwwroot/lib/jquery-validation/
 - jquery-validation-unobtrusive@4.0.0 → wwwroot/lib/jquery-validation-unobtrusive/
 
-Thư mục wwwroot/lib: be-vietnam-pro, bootstrap, bootstrap-icons, chart.js, html5-qrcode, jquery, jquery-validation, jquery-validation-unobtrusive
+Thư mục wwwroot/lib: be-vietnam-pro, bootstrap, bootstrap-icons, chart.js, html5-qrcode, jquery, jquery-validation, jquery-validation-unobtrusive, signalr
 
 ## SignalR
 
-- (chưa có hub)
+- src/FPolyCinema.Web/Hubs/CinemaHub.cs: JoinShowtime, LeaveShowtime
 
 ## Kiểm thử
 
-201 test trong 19 file.
+237 test trong 22 file.
 
 - tests/FPolyCinema.Tests/ArchitectureTests.cs: 8
 - tests/FPolyCinema.Tests/BillStateMachineTests.cs: 14
@@ -47,6 +48,9 @@ Thư mục wwwroot/lib: be-vietnam-pro, bootstrap, bootstrap-icons, chart.js, ht
 - tests/FPolyCinema.Tests/Phase3RulesTests.cs: 26
 - tests/FPolyCinema.Tests/Phase3ServiceTests.cs: 6
 - tests/FPolyCinema.Tests/Phase3WebTests.cs: 3
+- tests/FPolyCinema.Tests/Phase4RulesTests.cs: 18
+- tests/FPolyCinema.Tests/Phase4ServiceTests.cs: 15
+- tests/FPolyCinema.Tests/Phase4WebTests.cs: 3
 - tests/FPolyCinema.Tests/PricingCalculatorTests.cs: 17
 - tests/FPolyCinema.Tests/SeatScoringTests.cs: 10
 - tests/FPolyCinema.Tests/SeedDataTests.cs: 13
@@ -62,10 +66,11 @@ src/
   FPolyCinema.Web/
     Background/
       .gitkeep
+      SeatHoldSweeper.cs
     Controllers/
-      (13 file: .gitkeep, AppControllerBase.cs, AuditoriumsController.cs, CategoriesController.cs, DrinksController.cs, FileController.cs, …)
+      (16 file: .gitkeep, AppControllerBase.cs, AuditoriumsController.cs, BillsController.cs, CategoriesController.cs, DrinksController.cs, …)
     DAL/
-      (42 file: AccountDAL.Phase2.cs, AudienceDiscountDAL.cs, AuditLogDAL.cs, AuditoriumDAL.cs, BillDAL.cs, BillDetailDAL.cs, …)
+      (44 file: AccountDAL.Phase2.cs, AudienceDiscountDAL.cs, AuditLogDAL.cs, AuditoriumDAL.cs, BillDAL.cs, BillDetailDAL.cs, …)
     Database/
       01_schema.sql
       02_procedures.sql
@@ -81,13 +86,14 @@ src/
         PricingConstants.cs
         Roles.cs
       Rules/
-        (14 file: AgeRules.cs, AuditoriumLayout.cs, BillStateMachine.cs, CodeGenerator.cs, DeleteRules.cs, OtpRules.cs, …)
+        (18 file: AgeRules.cs, AuditoriumLayout.cs, BillStateMachine.cs, CashDropCalculator.cs, CodeGenerator.cs, DeleteRules.cs, …)
       BusinessRuleException.cs
       FieldErrors.cs
     Entities/
-      (36 file: AudienceDiscount.cs, AuditLog.cs, Auditorium.cs, Bill.cs, BillDetail.cs, Category.cs, …)
+      (37 file: AudienceDiscount.cs, AuditLog.cs, Auditorium.cs, Bill.cs, BillDetail.cs, Category.cs, …)
     Hubs/
       .gitkeep
+      CinemaHub.cs
     Infrastructure/
       Seed/
         SchedulePlanner.cs
@@ -113,7 +119,7 @@ src/
     Properties/
       launchSettings.json
     Services/
-      (13 file: AuditoriumService.cs, AuthService.cs, BillStatusService.cs, CatalogServices.cs, DevToolsService.cs, EmailSenders.cs, …)
+      (20 file: AuditoriumService.cs, AuthService.cs, BillService.cs, BillStatusService.cs, CatalogServices.cs, DevToolsService.cs, …)
     Utils/
       DBUtil.cs
       FileUtil.cs
@@ -123,12 +129,18 @@ src/
       AccountVms.cs
       AdminVms.cs
       Phase3Vms.cs
+      Phase4AdminVms.cs
+      PosVms.cs
       SharedVms.cs
       StyleGuideSamples.cs
     Views/
       Auditoriums/
         Design.cshtml
         Form.cshtml
+        Index.cshtml
+      Bills/
+        _Table.cshtml
+        Details.cshtml
         Index.cshtml
       Categories/
         _Table.cshtml
@@ -169,6 +181,16 @@ src/
         Details.cshtml
         Form.cshtml
         Index.cshtml
+      Pos/
+        _PosModals.cshtml
+        _SeatMapRegion.cshtml
+        _VoidModal.cshtml
+        CloseShift.cshtml
+        Index.cshtml
+        MyBills.cshtml
+        OpenShift.cshtml
+        Print.cshtml
+        ShiftReport.cshtml
       Pricing/
         _Tabs.cshtml
         Audiences.cshtml
@@ -179,7 +201,11 @@ src/
         Form.cshtml
         Index.cshtml
       Shared/
-        (30 file: _AdminSidebar.cshtml, _AgeBadge.cshtml, _ApprovalBell.cshtml, _AuthArt.cshtml, _CinemaPicker.cshtml, _ConnIndicator.cshtml, …)
+        (32 file: _AdminSidebar.cshtml, _AgeBadge.cshtml, _ApprovalBell.cshtml, _AuthArt.cshtml, _Chart.cshtml, _CinemaPicker.cshtml, …)
+      Statistics/
+        Dashboard.cshtml
+        Reports.cshtml
+        Settlement.cshtml
       Users/
         _Table.cshtml
         Details.cshtml
@@ -200,6 +226,9 @@ src/
       js/
         pages/
         .gitkeep
+        charts.js
+        realtime.js
+        seatmap.js
         ui.js
     appsettings.Development.json
     appsettings.json
@@ -208,7 +237,7 @@ src/
     Program.cs
 tests/
   FPolyCinema.Tests/
-    (21 file: ArchitectureTests.cs, BillStateMachineTests.cs, ConventionTests.cs, DatabaseTests.cs, FileUtilTests.cs, FPolyCinema.Tests.csproj, …)
+    (24 file: ArchitectureTests.cs, BillStateMachineTests.cs, ConventionTests.cs, DatabaseTests.cs, FileUtilTests.cs, FPolyCinema.Tests.csproj, …)
 tools/
   spec-check/
     check.mjs

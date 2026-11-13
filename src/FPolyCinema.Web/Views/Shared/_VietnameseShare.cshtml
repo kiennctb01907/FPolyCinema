@@ -1,0 +1,38 @@
+@model VietnameseShareVm
+@* Khối tỷ lệ phim Việt (SPEC 3.1 mục 6, UI A1): theo từng rạp và toàn chuỗi, chỉ tính suất không bị hủy; thanh ngang có vạch mốc 20%
+   (VietnameseFilmMinShare); thiếu mốc thì tô đỏ, đạt thì tô xanh; kèm tỷ lệ trong khung 18:00–22:00 để tham khảo. *@
+@{
+    var min = Model.MinShare * 100;
+    var rows = Model.Rows.Append(Model.Chain).ToList();
+}
+<section class="card-ui card-ui-body h-100 vn-share" aria-labelledby="vn-share-title">
+    <h2 class="h6" id="vn-share-title">@Model.Title</h2>
+    <p class="small text-muted">Theo Nghị định 131/2022, phim Việt phải chiếm ít nhất @min.ToString("0", Fmt.Vi)% tổng số suất chiếu trong năm và được ưu tiên trong khung 18:00–22:00.</p>
+    @if (Model.Chain.Total == 0)
+    {
+        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-film", Title = "Chưa có suất chiếu", Text = "Chưa có suất nào trong khoảng thời gian này." })" />
+    }
+    else
+    {
+        <ul class="share-list">
+            @foreach (var r in rows)
+            {
+                var pct = StatisticsService.Percent(r.Vietnamese, r.Total);
+                var prime = StatisticsService.Percent(r.PrimeVietnamese, r.PrimeTotal);
+                var ok = pct >= min;
+                <li class="@(r.CinemaId == null ? "is-chain" : null)">
+                    <div class="share-head">
+                        <span class="fw-semibold">@r.CinemaName</span>
+                        <span class="share-value @(ok ? "text-success-fg" : "text-danger-fg")"><i class="bi @(ok ? "bi-check-circle" : "bi-exclamation-triangle")" aria-hidden="true"></i>@pct.ToString("0.#", Fmt.Vi)% <span class="visually-hidden">@(ok ? "đạt mốc" : "dưới mốc")</span></span>
+                    </div>
+                    <div class="share-bar" role="img" aria-label="@r.CinemaName: phim Việt @pct.ToString("0.#", Fmt.Vi)%, mốc tối thiểu @min.ToString("0", Fmt.Vi)%" style="--share: @pct.ToString(System.Globalization.CultureInfo.InvariantCulture)%; --mark: @min.ToString(System.Globalization.CultureInfo.InvariantCulture)%">
+                        <span class="share-fill @(ok ? "is-ok" : "is-low")"></span>
+                        <span class="share-mark" aria-hidden="true"></span>
+                    </div>
+                    <p class="small text-muted mb-0">@Fmt.Number(r.Vietnamese)/@Fmt.Number(r.Total) suất · khung 18:00–22:00 (tham khảo): @prime.ToString("0.#", Fmt.Vi)% (@Fmt.Number(r.PrimeVietnamese)/@Fmt.Number(r.PrimeTotal))</p>
+                </li>
+            }
+        </ul>
+        <p class="small text-muted mb-0"><span class="share-mark-legend" aria-hidden="true"></span>Vạch dọc là mốc @min.ToString("0", Fmt.Vi)%.</p>
+    }
+</section>

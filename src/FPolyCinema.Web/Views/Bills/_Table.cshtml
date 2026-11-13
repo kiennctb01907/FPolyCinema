@@ -1,0 +1,55 @@
+@model BillListVm
+@* Bảng hóa đơn (UI A8): mã, thời gian tạo, kênh, nhân viên hoặc khách, số vé, số món, tổng tiền (căn phải, số đơn sắc), trạng thái dạng badge. *@
+@if (Model.Result.Total == 0)
+{
+    if (Model.HasFilter)
+    {
+        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-search", Title = "Không có hóa đơn phù hợp", Text = "Thử đổi khoảng ngày, trạng thái hoặc bỏ bớt bộ lọc.", ActionLabel = "Xóa bộ lọc", ActionUrl = "/admin/bills", ActionIcon = "bi-funnel" })" />
+    }
+    else
+    {
+        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-receipt", Title = "Chưa có hóa đơn nào", Text = "Hóa đơn bán tại quầy và online sẽ hiện ở đây." })" />
+    }
+}
+else
+{
+    <p class="text-muted small mb-2">Từ @Fmt.Date(Model.Range.From) đến @Fmt.Date(Model.Range.To) · @Model.Result.Label</p>
+    <div class="table-wrap">
+        <table class="data-table">
+            <caption class="visually-hidden">Danh sách hóa đơn</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Mã hóa đơn</th>
+                    <th scope="col">Thời gian tạo</th>
+                    <th scope="col">Kênh</th>
+                    <th scope="col" class="col-opt">Nhân viên hoặc khách</th>
+                    <th scope="col" class="num">Số vé</th>
+                    <th scope="col" class="num col-opt">Số món</th>
+                    <th scope="col" class="num">Tổng tiền</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col" class="col-actions">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var b in Model.Result.Items)
+                {
+                    <tr>
+                        <td class="cell-title"><a href="/admin/bills/@b.Id" class="fw-semibold text-nowrap">@b.Code</a><span class="d-block small text-muted">@b.CinemaName</span></td>
+                        <td class="text-nowrap">@Fmt.DateTime(b.CreatedAt)</td>
+                        <td>@StatusDisplay.Of(StatusDisplay.Channel, b.Channel).Label</td>
+                        <td class="col-opt">@(b.Channel == BillChannel.Online ? b.CustomerName : b.StaffName)@if (b.Channel != BillChannel.Online && b.CustomerName != null)
+                            {
+                                <span class="d-block small text-muted">Khách: @b.CustomerName</span>
+                            }</td>
+                        <td class="num">@b.TicketCount</td>
+                        <td class="num col-opt">@b.ItemCount</td>
+                        <td class="num money">@Fmt.Money(b.Total)</td>
+                        <td><partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Bill, b.Status))" /></td>
+                        <td class="col-actions"><a class="btn btn-ghost btn-sm" href="/admin/bills/@b.Id"><i class="bi bi-eye" aria-hidden="true"></i>Xem</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <partial name="_Pagination" model="@(new PaginationVm { Page = Model.Result.Page, PageCount = Model.Result.PageCount, Label = Model.Result.Label, UrlFor = p => QueryUrl.With(Context.Request, "page", p == 1 ? null : p.ToString()) })" />
+}

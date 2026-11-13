@@ -1,0 +1,40 @@
+@model BillListVm
+@* A8. Quản lý hóa đơn /admin/bills (ManagerOnly): lọc theo khoảng ngày (mốc nhanh Hôm nay, 7 ngày, Tháng này), trạng thái, kênh, rạp (ô chọn rạp ở thanh trên),
+   nhân viên; ô tìm theo mã hóa đơn; bảng có phân trang; nút "Xuất CSV" theo đúng bộ lọc. *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Hóa đơn";
+    var crumbs = new List<Crumb> { new("Bán hàng"), new("Hóa đơn") };
+    ViewData["Crumbs"] = crumbs;
+    var exportUrl = "/admin/bills/export" + Context.Request.QueryString.Value;
+    var header = new PageHeaderVm
+    {
+        Title = "Hóa đơn",
+        Description = $"Mọi giao dịch tại quầy, online và doanh nghiệp · {Model.CinemaName}. Không sửa trực tiếp số tiền; hủy theo đúng quy tắc chuyển trạng thái.",
+        Crumbs = crumbs,
+        Actions = @<a class="btn btn-secondary" href="@exportUrl" data-export-link><i class="bi bi-filetype-csv" aria-hidden="true"></i>Xuất CSV</a>,
+    };
+    var filter = new FilterBarVm
+    {
+        SearchValue = Model.Query, SearchLabel = "Tìm theo mã hóa đơn", SearchPlaceholder = "Ví dụ: HD20261106",
+        Selects = new()
+        {
+            new FilterSelect("status", "Trạng thái", BillStatus.All.Select(s => (s, StatusDisplay.Of(StatusDisplay.Bill, s).Label)).ToList(), Model.Status),
+            new FilterSelect("channel", "Kênh", BillChannel.All.Select(c => (c, StatusDisplay.Of(StatusDisplay.Channel, c).Label)).ToList(), Model.Channel),
+            new FilterSelect("staffId", "Nhân viên", Model.Staff.Select(u => (u.Id.ToString(), u.FullName)).ToList(), Model.StaffId?.ToString(), "Mọi nhân viên"),
+        },
+        ShowDateRange = true, DateFrom = Model.Range.From.ToString("yyyy-MM-dd"), DateTo = Model.Range.To.ToString("yyyy-MM-dd"),
+        HasFilter = Model.HasFilter, ClearUrl = "/admin/bills",
+    };
+}
+<partial name="_PageHeader" model="header" />
+<partial name="_FilterBar" model="filter" />
+<div data-region data-url="@QueryUrl.Current(Context.Request)">
+    <partial name="_TableSkeleton" model="@("bill")" />
+    <div data-region-content>
+        <partial name="_Table" model="Model" />
+    </div>
+</div>
+@section Scripts {
+    <script src="~/js/pages/bills.js" asp-append-version="true"></script>
+}

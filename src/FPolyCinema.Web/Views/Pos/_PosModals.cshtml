@@ -1,0 +1,82 @@
+@model PosIndexVm
+@* Hộp thoại của POS: thanh toán tiền mặt (tiền khách đưa, tiền thối, bàn phím số lớn), chuyển khoản QR mô phỏng ("Đã nhận tiền"),
+   bỏ qua luật ghế mồ côi (bắt buộc ghi lý do) và hủy hóa đơn đã thanh toán (lý do, quản lý duyệt, rồi bàn phím PIN – UI mục 5, U7.P1-11).
+   Hộp thao tác tiền và hộp hủy không đóng bằng Esc hay bấm ra ngoài (UI U10-08). *@
+<div class="modal fade" id="pay-cash" tabindex="-1" aria-labelledby="pay-cash-title" aria-modal="true" role="dialog" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" data-cash-form autocomplete="off" novalidate>
+            <div class="modal-header"><h2 class="modal-title" id="pay-cash-title">Thanh toán tiền mặt</h2></div>
+            <div class="modal-body">
+                <p class="pay-total">Cần thu <strong class="money" data-cash-total>0 ₫</strong></p>
+                <label class="form-label" for="cash-received">Tiền khách đưa</label>
+                <div class="input-money">
+                    <input id="cash-received" name="cashReceived" class="form-control form-control-lg" inputmode="numeric" data-money="" data-cash-input />
+                </div>
+                <div class="cash-quick mt-2" role="group" aria-label="Chọn nhanh số tiền">
+                    <button type="button" class="btn btn-secondary" data-cash-exact>Đúng số tiền</button>
+                    <button type="button" class="btn btn-secondary" data-cash-add="100000">100.000</button>
+                    <button type="button" class="btn btn-secondary" data-cash-add="200000">200.000</button>
+                    <button type="button" class="btn btn-secondary" data-cash-add="500000">500.000</button>
+                </div>
+                <div class="num-pad mt-3" data-num-pad data-target="#cash-received" role="group" aria-label="Bàn phím số">
+                    @foreach (var k in new[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "000", "0", "back" })
+                    {
+                        if (k == "back")
+                        {
+                            <button type="button" data-k="back" aria-label="Xóa một số"><i class="bi bi-backspace" aria-hidden="true"></i></button>
+                        }
+                        else
+                        {
+                            <button type="button" data-k="@k">@k</button>
+                        }
+                    }
+                </div>
+                <p class="pay-change mt-3 mb-0" aria-live="polite"><span data-cash-change-label>Tiền thối</span> <strong class="money" data-cash-change>0 ₫</strong></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Quay lại</button>
+                <button type="submit" class="btn btn-primary" data-cash-confirm><i class="bi bi-check2-circle" aria-hidden="true"></i>Xác nhận đã thu tiền</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="pay-qr" tabindex="-1" aria-labelledby="pay-qr-title" aria-modal="true" role="dialog" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header"><h2 class="modal-title" id="pay-qr-title">Chuyển khoản QR (mô phỏng)</h2></div>
+            <div class="modal-body text-center">
+                <figure class="qr-block mb-3">
+                    <img data-qr-img src="/img/placeholder-food.svg" width="240" height="240" alt="Mã QR chuyển khoản" />
+                    <figcaption><span class="qr-code d-block" data-qr-code></span></figcaption>
+                </figure>
+                <p class="pay-total mb-1">Số tiền <strong class="money" data-qr-amount>0 ₫</strong></p>
+                <p class="text-muted mb-0">Khách quét mã bằng ứng dụng ngân hàng. Khi thấy giao dịch thành công, bấm "Đã nhận tiền".</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Quay lại</button>
+                <button type="button" class="btn btn-primary" data-qr-confirm><i class="bi bi-check2-circle" aria-hidden="true"></i>Đã nhận tiền</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="orphan-override" tabindex="-1" aria-labelledby="orphan-title" aria-modal="true" role="dialog" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-centered">
+        <form class="modal-content" data-orphan-form autocomplete="off" novalidate>
+            <div class="modal-header"><h2 class="modal-title" id="orphan-title">Bỏ qua luật ghế mồ côi</h2></div>
+            <div class="modal-body">
+                <div class="confirm-icon tone-warning"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i></div>
+                <p data-orphan-message></p>
+                <label class="form-label" for="orphan-reason">Lý do bỏ qua (ghi vào nhật ký)</label>
+                <textarea id="orphan-reason" name="reason" class="form-control" rows="2" maxlength="300" placeholder="Ví dụ: khách đi 3 người, cần ngồi đúng hàng G"></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Chọn lại ghế</button>
+                <button type="submit" class="btn btn-danger">Bỏ qua luật và giữ ghế</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<partial name="_VoidModal" model="@(new VoidModalVm { Supervisors = Model.Supervisors, AskCode = true })" />

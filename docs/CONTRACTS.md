@@ -75,7 +75,7 @@ Lưu trong DB đúng chuỗi ở đây. Trong C# khai báo ở Domain/Constants 
 - Cờ tính toán, không lưu DB:
   - [C3-37 P3] LOCKED_HAS_TICKETS: suất có ít nhất một ghế BOOKED hoặc HELD còn hạn.
   - [C3-38 P6] Hóa đơn "đã hoàn tất": Status finish, CheckInStatus là NONE hoặc FULLY_CHECKED_IN, FnbStatus là NONE hoặc FULFILLED.
-- [C3-39 P2 auto:enum] AuditAction: USER_LOCKED, USER_UNLOCKED, PRICING_UPDATED (hằng AuditAction ghi vào AuditLogs.Action; mỗi phase thêm hành động của mình theo SPEC 2.7)
+- [C3-39 P2 auto:enum] AuditAction: USER_LOCKED, USER_UNLOCKED, PRICING_UPDATED, VOID_BILL, ORPHAN_SEAT_OVERRIDE (hằng AuditAction ghi vào AuditLogs.Action; mỗi phase thêm hành động của mình theo SPEC 2.7)
 
 ## 4. Đối tượng vé (AudienceType)
 
@@ -308,3 +308,20 @@ Lớp chính:
 - Giao diện: CSS heatmap `.heat-1…5`, `.page-tabs`, `.date-nav`, `.check-grid`, `.issue-list`, `.schedule-group`, `.sold-meter`, `.price-grid`, `.designer`, `.tool-btn`, `.dcell`; JS `pages/movie-form.js`, `auditorium-designer.js`, `showtime-form.js`, `pricing.js`; ô `date-field` hiển thị cả ngày giờ dd/MM/yyyy HH:mm; vùng kéo thả nhận `data-subject`, `data-noun`.
 
 Sự kiện SignalR: chưa phát sự kiện nào (realtime từ Phase 4).
+
+### Phase 4
+
+Route và quyền (bảng đầy đủ ở docs/generated/routes.md):
+- PosStaff: `/pos`, `/pos/index` (UI P1), `/pos/open-shift` (GET, POST; mở ca cần ShiftManager hoặc Manager), `/pos/close-shift` (GET, POST; đóng ca mù), `/pos/shift-report/{id}`, `/pos/print?billId=` (vé khổ 80mm), `/pos/my-bills`; POST JSON: `/pos/init`, `/pos/select-showtime`, `/pos/hold-seats`, `/pos/extend-hold`, `/pos/set-audience`, `/pos/set-guardian`, `/pos/update-quantity`, `/pos/lookup-member`, `/pos/apply-voucher`, `/pos/apply-points`, `/pos/checkout`, `/pos/cancel`, `/pos/request-void` (PIN quản lý), `/pos/scan`; GET JSON: `/pos/cart`, `/pos/seat-map`, `/pos/drink-stock`, `/pos/payment-qr`.
+- ManagerOnly: `/admin` (UI A1), `/admin/reports` (UI A6, `?tab=revenue|vietnamese|occupancy|shifts&preset=&from=&to=`), `/admin/reports/export` (CSV), `/admin/reports/settlement` (`?movieId=&week=`), `/admin/reports/settlement/export`; `/admin/bills` (UI A8, lọc ngày, trạng thái, kênh, rạp, nhân viên, mã), `/admin/bills/export`, `/admin/bills/{id}`, `/admin/bills/{id}/print`, `/admin/bills/{id}/cancel` (POST JSON).
+- SignalR: hub `/hubs/cinema`, phương thức `JoinShowtime(showtimeId)`, `LeaveShowtime(showtimeId)`, nhóm `showtime_{id}`.
+
+Tên mới thêm vào hợp đồng: AuditAction `VOID_BILL`, `ORPHAN_SEAT_OVERRIDE` (C3-39); mã lỗi C8-07 trong `ErrorCodes` (SEAT_TAKEN, ORPHAN_SEAT, SWEETBOX_PAIR, WHEELCHAIR_CONFIRM_REQUIRED, SALES_CLOSED, SHIFT_NOT_OPEN, SHIFT_HAS_WAITING_BILLS, STOCK_INSUFFICIENT, APPROVAL_REQUIRED, PIN_INVALID, PIN_LOCKED, VOUCHER_INVALID, POINTS_INVALID, PAYMENT_EXPIRED). Cột mới: `Bills.HoldExtended` (BIT, đã gia hạn giữ ghế một lần), `ShowtimeSeats.HoldAudienceType` (đối tượng vé đã chọn cho ghế đang giữ).
+
+Lớp chính:
+- Domain/Rules (có unit test): `SeatHoldRules` (EffectiveStatus, CanHold, SalesDeadline, IsSalesOpen, HoldExpiry), `SweetboxRule`, `OrphanSeatValidator`, `BillStateMachine`, `CashDropCalculator`, `LoyaltyCalculator`, `PricingCalculator`, `CodeGenerator`.
+- Services: `SeatHoldService` (Hold trong transaction có khóa, SweepExpired), `BillService` (Ensure, Recalculate, SetAudience, SetGuardian, UpdateQuantity, LookupMember, ApplyVoucher, ApplyPoints, ExtendHold, CancelWaiting, Checkout, VoidPaid), `SeatMapService`, `TicketPricer`, `InventoryService`, `LoyaltyService`, `StatisticsService` (Dashboard, Revenue, VietnameseShares, Occupancy, Shifts, Settlement, Csv), `BillQueryService`, `RealtimeNotifier`; nền `Background/SeatHoldSweeper`.
+- DAL thêm (DAL/SalesDAL.Phase4.cs, DAL/StatisticDAL.Phase4.cs): `ShowtimeSeatDAL`, `ShowtimeDAL`, `BillDAL`, `BillDetailDAL`, `TicketDAL`, `PaymentDAL`, `PosShiftDAL`, `UserDAL` (PIN, Supervisors), `VoucherDAL`, `PointTransactionDAL`, `RawMaterialDAL`, `SupervisorApprovalDAL`, `StatisticDAL` (Kpi, VietnameseShares, OccupancyByShowtime, LowStock, KdmExpiring); bản ghi đọc ở Entities/ReadModels.Phase4.cs.
+- Giao diện: views `Pos/*`, `Bills/*`, `Statistics/*`, partial `_Chart`, `_VietnameseShare`; JS `seatmap.js`, `realtime.js`, `charts.js`, `pages/pos.js`, `shift.js`, `bills.js`, `my-bills.js`, `reports.js`, `void-bill.js`; client SignalR tự host ở `wwwroot/lib/signalr`.
+
+Sự kiện SignalR: `SEAT_MAP_UPDATED` gửi nhóm `showtime_{id}` mỗi khi giữ, nhả, hết hạn giữ, bán hoặc hủy ghế (payload: showtimeId, changes [{seatId, status, holdExpiresAt, holdBillId}]).

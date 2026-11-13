@@ -126,6 +126,13 @@ public class StaffFormVm
     [RegularExpression(@"^\+?\d{9,11}$", ErrorMessage = "Số điện thoại gồm 9–11 chữ số, ví dụ 0901234567.")]
     public string? Phone { get; set; }
 
+    /// <summary>PIN quản lý 6 số (quản lý ca, quản lý rạp); để trống khi sửa là giữ PIN cũ.</summary>
+    [RegularExpression(@"^\d{6}$", ErrorMessage = "PIN gồm đúng 6 chữ số.")]
+    public string? ManagerPin { get; set; }
+
+    /// <summary>Tài khoản đang sửa đã có PIN quản lý.</summary>
+    public bool HasPin { get; set; }
+
     [Required(ErrorMessage = "Bạn chọn vai trò cho nhân viên.")]
     public string Role { get; set; } = string.Empty;
 

@@ -541,3 +541,75 @@
     <p class="sg-note">Ví dụ, luôn dùng theme cinema: ghế thường, VIP, ghế đôi, xe lăn; đang chọn, người khác giữ, đã bán, ghế nội bộ, bảo trì – thể hiện bằng cả màu lẫn ký hiệu.</p>
     <partial name="_SeatMap" model="Model.SeatMap" />
 </div>
+
+@* ---------------------------------------------------------------- Phase 4: bán hàng tại quầy và báo cáo *@
+@{
+    var sgp = ViewData["SgPrefix"] as string ?? "x";
+    var sgShares = new List<VietnameseShareRow> { new(1, "Rạp ví dụ 1", 52, 100, 18, 30), new(2, "Rạp ví dụ 2", 18, 100, 5, 30) };
+    var sgChain = new VietnameseShareRow(null, "Toàn chuỗi", 70, 200, 23, 60);
+}
+<div class="sg-block">
+    <h3>Chip suất chiếu (POS)</h3>
+    <p class="sg-note">Ví dụ: giờ đậm, phòng và định dạng, số ghế trống tô theo mức còn nhiều, sắp hết, hết; suất đang chọn có viền primary.</p>
+    <div class="pos-chips">
+        <button type="button" class="showtime-chip is-many"><span class="chip-time">19:30</span><span class="chip-sub">Phòng 1 · IMAX</span><span class="chip-seats"><i class="bi bi-person" aria-hidden="true"></i>còn 120</span></button>
+        <button type="button" class="showtime-chip is-low is-active"><span class="chip-time">21:00</span><span class="chip-sub">Phòng 2 · 2D</span><span class="chip-seats"><i class="bi bi-person" aria-hidden="true"></i>còn 6</span></button>
+        <button type="button" class="showtime-chip is-full" disabled><span class="chip-time">22:15</span><span class="chip-sub">Phòng 3 · 3D</span><span class="chip-seats"><i class="bi bi-x-circle" aria-hidden="true"></i>Hết ghế</span></button>
+    </div>
+</div>
+<div class="sg-block">
+    <h3>Chip lọc và thẻ món POS</h3>
+    <div class="chip-filter mb-3" role="group" aria-label="Ví dụ lọc danh mục">
+        <button type="button" class="filter-chip is-active" aria-pressed="true">Tất cả</button>
+        <button type="button" class="filter-chip" aria-pressed="false">Combo</button>
+        <button type="button" class="filter-chip" aria-pressed="false">Nước uống</button>
+    </div>
+    <div class="pos-food-grid">
+        <article class="pos-food"><img src="/img/placeholder-food.svg" alt="" width="64" height="64" /><div class="pos-food-body"><h4 class="pos-food-name text-clamp-2">Combo bắp phô mai lớn kèm hai nước</h4><p class="money mb-0">129.000 ₫</p><span class="pos-food-state"></span></div><button type="button" class="btn btn-secondary pos-food-add" aria-label="Thêm một combo ví dụ"><i class="bi bi-plus-lg" aria-hidden="true"></i></button></article>
+        <article class="pos-food in-cart"><img src="/img/placeholder-food.svg" alt="" width="64" height="64" /><div class="pos-food-body"><h4 class="pos-food-name text-clamp-2">Nước suối</h4><p class="money mb-0">20.000 ₫</p><span class="pos-food-state"></span></div><button type="button" class="btn btn-secondary pos-food-add" aria-label="Thêm một nước suối ví dụ"><i class="bi bi-plus-lg" aria-hidden="true"></i></button></article>
+        <article class="pos-food is-soldout"><img src="/img/placeholder-food.svg" alt="" width="64" height="64" /><div class="pos-food-body"><h4 class="pos-food-name text-clamp-2">Bắp caramel</h4><p class="money mb-0">59.000 ₫</p><span class="pos-food-state">Tạm hết</span></div><button type="button" class="btn btn-secondary pos-food-add" disabled aria-label="Món ví dụ tạm hết"><i class="bi bi-plus-lg" aria-hidden="true"></i></button></article>
+    </div>
+</div>
+<div class="sg-block">
+    <h3>Dòng vé, cảnh báo luật, nút thanh toán POS</h3>
+    <ul class="pos-lines mb-3">
+        <li class="pos-line"><div class="pos-line-main"><span class="seat-chip">G7</span><span class="small text-muted">Ghế VIP</span><span class="money ms-auto">95.000 ₫</span></div></li>
+        <li class="pos-line has-warning"><div class="pos-line-main"><span class="seat-chip">G8</span><span class="small text-muted">Ghế VIP</span><span class="money ms-auto">76.000 ₫</span></div><p class="line-warning" role="note"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i>Phim K: trẻ dưới 13 tuổi cần cha, mẹ hoặc người giám hộ đi cùng.</p></li>
+    </ul>
+    <div class="pos-pay">
+        <button type="button" class="btn btn-primary btn-pay"><i class="bi bi-cash-coin" aria-hidden="true"></i>Tiền mặt <kbd>F4</kbd></button>
+        <button type="button" class="btn btn-secondary btn-pay"><i class="bi bi-qr-code" aria-hidden="true"></i>Chuyển khoản QR</button>
+    </div>
+</div>
+<div class="sg-block">
+    <h3>Bàn phím số lớn và chọn nhanh tiền</h3>
+    <div class="cash-quick mb-2"><button type="button" class="btn btn-secondary">Đúng số tiền</button><button type="button" class="btn btn-secondary">100.000</button><button type="button" class="btn btn-secondary">500.000</button></div>
+    <div class="num-pad num-pad-lg" role="group" aria-label="Ví dụ bàn phím số">
+        @foreach (var k in new[] { "1", "2", "3", "4", "5", "6", "7", "8", "9", "000", "0" })
+        {
+            <button type="button">@k</button>
+        }
+        <button type="button" aria-label="Xóa một số"><i class="bi bi-backspace" aria-hidden="true"></i></button>
+    </div>
+</div>
+<div class="sg-block">
+    <h3>Chênh lệch biên bản ca, dòng thời gian</h3>
+    <div class="discrepancy tone-success" role="status"><i class="bi bi-check2-circle" aria-hidden="true"></i><span>Thừa</span><strong class="money">+20.000 ₫</strong></div>
+    <div class="discrepancy tone-danger" role="status"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i><span>Thiếu</span><strong class="money">−50.000 ₫</strong></div>
+    <ol class="timeline mt-4">
+        <li class="tl-info"><i class="bi bi-receipt" aria-hidden="true"></i><time>13/11/2026 19:02</time><span>Lập hóa đơn</span></li>
+        <li class="tl-success"><i class="bi bi-cash-coin" aria-hidden="true"></i><time>13/11/2026 19:03</time><span>Thanh toán 190.000 ₫ · Tiền mặt</span></li>
+        <li class="tl-warning"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i><time>13/11/2026 19:10</time><span>Hoàn tiền 190.000 ₫ · Tiền mặt</span></li>
+    </ol>
+</div>
+<div class="sg-block">
+    <h3>Hàng thẻ KPI, tỷ lệ phim Việt có vạch mốc, biểu đồ</h3>
+    <section class="kpi-row mb-4" aria-label="Ví dụ KPI">
+        <partial name="_KpiCard" model="@(new KpiCardVm("bi-cash-stack", "Doanh thu hôm nay", "19.494.000 ₫", 4.2m, "success"))" />
+        <partial name="_KpiCard" model="@(new KpiCardVm("bi-flag", "Tỷ lệ phim Việt từ đầu năm", "35%", null, "success"))" />
+    </section>
+    <partial name="_VietnameseShare" model="@(new VietnameseShareVm("Ví dụ tỷ lệ phim Việt", sgShares, sgChain, 0.20m))" />
+    <div class="mt-4">
+        <partial name="_Chart" model="@(new ChartVm("sg-chart-" + sgp, "line", "Ví dụ doanh thu 7 ngày (01/11–07/11/2026)", new[] { "01/11", "02/11", "03/11", "04/11", "05/11", "06/11", "07/11" }, new[] { new ChartSeries("Vé", new long[] { 31000000, 35000000, 29000000, 41000000, 52000000, 55000000, 38000000 }, "primary"), new ChartSeries("Bắp nước", new long[] { 6000000, 7200000, 5100000, 8000000, 10500000, 11000000, 7300000 }, "warning") }))" />
+    </div>
+</div>

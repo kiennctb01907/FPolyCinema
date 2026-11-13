@@ -1,0 +1,78 @@
+@model MyBillsVm
+@* Hóa đơn của tôi (SPEC 3.6-07, UC21): hóa đơn do chính thu ngân tạo, lọc theo ngày; in lại; hủy hóa đơn chưa thanh toán của ca đang mở;
+   hủy hóa đơn đã thanh toán cần quản lý nhập PIN. *@
+@{
+    Layout = "_LayoutPos";
+    ViewData["Title"] = "Hóa đơn của tôi";
+}
+<div class="pos-scroll">
+    <partial name="_PageHeader" model="@(new PageHeaderVm { Title = "Hóa đơn của tôi", Description = $"Ngày {Fmt.Date(Model.Date)} · {Model.Bills.Count} hóa đơn · đã thu {Fmt.Money(Model.Total)}", Crumbs = new() { new Crumb("Bán hàng", "/pos/index"), new Crumb("Hóa đơn của tôi") } })" />
+    <form class="filter-bar" method="get" action="/pos/my-bills">
+        <div class="date-nav">
+            <a class="btn btn-ghost btn-sm" href="/pos/my-bills?date=@Model.Date.AddDays(-1).ToString("yyyy-MM-dd")" aria-label="Ngày trước"><i class="bi bi-chevron-left" aria-hidden="true"></i></a>
+            <div class="date-field">
+                <label class="visually-hidden" for="mb-date">Ngày</label>
+                <input id="mb-date" type="date" name="date" class="form-control" value="@Model.Date.ToString("yyyy-MM-dd")" /><span class="date-display" aria-hidden="true"></span>
+            </div>
+            <a class="btn btn-ghost btn-sm" href="/pos/my-bills?date=@Model.Date.AddDays(1).ToString("yyyy-MM-dd")" aria-label="Ngày sau"><i class="bi bi-chevron-right" aria-hidden="true"></i></a>
+        </div>
+        <button type="submit" class="btn btn-secondary">Xem</button>
+        <a class="btn btn-ghost" href="/pos/index"><i class="bi bi-arrow-left" aria-hidden="true"></i>Về màn hình bán</a>
+    </form>
+    @if (Model.Bills.Count == 0)
+    {
+        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-receipt", Title = $"Chưa có hóa đơn nào ngày {Fmt.Date(Model.Date)}", Text = "Hóa đơn bạn lập trong ngày đã chọn sẽ hiện ở đây." })" />
+    }
+    else
+    {
+        <div class="table-wrap">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th scope="col">Mã hóa đơn</th><th scope="col">Giờ tạo</th><th scope="col">Nội dung</th><th scope="col" class="text-end">Vé</th>
+                        <th scope="col" class="text-end">Món</th><th scope="col" class="text-end">Tổng tiền</th><th scope="col">Trạng thái</th><th scope="col" class="text-end">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var b in Model.Bills)
+                    {
+                        <tr>
+                            <td class="text-nowrap fw-semibold">@b.Code</td>
+                            <td class="text-nowrap">@Fmt.Time(b.CreatedAt)</td>
+                            <td>@(b.MovieTitle != null ? $"{b.MovieTitle} · {Fmt.Time(b.StartTime!.Value)}" : "Chỉ bắp nước")@(b.CustomerName != null ? $" · {b.CustomerName}" : null)</td>
+                            <td class="text-end">@b.TicketCount</td>
+                            <td class="text-end">@b.ItemCount</td>
+                            <td class="text-end money">@Fmt.Money(b.Total)</td>
+                            <td><partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Bill, b.Status))" />@if (b.CancelReason != null)
+                                {
+                                    <span class="d-block small text-muted">@StatusDisplay.Of(StatusDisplay.CancelReasons, b.CancelReason).Label</span>
+                                }</td>
+                            <td class="text-end text-nowrap">
+                                @if (b.Status == BillStatus.Finish)
+                                {
+                                    <a class="btn btn-ghost btn-sm" href="/pos/print?billId=@b.Id" target="_blank" rel="noopener"><i class="bi bi-printer" aria-hidden="true"></i>In lại</a>
+                                    if (Model.HasShift)
+                                    {
+                                        <button type="button" class="btn btn-ghost btn-sm text-danger" data-void-bill="@b.Id" data-void-code="@b.Code"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>Hủy</button>
+                                    }
+                                }
+                                else if (b.Status == BillStatus.Waiting && Model.HasShift)
+                                {
+                                    <button type="button" class="btn btn-ghost btn-sm text-danger" data-cancel-waiting="@b.Id" data-code="@b.Code"><i class="bi bi-x-circle" aria-hidden="true"></i>Hủy hóa đơn</button>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>
+@if (Model.HasShift)
+{
+    <partial name="_VoidModal" model="@(new VoidModalVm { Supervisors = Model.Supervisors })" />
+}
+@section Scripts {
+    <script src="~/js/pages/void-bill.js" asp-append-version="true"></script>
+    <script src="~/js/pages/my-bills.js" asp-append-version="true"></script>
+}

@@ -1,7 +1,7 @@
 # Dữ kiện sinh từ code
 
-Sinh bởi `node tools/spec-check/check.mjs facts` lúc 2026-11-13T06:21:02.806Z.
-Mã băm code: c0ce5ac6e74c
+Sinh bởi `node tools/spec-check/check.mjs facts` lúc 2026-11-13T15:22:34.939Z.
+Mã băm code: 9e082e5d7924
 
 Không sửa tay các file trong thư mục này. Tài liệu lab vẽ sơ đồ từ đây (xem LAB-PROMPT.md mục 2).
 

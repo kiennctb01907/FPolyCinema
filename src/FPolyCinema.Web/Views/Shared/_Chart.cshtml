@@ -1,0 +1,17 @@
+@model ChartVm
+@* Biểu đồ Chart.js (UI U3-04): màu lấy từ token, lưới mờ, tooltip định dạng tiền Việt, không hiệu ứng 3D; tiêu đề nói rõ đo gì và trong khoảng thời gian nào.
+   Cấu hình gửi bằng JSON, wwwroot/js/charts.js vẽ. Không có dữ liệu thì hiện trạng thái rỗng. *@
+<figure class="chart-card card-ui card-ui-body">
+    <figcaption class="chart-title">@Model.Title</figcaption>
+    @if (Model.Labels.Count == 0 || Model.Series.All(s => s.Data.All(v => v == 0)))
+    {
+        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-bar-chart", Title = "Chưa có số liệu", Text = "Không có giao dịch nào trong khoảng thời gian này." })" />
+    }
+    else
+    {
+        <div class="chart-box @(Model.Horizontal ? "chart-box-bar" : null)">
+            <canvas id="@Model.Id" role="img" aria-label="@Model.Title"></canvas>
+        </div>
+        <script type="application/json" data-chart="@Model.Id">@Json.Serialize(new { type = Model.Type, labels = Model.Labels, horizontal = Model.Horizontal, money = Model.Money, series = Model.Series.Select(s => new { label = s.Label, data = s.Data, tone = s.Tone }) })</script>
+    }
+</figure>

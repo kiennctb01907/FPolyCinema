@@ -10,5 +10,7 @@ public class ShowtimeSeat
     public string Status { get; set; } = ShowtimeSeatStatus.Available;
     public int? HoldBillId { get; set; }
     public DateTime? HoldExpiresAt { get; set; }
+    /// <summary>Đối tượng vé đã chọn cho ghế đang giữ (vé thật tạo lúc thanh toán).</summary>
+    public string? HoldAudienceType { get; set; }
     public int? TicketId { get; set; }
 }

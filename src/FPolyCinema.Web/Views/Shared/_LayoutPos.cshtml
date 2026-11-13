@@ -28,11 +28,16 @@
             <div class="pos-tools">
                 <time class="pos-clock" data-clock="seconds" data-server-now="@Shell.Now.ToString("yyyy-MM-ddTHH:mm:ss")" aria-label="Giờ hiện tại">@Fmt.Time(Shell.Now)</time>
                 <partial name="_ConnIndicator" />
-                @* TODO(Phase 4): nút Đóng ca mở quy trình đóng ca mù 3 bước (UI P7). *@
-                <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip"
-                      title="@(shift == null ? "Bạn chưa mở ca nên chưa có ca để đóng." : "Đóng ca sẽ mở ở bản cập nhật tới, cùng màn hình bán hàng.")">
-                    <button type="button" class="btn btn-secondary btn-sm" disabled><i class="bi bi-door-closed" aria-hidden="true"></i>Đóng ca</button>
-                </span>
+                @if (shift != null)
+                {
+                    <a class="btn btn-secondary btn-sm" href="/pos/close-shift"><i class="bi bi-door-closed" aria-hidden="true"></i>Đóng ca</a>
+                }
+                else
+                {
+                    <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Bạn chưa mở ca nên chưa có ca để đóng.">
+                        <button type="button" class="btn btn-secondary btn-sm" disabled><i class="bi bi-door-closed" aria-hidden="true"></i>Đóng ca</button>
+                    </span>
+                }
                 <partial name="_UserMenu" />
             </div>
         </header>

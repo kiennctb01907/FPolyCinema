@@ -11,6 +11,7 @@
       "files/be-vietnam-pro-vietnamese-500-normal.woff2", "files/be-vietnam-pro-latin-ext-500-normal.woff2", "files/be-vietnam-pro-latin-500-normal.woff2",
       "files/be-vietnam-pro-vietnamese-600-normal.woff2", "files/be-vietnam-pro-latin-ext-600-normal.woff2", "files/be-vietnam-pro-latin-600-normal.woff2",
       "files/be-vietnam-pro-vietnamese-700-normal.woff2", "files/be-vietnam-pro-latin-ext-700-normal.woff2", "files/be-vietnam-pro-latin-700-normal.woff2", "LICENSE" ] },
+    { "library": "@microsoft/signalr@8.0.7", "destination": "wwwroot/lib/signalr/", "files": [ "dist/browser/signalr.min.js" ] },
     { "library": "jquery@3.7.1", "destination": "wwwroot/lib/jquery/", "files": [ "dist/jquery.min.js", "LICENSE.txt" ] },
     { "library": "jquery-validation@1.21.0", "destination": "wwwroot/lib/jquery-validation/", "files": [ "dist/jquery.validate.min.js", "LICENSE.md" ] },
     { "library": "jquery-validation-unobtrusive@4.0.0", "destination": "wwwroot/lib/jquery-validation-unobtrusive/", "files": [ "dist/jquery.validate.unobtrusive.min.js" ] }

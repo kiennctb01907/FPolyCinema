@@ -1,0 +1,82 @@
+@model DashboardVm
+@* A1. Dashboard /admin (theme ops): hàng thẻ KPI (doanh thu hôm nay, vé bán, tỷ lệ lấp đầy, doanh thu bắp nước, tỷ lệ phim Việt từ đầu năm);
+   hàng biểu đồ (doanh thu 30 ngày dạng đường 2 series vé và bắp nước rộng 8/12; top phim thanh ngang rộng 4/12);
+   hàng dưới: khối tỷ lệ phim Việt theo rạp và toàn chuỗi có vạch 20% (kèm khung 18:00–22:00 để tham khảo), danh sách cảnh báo vận hành
+   (KDM sắp hết hạn, nguyên liệu dưới ngưỡng, ghế cần đổi). TODO(Phase 6): yêu cầu phê duyệt đang chờ và sĩ số trực tiếp. *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Bảng điều khiển";
+    var crumbs = new List<Crumb> { new("Tổng quan"), new("Bảng điều khiển") };
+    ViewData["Crumbs"] = crumbs;
+    var d = Model.Data;
+    var k = d.TodayKpi;
+    var occ = StatisticsService.Percent(k.SoldSeats, k.TotalSeats);
+    var chainScope = d.CinemaId == null ? d.ChainShare : d.VietnameseShares.FirstOrDefault(s => s.CinemaId == d.CinemaId) ?? d.ChainShare;
+    var share = StatisticsService.Percent(chainScope.Vietnamese, chainScope.Total);
+    var header = new PageHeaderVm { Title = "Bảng điều khiển", Description = $"Hôm nay {Fmt.WeekdayDate(d.Today)} · {d.ScopeName}", Crumbs = crumbs };
+}
+<partial name="_PageHeader" model="header" />
+<section class="kpi-row" aria-label="Chỉ số hôm nay">
+    <partial name="_KpiCard" model="@(new KpiCardVm("bi-cash-stack", "Doanh thu hôm nay", Fmt.Money(k.Revenue), null, "success"))" />
+    <partial name="_KpiCard" model="@(new KpiCardVm("bi-ticket-perforated", "Vé bán hôm nay", Fmt.Number(k.Tickets), null, "info"))" />
+    <partial name="_KpiCard" model="@(new KpiCardVm("bi-people", "Tỷ lệ lấp đầy hôm nay", occ.ToString("0.#", Fmt.Vi) + "%", null, "info"))" />
+    <partial name="_KpiCard" model="@(new KpiCardVm("bi-cup-straw", "Doanh thu bắp nước hôm nay", Fmt.Money(k.FnbRevenue), null, "warning"))" />
+    <partial name="_KpiCard" model="@(new KpiCardVm("bi-flag", "Tỷ lệ phim Việt từ đầu năm", share.ToString("0.#", Fmt.Vi) + "%", null, share >= d.MinShare * 100 ? "success" : "danger"))" />
+</section>
+
+<section class="row g-4 mt-1" aria-label="Biểu đồ">
+    <div class="col-12 col-xl-8"><partial name="_Chart" model="Model.Revenue" /></div>
+    <div class="col-12 col-xl-4"><partial name="_Chart" model="Model.TopMovies" /></div>
+</section>
+
+<section class="row g-4 mt-1">
+    <div class="col-12 col-xl-6">
+        <partial name="_VietnameseShare" model="@(new VietnameseShareVm($"Tỷ lệ phim Việt lũy kế từ 01/01/{d.Today.Year}", d.VietnameseShares, d.ChainShare, d.MinShare))" />
+    </div>
+    <div class="col-12 col-xl-6">
+        <section class="card-ui card-ui-body h-100" aria-labelledby="ops-alerts">
+            <h2 class="h6" id="ops-alerts">Cảnh báo vận hành</h2>
+            @if (d.Alerts.Count == 0)
+            {
+                <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-check2-circle", Title = "Không có cảnh báo", Text = "KDM, tồn kho nguyên liệu và ghế bảo trì đều ổn." })" />
+            }
+            else
+            {
+                <ul class="alert-list">
+                    @foreach (var a in d.Alerts.Take(12))
+                    {
+                        var (icon, tone, kind) = a.Kind switch
+                        {
+                            "seat" => ("bi-arrow-left-right", "danger", "Ghế cần đổi"),
+                            "kdm" => ("bi-key", "warning", "KDM sắp hết hạn"),
+                            _ => ("bi-box-seam", "warning", "Nguyên liệu dưới ngưỡng"),
+                        };
+                        <li class="tone-@tone">
+                            <i class="bi @icon" aria-hidden="true"></i>
+                            <div>
+                                <span class="visually-hidden">@kind: </span>
+                                @if (a.Url != null)
+                                {
+                                    <a href="@a.Url" class="fw-semibold">@a.Title</a>
+                                }
+                                else
+                                {
+                                    <strong>@a.Title</strong>
+                                }
+                                <span class="d-block small text-muted">@a.Detail</span>
+                            </div>
+                        </li>
+                    }
+                </ul>
+                @if (d.Alerts.Count > 12)
+                {
+                    <p class="small text-muted mb-0">Còn @(d.Alerts.Count - 12) cảnh báo khác.</p>
+                }
+            }
+        </section>
+    </div>
+</section>
+@section Scripts {
+    <script src="~/lib/chart.js/dist/chart.umd.js" asp-append-version="true"></script>
+    <script src="~/js/charts.js" asp-append-version="true"></script>
+}

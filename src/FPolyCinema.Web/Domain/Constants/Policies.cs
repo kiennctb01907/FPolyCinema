@@ -43,4 +43,10 @@ public static class AuditAction
 
     /// <summary>Sửa bảng giá: các dòng PricingRules của một rạp hoặc mức giảm AudienceDiscounts (SPEC 2.7).</summary>
     public const string PricingUpdated = "PRICING_UPDATED";
+
+    /// <summary>Hủy hóa đơn đã thanh toán (VOIDED_BY_POS), quản lý duyệt (SPEC 2.7, 3.6).</summary>
+    public const string VoidBill = "VOID_BILL";
+
+    /// <summary>Nhân viên quầy bỏ qua luật ghế mồ côi kèm lý do (SPEC 2.7, 3.5).</summary>
+    public const string OrphanSeatOverride = "ORPHAN_SEAT_OVERRIDE";
 }

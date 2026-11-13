@@ -1,0 +1,191 @@
+@model ReportVm
+@* A6. Báo cáo: bộ lọc khoảng ngày có mốc nhanh; thẻ KPI; biểu đồ (Chart.js: doanh thu theo ngày, top 5 đồ uống, top 5 phim – Lab 6); bảng chi tiết;
+   nút "Xuất CSV". Các tab: Doanh thu, Tỷ lệ phim Việt (SPEC 3.1 mục 6), Tỷ lệ lấp đầy theo suất, Biên bản ca (SPEC 3.12-10). *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Thống kê";
+    var crumbs = new List<Crumb> { new("Báo cáo"), new("Thống kê") };
+    ViewData["Crumbs"] = crumbs;
+    var tabs = new[]
+    {
+        (FPolyCinema.Web.Controllers.StatisticsController.TabRevenue, "bi-graph-up", "Doanh thu"),
+        (FPolyCinema.Web.Controllers.StatisticsController.TabVietnamese, "bi-flag", "Tỷ lệ phim Việt"),
+        (FPolyCinema.Web.Controllers.StatisticsController.TabOccupancy, "bi-people", "Tỷ lệ lấp đầy"),
+        (FPolyCinema.Web.Controllers.StatisticsController.TabShifts, "bi-journal-check", "Biên bản ca"),
+    };
+    var exportUrl = Model.ExportUrl;
+    var header = new PageHeaderVm
+    {
+        Title = "Thống kê",
+        Description = $"Từ {Fmt.Date(Model.Range.From)} đến {Fmt.Date(Model.Range.To)} · {(Model.Tab is FPolyCinema.Web.Controllers.StatisticsController.TabOccupancy or FPolyCinema.Web.Controllers.StatisticsController.TabShifts ? Model.ScopeName : "toàn chuỗi")}. Chỉ tính hóa đơn đã thanh toán; ngày theo thời điểm thanh toán.",
+        Crumbs = crumbs,
+        Actions = @<a class="btn btn-secondary" href="@exportUrl"><i class="bi bi-filetype-csv" aria-hidden="true"></i>Xuất CSV</a>,
+    };
+    var filter = new FilterBarVm { ShowDateRange = true, DateFrom = Model.Range.From.ToString("yyyy-MM-dd"), DateTo = Model.Range.To.ToString("yyyy-MM-dd"), ClearUrl = "/admin/reports?tab=" + Model.Tab, SearchName = "tab", SearchValue = Model.Tab };
+}
+<partial name="_PageHeader" model="header" />
+<nav class="page-tabs" aria-label="Các báo cáo">
+    @foreach (var (key, icon, label) in tabs)
+    {
+        <a href="/admin/reports?tab=@key&from=@Model.Range.From.ToString("yyyy-MM-dd")&to=@Model.Range.To.ToString("yyyy-MM-dd")" class="@(key == Model.Tab ? "active" : null)" aria-current="@(key == Model.Tab ? "page" : null)"><i class="bi @icon" aria-hidden="true"></i>@label</a>
+    }
+    <a href="/admin/reports/settlement"><i class="bi bi-file-earmark-spreadsheet" aria-hidden="true"></i>Đối soát nhà phát hành</a>
+</nav>
+<form class="filter-bar report-filter" method="get" action="/admin/reports" aria-label="Chọn khoảng ngày">
+    <input type="hidden" name="tab" value="@Model.Tab" />
+    <input type="hidden" name="preset" value="" data-range-preset />
+    <div class="filter-item">
+        <label class="form-label" for="r-from">Từ ngày</label>
+        <div class="date-field"><input type="date" class="form-control" id="r-from" name="from" value="@Model.Range.From.ToString("yyyy-MM-dd")" data-range-from /><span class="date-display" aria-hidden="true"></span></div>
+    </div>
+    <div class="filter-item">
+        <label class="form-label" for="r-to">Đến ngày</label>
+        <div class="date-field"><input type="date" class="form-control" id="r-to" name="to" value="@Model.Range.To.ToString("yyyy-MM-dd")" data-range-to /><span class="date-display" aria-hidden="true"></span></div>
+    </div>
+    <div class="filter-item">
+        <span class="form-label d-block">Mốc nhanh</span>
+        <div class="quick-ranges" role="group" aria-label="Chọn nhanh khoảng ngày">
+            @foreach (var (key, label) in StatisticsService.Presets)
+            {
+                <button type="button" class="btn btn-secondary btn-sm" data-report-range="@key" aria-pressed="@(Model.Range.Preset == key ? "true" : "false")">@label</button>
+            }
+        </div>
+    </div>
+    <div class="filter-item">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-funnel" aria-hidden="true"></i>Xem báo cáo</button>
+    </div>
+</form>
+
+@switch (Model.Tab)
+{
+    case FPolyCinema.Web.Controllers.StatisticsController.TabRevenue:
+        var r = Model.Revenue!;
+        <section class="kpi-row" aria-label="Chỉ số trong khoảng">
+            <partial name="_KpiCard" model="@(new KpiCardVm("bi-cash-stack", "Tổng doanh thu", Fmt.Money(r.Kpi.Revenue), null, "success"))" />
+            <partial name="_KpiCard" model="@(new KpiCardVm("bi-ticket-perforated", "Doanh thu vé", Fmt.Money(r.Kpi.Revenue - r.Kpi.FnbRevenue), null, "info"))" />
+            <partial name="_KpiCard" model="@(new KpiCardVm("bi-cup-straw", "Doanh thu bắp nước", Fmt.Money(r.Kpi.FnbRevenue), null, "warning"))" />
+            <partial name="_KpiCard" model="@(new KpiCardVm("bi-receipt", "Số hóa đơn", Fmt.Number(r.Kpi.Bills), null, "info"))" />
+            <partial name="_KpiCard" model="@(new KpiCardVm("bi-people", "Vé bán", Fmt.Number(r.Kpi.Tickets), null, "info"))" />
+        </section>
+        <section class="row g-4 mt-1">
+            <div class="col-12"><partial name="_Chart" model="Model.Charts[0]" /></div>
+            <div class="col-12 col-xl-6"><partial name="_Chart" model="Model.Charts[1]" /></div>
+            <div class="col-12 col-xl-6"><partial name="_Chart" model="Model.Charts[2]" /></div>
+        </section>
+        <section class="card-ui card-ui-body mt-4">
+            <h2 class="h6">Doanh thu theo ngày</h2>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <thead><tr><th scope="col">Ngày</th><th scope="col" class="num">Số hóa đơn</th><th scope="col" class="num">Doanh thu vé</th><th scope="col" class="num">Doanh thu bắp nước</th><th scope="col" class="num">Tổng doanh thu</th></tr></thead>
+                    <tbody>
+                        @foreach (var day in r.Days)
+                        {
+                            <tr><td>@Fmt.WeekdayDate(day.RevenueDate)/@day.RevenueDate.Year</td><td class="num">@Fmt.Number(day.TotalBills)</td><td class="num money">@Fmt.Money(day.TicketRevenue)</td><td class="num money">@Fmt.Money(day.FnbRevenue)</td><td class="num money fw-semibold">@Fmt.Money(day.TotalRevenue)</td></tr>
+                        }
+                    </tbody>
+                    <tfoot><tr><th scope="row">Tổng</th><td class="num">@Fmt.Number(r.Days.Sum(x => x.TotalBills))</td><td class="num money">@Fmt.Money(r.Days.Sum(x => x.TicketRevenue))</td><td class="num money">@Fmt.Money(r.Days.Sum(x => x.FnbRevenue))</td><td class="num money">@Fmt.Money(r.Days.Sum(x => x.TotalRevenue))</td></tr></tfoot>
+                </table>
+            </div>
+        </section>
+        <section class="row g-4 mt-1">
+            <div class="col-12 col-xl-6">
+                <section class="card-ui card-ui-body h-100">
+                    <h2 class="h6">Top 5 đồ uống bán chạy</h2>
+                    @if (r.TopDrinks.Count == 0) { <p class="text-muted mb-0">Không có món nào được bán trong khoảng này.</p> }
+                    else
+                    {
+                        <table class="data-table"><thead><tr><th scope="col">Món</th><th scope="col" class="num">Số phần</th><th scope="col" class="num">Doanh thu</th></tr></thead>
+                            <tbody>@foreach (var x in r.TopDrinks) { <tr><td>@x.DrinkName</td><td class="num">@Fmt.Number(x.TotalQuantitySold)</td><td class="num money">@Fmt.Money(x.TotalRevenue)</td></tr> }</tbody></table>
+                    }
+                </section>
+            </div>
+            <div class="col-12 col-xl-6">
+                <section class="card-ui card-ui-body h-100">
+                    <h2 class="h6">Top 5 phim theo doanh thu vé</h2>
+                    @if (r.TopMovies.Count == 0) { <p class="text-muted mb-0">Không có vé nào được bán trong khoảng này.</p> }
+                    else
+                    {
+                        <table class="data-table"><thead><tr><th scope="col">Phim</th><th scope="col" class="num">Số vé</th><th scope="col" class="num">Doanh thu vé</th></tr></thead>
+                            <tbody>@foreach (var x in r.TopMovies) { <tr><td>@x.Title</td><td class="num">@Fmt.Number(x.TicketsSold)</td><td class="num money">@Fmt.Money(x.TicketRevenue)</td></tr> }</tbody></table>
+                    }
+                </section>
+            </div>
+        </section>
+        break;
+
+    case FPolyCinema.Web.Controllers.StatisticsController.TabVietnamese:
+        <partial name="_VietnameseShare" model="@(new VietnameseShareVm($"Tỷ lệ phim Việt từ {Fmt.Date(Model.Range.From)} đến {Fmt.Date(Model.Range.To)}", Model.Shares, Model.ChainShare!, Model.MinShare))" />
+        break;
+
+    case FPolyCinema.Web.Controllers.StatisticsController.TabOccupancy:
+        <section class="card-ui card-ui-body">
+            <h2 class="h6">Tỷ lệ lấp đầy theo suất · @Model.ScopeName</h2>
+            @if (Model.Occupancy.Count == 0)
+            {
+                <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-calendar-x", Title = "Không có suất chiếu", Text = "Không có suất nào trong khoảng ngày này – thử đổi ngày." })" />
+            }
+            else
+            {
+                var sold = Model.Occupancy.Sum(o => o.Sold); var cap = Model.Occupancy.Sum(o => o.Capacity);
+                <p class="text-muted">Trung bình @StatisticsService.Percent(sold, cap).ToString("0.#", Fmt.Vi)% · @Fmt.Number(Model.Occupancy.Count) suất · @Fmt.Number(sold)/@Fmt.Number(cap) ghế</p>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead><tr><th scope="col">Suất</th><th scope="col">Rạp · phòng</th><th scope="col">Phim</th><th scope="col" class="num">Đã bán</th><th scope="col" class="num">Sức chứa</th><th scope="col">Lấp đầy</th></tr></thead>
+                        <tbody>
+                            @foreach (var o in Model.Occupancy.Take(500))
+                            {
+                                var pct = StatisticsService.Percent(o.Sold, o.Capacity);
+                                <tr>
+                                    <td class="text-nowrap">@Fmt.DateTime(o.StartTime)</td><td>@o.CinemaName · @o.AuditoriumName</td><td>@o.MovieTitle</td>
+                                    <td class="num">@o.Sold</td><td class="num">@o.Capacity</td>
+                                    <td><span class="sold-meter"><span>@pct.ToString("0.#", Fmt.Vi)%</span><span class="bar" style="--pct: @pct.ToString(System.Globalization.CultureInfo.InvariantCulture)%"><span></span></span></span></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                @if (Model.Occupancy.Count > 500)
+                {
+                    <p class="small text-muted mt-2 mb-0">Bảng hiện 500 suất đầu; tệp CSV có đủ @Fmt.Number(Model.Occupancy.Count) suất.</p>
+                }
+            }
+        </section>
+        break;
+
+    case FPolyCinema.Web.Controllers.StatisticsController.TabShifts:
+        <section class="card-ui card-ui-body">
+            <h2 class="h6">Biên bản ca đã đóng · @Model.ScopeName</h2>
+            @if (Model.Shifts.Count == 0)
+            {
+                <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-journal", Title = "Chưa có ca nào đóng", Text = "Không có ca nào đóng trong khoảng ngày này." })" />
+            }
+            else
+            {
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <thead><tr><th scope="col">Ca</th><th scope="col">Nhân viên</th><th scope="col" class="num">Hệ thống tính</th><th scope="col" class="num">Đếm được</th><th scope="col" class="num">Chênh lệch</th><th scope="col" class="col-actions">Biên bản</th></tr></thead>
+                        <tbody>
+                            @foreach (var s in Model.Shifts)
+                            {
+                                var diff = s.Shift.Discrepancy ?? 0;
+                                <tr>
+                                    <td>@s.CinemaName · @s.Shift.TerminalCode<span class="d-block small text-muted">@Fmt.DateTime(s.Shift.OpenedAt) – @Fmt.Time(s.Shift.ClosedAt ?? s.Shift.OpenedAt)</span></td>
+                                    <td>@s.UserName</td>
+                                    <td class="num money">@Fmt.Money(s.Shift.ExpectedCash)</td>
+                                    <td class="num money">@Fmt.Money(s.Shift.ActualCashCounted)</td>
+                                    <td class="num money @(diff < 0 ? "text-danger-fg" : diff > 0 ? "text-success-fg" : null)">@(diff > 0 ? "+" : diff < 0 ? "−" : null)@Fmt.Money(Math.Abs(diff))</td>
+                                    <td class="col-actions"><a class="btn btn-ghost btn-sm" href="/pos/shift-report/@s.Shift.Id"><i class="bi bi-printer" aria-hidden="true"></i>Xem</a></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+        break;
+}
+@section Scripts {
+    <script src="~/lib/chart.js/dist/chart.umd.js" asp-append-version="true"></script>
+    <script src="~/js/charts.js" asp-append-version="true"></script>
+    <script src="~/js/pages/reports.js" asp-append-version="true"></script>
+}

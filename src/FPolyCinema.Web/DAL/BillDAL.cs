@@ -34,6 +34,7 @@ public static partial class BillDAL
         VoucherId = row.GetIntN("VoucherId"),
         PointsUsed = row.GetInt("PointsUsed"),
         HoldExpiresAt = row.GetDateTimeN("HoldExpiresAt"),
+        HoldExtended = row.GetBool("HoldExtended"),
         CheckInStatus = row.GetString("CheckInStatus"),
         FnbStatus = row.GetString("FnbStatus"),
         PickupNumber = row.GetIntN("PickupNumber"),
@@ -46,13 +47,13 @@ public static partial class BillDAL
 
     public static List<Bill> GetAll(SqlConnection? conn = null, SqlTransaction? tx = null)
     {
-        const string sql = "SELECT Id, Code, Channel, CinemaId, ShowtimeId, UserId, CustomerId, PosShiftId, TerminalCode, Status, CancelReason, CreatedAt, PaidAt, CancelledAt, TicketSubtotal, FnbSubtotal, DiscountTotal, Total, VoucherId, PointsUsed, HoldExpiresAt, CheckInStatus, FnbStatus, PickupNumber, GuardianConfirmed, AgeConfirmed, CorporateBookingId FROM Bills ORDER BY Id";
+        const string sql = "SELECT Id, Code, Channel, CinemaId, ShowtimeId, UserId, CustomerId, PosShiftId, TerminalCode, Status, CancelReason, CreatedAt, PaidAt, CancelledAt, TicketSubtotal, FnbSubtotal, DiscountTotal, Total, VoucherId, PointsUsed, HoldExpiresAt, HoldExtended, CheckInStatus, FnbStatus, PickupNumber, GuardianConfirmed, AgeConfirmed, CorporateBookingId FROM Bills ORDER BY Id";
         return FromDataTable(DBUtil.QueryDataTable(sql, null, conn, tx));
     }
 
     public static Bill? GetById(int id, SqlConnection? conn = null, SqlTransaction? tx = null)
     {
-        const string sql = "SELECT Id, Code, Channel, CinemaId, ShowtimeId, UserId, CustomerId, PosShiftId, TerminalCode, Status, CancelReason, CreatedAt, PaidAt, CancelledAt, TicketSubtotal, FnbSubtotal, DiscountTotal, Total, VoucherId, PointsUsed, HoldExpiresAt, CheckInStatus, FnbStatus, PickupNumber, GuardianConfirmed, AgeConfirmed, CorporateBookingId FROM Bills WHERE Id = @1";
+        const string sql = "SELECT Id, Code, Channel, CinemaId, ShowtimeId, UserId, CustomerId, PosShiftId, TerminalCode, Status, CancelReason, CreatedAt, PaidAt, CancelledAt, TicketSubtotal, FnbSubtotal, DiscountTotal, Total, VoucherId, PointsUsed, HoldExpiresAt, HoldExtended, CheckInStatus, FnbStatus, PickupNumber, GuardianConfirmed, AgeConfirmed, CorporateBookingId FROM Bills WHERE Id = @1";
         var table = DBUtil.QueryDataTable(sql, new List<object> { id }, conn, tx);
         return table.Rows.Count == 0 ? null : FromDataRow(table.Rows[0]);
     }
@@ -65,8 +66,8 @@ public static partial class BillDAL
     {
         if (item.Status != BillStatus.Waiting || item.CancelReason != null || item.PaidAt != null || item.CancelledAt != null)
             throw new InvalidOperationException("Hóa đơn mới phải ở trạng thái waiting, chưa có PaidAt, CancelReason, CancelledAt.");
-        const string sql = "INSERT INTO Bills (Code, Channel, CinemaId, ShowtimeId, UserId, CustomerId, PosShiftId, TerminalCode, Status, CancelReason, CreatedAt, PaidAt, CancelledAt, TicketSubtotal, FnbSubtotal, DiscountTotal, Total, VoucherId, PointsUsed, HoldExpiresAt, CheckInStatus, FnbStatus, PickupNumber, GuardianConfirmed, AgeConfirmed, CorporateBookingId) VALUES (@1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21, @22, @23, @24, @25, @26); SELECT CAST(SCOPE_IDENTITY() AS INT);";
-        var ps = new List<object> { item.Code, item.Channel, item.CinemaId, DBUtil.Value(item.ShowtimeId), DBUtil.Value(item.UserId), DBUtil.Value(item.CustomerId), DBUtil.Value(item.PosShiftId), DBUtil.Value(item.TerminalCode), item.Status, DBUtil.Value(item.CancelReason), item.CreatedAt, DBUtil.Value(item.PaidAt), DBUtil.Value(item.CancelledAt), item.TicketSubtotal, item.FnbSubtotal, item.DiscountTotal, item.Total, DBUtil.Value(item.VoucherId), item.PointsUsed, DBUtil.Value(item.HoldExpiresAt), item.CheckInStatus, item.FnbStatus, DBUtil.Value(item.PickupNumber), item.GuardianConfirmed, item.AgeConfirmed, DBUtil.Value(item.CorporateBookingId) };
+        const string sql = "INSERT INTO Bills (Code, Channel, CinemaId, ShowtimeId, UserId, CustomerId, PosShiftId, TerminalCode, Status, CancelReason, CreatedAt, PaidAt, CancelledAt, TicketSubtotal, FnbSubtotal, DiscountTotal, Total, VoucherId, PointsUsed, HoldExpiresAt, HoldExtended, CheckInStatus, FnbStatus, PickupNumber, GuardianConfirmed, AgeConfirmed, CorporateBookingId) VALUES (@1, @2, @3, @4, @5, @6, @7, @8, @9, @10, @11, @12, @13, @14, @15, @16, @17, @18, @19, @20, @21, @22, @23, @24, @25, @26, @27); SELECT CAST(SCOPE_IDENTITY() AS INT);";
+        var ps = new List<object> { item.Code, item.Channel, item.CinemaId, DBUtil.Value(item.ShowtimeId), DBUtil.Value(item.UserId), DBUtil.Value(item.CustomerId), DBUtil.Value(item.PosShiftId), DBUtil.Value(item.TerminalCode), item.Status, DBUtil.Value(item.CancelReason), item.CreatedAt, DBUtil.Value(item.PaidAt), DBUtil.Value(item.CancelledAt), item.TicketSubtotal, item.FnbSubtotal, item.DiscountTotal, item.Total, DBUtil.Value(item.VoucherId), item.PointsUsed, DBUtil.Value(item.HoldExpiresAt), item.HoldExtended, item.CheckInStatus, item.FnbStatus, DBUtil.Value(item.PickupNumber), item.GuardianConfirmed, item.AgeConfirmed, DBUtil.Value(item.CorporateBookingId) };
         item.Id = Convert.ToInt32(DBUtil.ExecuteScalar(sql, ps, conn, tx));
         return item.Id;
     }
@@ -74,8 +75,8 @@ public static partial class BillDAL
     /// <summary>Cập nhật theo khóa chính; trả về số dòng bị ảnh hưởng. Không đổi Status, CancelReason, PaidAt, CancelledAt (dùng ChangeStatus).</summary>
     public static int Update(Bill item, SqlConnection? conn = null, SqlTransaction? tx = null)
     {
-        const string sql = "UPDATE Bills SET Code = @1, Channel = @2, CinemaId = @3, ShowtimeId = @4, UserId = @5, CustomerId = @6, PosShiftId = @7, TerminalCode = @8, CreatedAt = @9, TicketSubtotal = @10, FnbSubtotal = @11, DiscountTotal = @12, Total = @13, VoucherId = @14, PointsUsed = @15, HoldExpiresAt = @16, CheckInStatus = @17, FnbStatus = @18, PickupNumber = @19, GuardianConfirmed = @20, AgeConfirmed = @21, CorporateBookingId = @22 WHERE Id = @23";
-        var ps = new List<object> { item.Code, item.Channel, item.CinemaId, DBUtil.Value(item.ShowtimeId), DBUtil.Value(item.UserId), DBUtil.Value(item.CustomerId), DBUtil.Value(item.PosShiftId), DBUtil.Value(item.TerminalCode), item.CreatedAt, item.TicketSubtotal, item.FnbSubtotal, item.DiscountTotal, item.Total, DBUtil.Value(item.VoucherId), item.PointsUsed, DBUtil.Value(item.HoldExpiresAt), item.CheckInStatus, item.FnbStatus, DBUtil.Value(item.PickupNumber), item.GuardianConfirmed, item.AgeConfirmed, DBUtil.Value(item.CorporateBookingId), item.Id };
+        const string sql = "UPDATE Bills SET Code = @1, Channel = @2, CinemaId = @3, ShowtimeId = @4, UserId = @5, CustomerId = @6, PosShiftId = @7, TerminalCode = @8, CreatedAt = @9, TicketSubtotal = @10, FnbSubtotal = @11, DiscountTotal = @12, Total = @13, VoucherId = @14, PointsUsed = @15, HoldExpiresAt = @16, HoldExtended = @17, CheckInStatus = @18, FnbStatus = @19, PickupNumber = @20, GuardianConfirmed = @21, AgeConfirmed = @22, CorporateBookingId = @23 WHERE Id = @24";
+        var ps = new List<object> { item.Code, item.Channel, item.CinemaId, DBUtil.Value(item.ShowtimeId), DBUtil.Value(item.UserId), DBUtil.Value(item.CustomerId), DBUtil.Value(item.PosShiftId), DBUtil.Value(item.TerminalCode), item.CreatedAt, item.TicketSubtotal, item.FnbSubtotal, item.DiscountTotal, item.Total, DBUtil.Value(item.VoucherId), item.PointsUsed, DBUtil.Value(item.HoldExpiresAt), item.HoldExtended, item.CheckInStatus, item.FnbStatus, DBUtil.Value(item.PickupNumber), item.GuardianConfirmed, item.AgeConfirmed, DBUtil.Value(item.CorporateBookingId), item.Id };
         return DBUtil.ExecuteNonQuery(sql, ps, conn, tx);
     }
 
@@ -88,7 +89,7 @@ public static partial class BillDAL
 
     public static Bill? GetByCode(string code, SqlConnection? conn = null, SqlTransaction? tx = null)
     {
-        const string sql = "SELECT Id, Code, Channel, CinemaId, ShowtimeId, UserId, CustomerId, PosShiftId, TerminalCode, Status, CancelReason, CreatedAt, PaidAt, CancelledAt, TicketSubtotal, FnbSubtotal, DiscountTotal, Total, VoucherId, PointsUsed, HoldExpiresAt, CheckInStatus, FnbStatus, PickupNumber, GuardianConfirmed, AgeConfirmed, CorporateBookingId FROM Bills WHERE Code = @1";
+        const string sql = "SELECT Id, Code, Channel, CinemaId, ShowtimeId, UserId, CustomerId, PosShiftId, TerminalCode, Status, CancelReason, CreatedAt, PaidAt, CancelledAt, TicketSubtotal, FnbSubtotal, DiscountTotal, Total, VoucherId, PointsUsed, HoldExpiresAt, HoldExtended, CheckInStatus, FnbStatus, PickupNumber, GuardianConfirmed, AgeConfirmed, CorporateBookingId FROM Bills WHERE Code = @1";
         var table = DBUtil.QueryDataTable(sql, new List<object> { code }, conn, tx);
         return table.Rows.Count == 0 ? null : FromDataRow(table.Rows[0]);
     }

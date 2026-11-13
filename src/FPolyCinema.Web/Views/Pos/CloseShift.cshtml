@@ -1,0 +1,66 @@
+@model CloseShiftVm
+@* Đóng ca mù 3 bước (UI P7, SPEC 3.6): 1. đếm tiền theo mệnh giá, hệ thống tự cộng; 2. xác nhận; 3. biên bản (trang /pos/shift-report/{id}).
+   Nhân viên không thấy số hệ thống tính cho tới khi đã xác nhận. Ca còn hóa đơn chưa thanh toán thì không đóng được (SHIFT_HAS_WAITING_BILLS). *@
+@{
+    Layout = "_LayoutPos";
+    ViewData["Title"] = "Đóng ca";
+}
+<div class="pos-scroll">
+    <div class="shift-card card-ui card-ui-body">
+        <div data-close-stepper>
+            <partial name="_Stepper" model="@(new StepperVm { Steps = new List<string> { "Đếm tiền", "Xác nhận", "Biên bản" }, Current = 1 })" />
+        </div>
+        <h1 class="h4 mt-4">Đóng ca @Model.Shift.TerminalCode</h1>
+        <p class="text-muted">Ca mở lúc @Fmt.DateTime(Model.Shift.OpenedAt). Đếm toàn bộ tiền mặt trong két theo từng mệnh giá. Hệ thống chỉ hiện số cần có sau khi bạn xác nhận.</p>
+        @if (Model.WaitingBills > 0)
+        {
+            <div class="alert alert-warning" role="alert">
+                <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+                Ca còn @Model.WaitingBills hóa đơn chưa thanh toán. Bạn <a href="/pos/index">quay lại màn hình bán</a> để thanh toán hoặc hủy trước khi đóng ca.
+            </div>
+        }
+        <form data-close-form novalidate autocomplete="off">
+            <section data-step="1">
+                <h2 class="h6">Bước 1 · Đếm tiền theo mệnh giá</h2>
+                <div class="table-wrap">
+                    <table class="data-table denom-table">
+                        <thead><tr><th scope="col">Mệnh giá</th><th scope="col" class="text-end">Số tờ</th><th scope="col" class="text-end">Thành tiền</th></tr></thead>
+                        <tbody>
+                            @foreach (var d in Model.Denominations)
+                            {
+                                <tr>
+                                    <th scope="row" class="money">@Fmt.Money(d)</th>
+                                    <td class="text-end">
+                                        <label class="visually-hidden" for="d-@d">Số tờ @Fmt.Money(d)</label>
+                                        <input id="d-@d" name="counts[@d]" type="number" min="0" step="1" inputmode="numeric" class="form-control denom-input" data-denom="@d" value="0" />
+                                    </td>
+                                    <td class="text-end money" data-denom-sum="@d">0 ₫</td>
+                                </tr>
+                            }
+                        </tbody>
+                        <tfoot><tr><th scope="row" colspan="2">Tổng tiền đếm được</th><td class="text-end money denom-total" data-count-total>0 ₫</td></tr></tfoot>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-between mt-4">
+                    <a class="btn btn-ghost" href="/pos/index"><i class="bi bi-arrow-left" aria-hidden="true"></i>Về màn hình bán</a>
+                    <button type="button" class="btn btn-primary" data-next disabled="@(Model.WaitingBills > 0)">Tiếp tục<i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+                </div>
+            </section>
+            <section data-step="2" hidden>
+                <h2 class="h6">Bước 2 · Xác nhận</h2>
+                <p>Tổng tiền bạn đếm được: <strong class="money fs-4" data-count-total-confirm>0 ₫</strong></p>
+                <ul class="consequences">
+                    <li>Sau khi xác nhận, ca được chốt và biên bản không sửa được.</li>
+                    <li>Hệ thống so sánh với số tiền mặt cần có và ghi chênh lệch theo tên bạn.</li>
+                </ul>
+                <div class="d-flex justify-content-between mt-4">
+                    <button type="button" class="btn btn-ghost" data-prev><i class="bi bi-arrow-left" aria-hidden="true"></i>Đếm lại</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-lock" aria-hidden="true"></i>Xác nhận và đóng ca</button>
+                </div>
+            </section>
+        </form>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/js/pages/shift.js" asp-append-version="true"></script>
+}

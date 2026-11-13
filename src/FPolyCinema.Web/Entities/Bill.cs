@@ -26,6 +26,8 @@ public class Bill
     public int? VoucherId { get; set; }
     public int PointsUsed { get; set; }
     public DateTime? HoldExpiresAt { get; set; }
+    /// <summary>Thu ngân đã gia hạn giữ ghế một lần (SPEC 3.5).</summary>
+    public bool HoldExtended { get; set; }
     public string CheckInStatus { get; set; } = BillCheckInStatus.None;
     public string FnbStatus { get; set; } = Domain.Constants.FnbStatus.None;
     public int? PickupNumber { get; set; }

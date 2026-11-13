@@ -42,11 +42,11 @@ Kiểu dữ liệu và quy ước theo CONTRACTS mục 9. Mọi cột trạng th
 - [S6-16 P1 auto:table] Auditoriums(Id, CinemaId, Name, Format, TotalRows, TotalCols, IdealRowRatio, Active)
 - [S6-17 P1 auto:table] Seats(Id, AuditoriumId, RowIndex, ColIndex, Label, SeatType, PairGroupId, IsHouseSeat, IsMaintenance, BaseViewScore), UNIQUE(AuditoriumId, RowIndex, ColIndex)
 - [S6-18 P1 auto:table] Showtimes(Id, MovieId, AuditoriumId, StartTime, FeatureStartTime, EndTime, CleaningEndTime, LanguageFormat, OperationalStatus, IsAiGenerated, IsPrivate, CancelNote, CreatedAt), index (AuditoriumId, StartTime)
-- [S6-19 P1 auto:table] ShowtimeSeats(ShowtimeId, SeatId, Status, HoldBillId, HoldExpiresAt, TicketId), khóa chính (ShowtimeId, SeatId)
+- [S6-19 P1 auto:table] ShowtimeSeats(ShowtimeId, SeatId, Status, HoldBillId, HoldExpiresAt, HoldAudienceType, TicketId), khóa chính (ShowtimeId, SeatId)
 - [S6-20 P1 auto:table] Holidays(HolidayDate, Name)
 - [S6-21 P1 auto:table] PricingRules(Id, CinemaId, RuleType, RuleKey, Amount), UNIQUE(CinemaId, RuleType, RuleKey)
 - [S6-22 P1 auto:table] AudienceDiscounts(AudienceType, DiscountPercent, LegalMinPercent, PosOnly, RequiresDocument)
-- [S6-23 P1 auto:table] Bills(Id, Code UNIQUE, Channel, CinemaId, ShowtimeId, UserId (người tạo, như slide), CustomerId, PosShiftId, TerminalCode, Status, CancelReason, CreatedAt, PaidAt, CancelledAt, TicketSubtotal, FnbSubtotal, DiscountTotal, Total, VoucherId, PointsUsed, HoldExpiresAt, CheckInStatus, FnbStatus, PickupNumber, GuardianConfirmed, AgeConfirmed, CorporateBookingId), index (Status, PaidAt)
+- [S6-23 P1 auto:table] Bills(Id, Code UNIQUE, Channel, CinemaId, ShowtimeId, UserId (người tạo, như slide), CustomerId, PosShiftId, TerminalCode, Status, CancelReason, CreatedAt, PaidAt, CancelledAt, TicketSubtotal, FnbSubtotal, DiscountTotal, Total, VoucherId, PointsUsed, HoldExpiresAt, HoldExtended, CheckInStatus, FnbStatus, PickupNumber, GuardianConfirmed, AgeConfirmed, CorporateBookingId), index (Status, PaidAt)
 - [S6-24 P1 auto:table] BillDetails(Id, BillId, DrinkId, Quantity, Price, VatRate, LineFinalAmount): đúng slide, thêm cột
 - [S6-25 P1 auto:table] Tickets(Id, BillId, ShowtimeId, SeatId, AudienceType, ListPrice, FinalPrice, VatRate, QrCode UNIQUE, CheckInStatus, CheckedInAt, CheckedInBy, SwappedFromTicketId, CreatedAt)
 - [S6-26 P1 auto:table] Payments(Id, BillId, PosShiftId, Method, Direction, Amount, Status, ProviderTxnId (UNIQUE khi khác NULL), RawPayload, CreatedAt)

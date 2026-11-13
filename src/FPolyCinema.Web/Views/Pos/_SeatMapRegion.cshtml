@@ -1,0 +1,17 @@
+@model PosSeatMapVm
+@* Vùng sơ đồ ghế của POS (UI P1 cột 2): đầu vùng ghi phim, nhãn tuổi, giờ, phòng, định dạng và ngôn ngữ; sơ đồ đặt trong panel tối (theme cinema). *@
+@{
+    var s = Model.Info.Showtime;
+}
+<div class="pos-seat-head" data-region-showtime="@s.Id">
+    <div class="min-w-0">
+        <h3 class="h5 mb-1 text-clamp-2">@Model.Info.Movie.Title <partial name="_AgeBadge" model="@(new AgeBadgeVm(Model.Info.Movie.AgeRating))" /></h3>
+        <p class="text-muted mb-0">
+            @Fmt.Time(s.StartTime)–@Fmt.Time(s.EndTime) · @Model.Info.Auditorium.Name · @Model.Info.Auditorium.Format · @StatusDisplay.Of(StatusDisplay.Language, s.LanguageFormat).Label
+        </p>
+    </div>
+    <p class="small text-muted mb-0 pos-seat-help">Bấm ghế để chọn hoặc bỏ chọn. Dùng phím mũi tên và Enter để chọn bằng bàn phím.</p>
+</div>
+<div class="pos-seat-panel">
+    <partial name="_SeatMap" model="Model.SeatMap" />
+</div>

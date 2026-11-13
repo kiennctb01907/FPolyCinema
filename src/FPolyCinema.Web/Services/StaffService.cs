@@ -10,7 +10,8 @@ using Microsoft.Extensions.Options;
 namespace FPolyCinema.Web.Services;
 
 /// <summary>Dữ liệu form thêm, sửa nhân viên.</summary>
-public sealed record StaffInput(string? Email, string? FullName, string? Phone, string? Role, int? CinemaId);
+/// <summary>Dữ liệu form nhân viên; ManagerPin là PIN quản lý 6 số (chỉ ShiftManager, Manager), để trống khi sửa là giữ PIN cũ.</summary>
+public sealed record StaffInput(string? Email, string? FullName, string? Phone, string? Role, int? CinemaId, string? ManagerPin = null);
 
 /// <summary>
 /// Quản lý nhân viên (UC36, SPEC 3.14): thêm (cấp mật khẩu ngẫu nhiên qua email, bắt đổi khi đăng nhập), sửa,
@@ -59,6 +60,15 @@ public class StaffService
         if (input.Role == null || Array.IndexOf(StaffRoles, input.Role) < 0) errors["Role"] = "Bạn chọn vai trò cho nhân viên.";
         if (input.CinemaId.HasValue && CinemaDAL.GetById(input.CinemaId.Value) == null) errors["CinemaId"] = "Rạp đã chọn không còn hoạt động. Bạn chọn một rạp khác trong danh sách.";
         else if (!input.CinemaId.HasValue && input.Role != null && input.Role != Roles.Manager) errors["CinemaId"] = "Nhân viên này cần gắn với một rạp.";
+        // PIN quản lý (SPEC 2.5): 6 chữ số, chỉ quản lý ca và quản lý rạp; bắt buộc khi chưa có PIN
+        bool supervisor = input.Role is Roles.ShiftManager or Roles.Manager;
+        var hasPin = exceptId is int uid && UserDAL.GetById(uid)?.ManagerPinHash != null;
+        if (!string.IsNullOrEmpty(input.ManagerPin))
+        {
+            if (!supervisor) errors["ManagerPin"] = "Chỉ quản lý ca và quản lý rạp mới có PIN duyệt. Bạn để trống ô này.";
+            else if (!ManagerPinRules.IsWellFormed(input.ManagerPin)) errors["ManagerPin"] = "PIN gồm đúng 6 chữ số.";
+        }
+        else if (supervisor && !hasPin) errors["ManagerPin"] = "Quản lý ca và quản lý rạp cần PIN 6 số để duyệt hủy hóa đơn.";
         return errors;
     }
 
@@ -81,7 +91,7 @@ public class StaffService
             Tier = LoyaltyTier.Member,
             CreatedAt = _clock.Now,
         };
-        // TODO(Phase 4): Quản lý đặt PIN 6 số cho ShiftManager và Manager (SPEC 2.5, ManagerPinHash).
+        if (!string.IsNullOrEmpty(input.ManagerPin)) user.ManagerPinHash = PasswordUtil.Hash(input.ManagerPin);
         UserDAL.Insert(user);
         _email.Send(user.Email, "Tài khoản nhân viên FPoly Cinema",
             $"Xin chào {user.FullName},\n\nQuản lý rạp đã tạo tài khoản cho bạn với vai trò {StatusDisplay.RoleLabel(user.Role)}.\n" +
@@ -97,6 +107,9 @@ public class StaffService
         if (id == actorUserId && input.Role != user.Role) errors["Role"] = "Bạn không thể tự đổi vai trò của tài khoản mình đang đăng nhập. Giữ vai trò cũ hoặc nhờ quản lý rạp khác đổi.";
         if (errors.Count > 0) throw FieldErrors.Of(errors);
         UserDAL.UpdateStaff(id, input.Email!, input.FullName!.Trim(), string.IsNullOrWhiteSpace(input.Phone) ? null : input.Phone.Trim(), input.Role!, input.CinemaId);
+        // Đặt PIN mới (lưu dạng băm, xóa đếm sai và khóa); vai trò không còn quyền duyệt thì gỡ PIN
+        if (input.Role is not (Roles.ShiftManager or Roles.Manager)) UserDAL.SetManagerPin(id, null);
+        else if (!string.IsNullOrEmpty(input.ManagerPin)) UserDAL.SetManagerPin(id, PasswordUtil.Hash(input.ManagerPin));
         return Get(id);
     }
 

@@ -1,0 +1,193 @@
+@model PosIndexVm
+@* POS /pos/index (UI P1, theme ops, cao 100vh). Từ 1280px chia 3 cột: suất hôm nay (300px) · sơ đồ ghế và bắp nước (co giãn) · hóa đơn tạm tính (380px).
+   Từ 1024px đến 1279px cột 1 thu vào drawer. Phím tắt: F1 tra cứu thành viên, F4 tiền mặt, Esc hủy hóa đơn. Hóa đơn tạm tính do pos.js vẽ từ JSON
+   mà máy chủ trả sau mỗi thao tác. *@
+@{
+    Layout = "_LayoutPos";
+    ViewData["Title"] = "Bán vé tại quầy";
+    var groups = Model.Showtimes.GroupBy(s => s.MovieId).ToList();
+}
+<div class="pos-grid" data-pos>
+    <aside class="pos-col pos-showtimes" id="pos-showtimes" aria-labelledby="pos-st-title">
+        <div class="pos-col-head">
+            <h2 class="h6 mb-0" id="pos-st-title">Suất hôm nay</h2>
+            <button type="button" class="btn btn-ghost btn-sm pos-drawer-close" data-drawer-close aria-label="Đóng danh sách suất"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        </div>
+        <div class="search-box mb-3">
+            <i class="bi bi-search" aria-hidden="true"></i>
+            <input type="search" class="form-control" placeholder="Tìm phim hoặc giờ" aria-label="Tìm phim hoặc suất" data-showtime-search autocomplete="off" />
+        </div>
+        <button type="button" class="btn btn-secondary w-100 mb-3" data-fnb-only><i class="bi bi-cup-straw" aria-hidden="true"></i>Chỉ bán bắp nước</button>
+        @if (groups.Count == 0)
+        {
+            <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-film", Title = "Không còn suất để bán", Text = "Các suất hôm nay đã hết giờ bán tại quầy. Bạn vẫn bán được bắp nước." })" />
+        }
+        <div class="pos-movie-list" data-showtime-list>
+            @foreach (var g in groups)
+            {
+                var m = g.First();
+                <section class="pos-movie" data-search="@(m.MovieTitle.ToLowerInvariant()) @string.Join(" ", g.Select(s => Fmt.Time(s.StartTime)))">
+                    <div class="pos-movie-head">
+                        <img src="@(m.PosterUrl ?? "/img/placeholder-poster.svg")" alt="" width="40" height="60" class="pos-poster" loading="lazy" onerror="this.onerror=null;this.src='/img/placeholder-poster.svg'" />
+                        <div class="min-w-0">
+                            <h3 class="pos-movie-title text-clamp-2">@m.MovieTitle</h3>
+                            <partial name="_AgeBadge" model="@(new AgeBadgeVm(m.AgeRating))" />
+                            <span class="text-muted small">@Fmt.Duration(m.DurationMinutes)</span>
+                        </div>
+                    </div>
+                    <div class="pos-chips">
+                        @foreach (var s in g)
+                        {
+                            var tone = s.FreeSeats == 0 ? "is-full" : s.FreeSeats <= Model.LowSeatThreshold ? "is-low" : "is-many";
+                            var state = s.FreeSeats == 0 ? "hết ghế" : s.FreeSeats <= Model.LowSeatThreshold ? "sắp hết" : "còn nhiều";
+                            <button type="button" class="showtime-chip @tone" data-showtime-id="@s.ShowtimeId" disabled="@(s.FreeSeats == 0)"
+                                    aria-label="Suất @Fmt.Time(s.StartTime), @s.AuditoriumName, @StatusDisplay.Of(StatusDisplay.Language, s.LanguageFormat).Label, còn @s.FreeSeats ghế (@state)">
+                                <span class="chip-time">@Fmt.Time(s.StartTime)</span>
+                                <span class="chip-sub">@s.AuditoriumName · @s.AuditoriumFormat</span>
+                                <span class="chip-seats"><i class="bi @(s.FreeSeats == 0 ? "bi-x-circle" : "bi-person") " aria-hidden="true"></i>@(s.FreeSeats == 0 ? "Hết ghế" : $"còn {s.FreeSeats}")</span>
+                            </button>
+                        }
+                    </div>
+                </section>
+            }
+        </div>
+        <form class="pos-scan mt-4" data-scan-form autocomplete="off">
+            <label class="form-label" for="pos-scan-code">In vé đơn online</label>
+            <div class="input-group">
+                <input id="pos-scan-code" name="code" class="form-control" placeholder="Quét hoặc nhập mã hóa đơn, mã vé" />
+                <button type="submit" class="btn btn-secondary"><i class="bi bi-printer" aria-hidden="true"></i>In vé</button>
+            </div>
+        </form>
+        <div class="d-grid gap-2 mt-4">
+            <a class="btn btn-ghost" href="/pos/my-bills"><i class="bi bi-receipt" aria-hidden="true"></i>Hóa đơn của tôi</a>
+            <button type="button" class="btn btn-ghost" data-void-open><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>Hủy hóa đơn đã thanh toán</button>
+        </div>
+    </aside>
+    <div class="pos-drawer-scrim" data-drawer-close aria-hidden="true"></div>
+
+    <section class="pos-col pos-main" aria-label="Sơ đồ ghế và bắp nước">
+        <div class="pos-main-head">
+            <button type="button" class="btn btn-secondary pos-drawer-open" data-drawer-open aria-controls="pos-showtimes" aria-expanded="false"><i class="bi bi-list-ul" aria-hidden="true"></i>Suất chiếu</button>
+            <div class="page-tabs pos-tabs" role="tablist" aria-label="Chọn khu bán">
+                <button type="button" role="tab" id="tab-seats" aria-controls="panel-seats" aria-selected="true" class="is-active" data-tab="seats"><i class="bi bi-grid-3x3-gap" aria-hidden="true"></i>Sơ đồ ghế</button>
+                <button type="button" role="tab" id="tab-fnb" aria-controls="panel-fnb" aria-selected="false" data-tab="fnb" tabindex="-1"><i class="bi bi-cup-straw" aria-hidden="true"></i>Bắp nước</button>
+            </div>
+        </div>
+        <div id="panel-seats" role="tabpanel" aria-labelledby="tab-seats" class="pos-panel">
+            <div class="pos-seat-region" data-seat-region aria-live="polite">
+                <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-film", Title = "Chưa chọn suất", Text = "Chọn một suất ở cột bên trái để mở sơ đồ ghế." })" />
+            </div>
+        </div>
+        <div id="panel-fnb" role="tabpanel" aria-labelledby="tab-fnb" class="pos-panel" hidden>
+            <div class="chip-filter mb-3" role="group" aria-label="Lọc theo danh mục">
+                <button type="button" class="filter-chip is-active" data-cat="" aria-pressed="true">Tất cả</button>
+                @foreach (var c in Model.Categories)
+                {
+                    <button type="button" class="filter-chip" data-cat="@c.Id" aria-pressed="false">@c.Name</button>
+                }
+            </div>
+            <div class="pos-food-grid" data-food-grid>
+                @foreach (var d in Model.Drinks)
+                {
+                    var soldOut = d.Available <= 0;
+                    <article class="pos-food @(soldOut ? "is-soldout" : null)" data-drink-id="@d.Drink.Id" data-cat="@d.Drink.CategoryId">
+                        <img src="@(d.Drink.Image ?? "/img/placeholder-food.svg")" alt="" width="64" height="64" loading="lazy" onerror="this.onerror=null;this.src='/img/placeholder-food.svg'" />
+                        <div class="pos-food-body">
+                            <h3 class="pos-food-name text-clamp-2">@d.Drink.Name</h3>
+                            <p class="money mb-0">@Fmt.Money(d.Drink.Price)</p>
+                            <span class="pos-food-state" data-stock-label>@(soldOut ? "Tạm hết" : null)</span>
+                        </div>
+                        <button type="button" class="btn btn-secondary pos-food-add" data-add-drink="@d.Drink.Id" disabled="@soldOut" aria-label="Thêm một @d.Drink.Name"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+                    </article>
+                }
+            </div>
+        </div>
+    </section>
+
+    <aside class="pos-col pos-cart" aria-labelledby="pos-cart-title">
+        <div class="pos-cart-scroll">
+            <div class="pos-col-head">
+                <h2 class="h6 mb-0" id="pos-cart-title">Hóa đơn tạm tính</h2>
+                <span class="text-muted small" data-cart-code></span>
+            </div>
+            <div class="pos-hold" data-cart-hold hidden>
+                <span class="hold-timer" data-cart-timer role="timer"><i class="bi bi-hourglass-split" aria-hidden="true"></i><span data-time>--:--</span></span>
+                <button type="button" class="btn btn-ghost btn-sm" data-extend-hold>Gia hạn giữ ghế</button>
+            </div>
+
+            <form class="pos-member" data-member-form autocomplete="off">
+                <label class="form-label" for="pos-member-q">Thành viên <kbd>F1</kbd></label>
+                <div class="input-group">
+                    <input id="pos-member-q" name="query" class="form-control" placeholder="Mã hoặc số điện thoại" />
+                    <button type="submit" class="btn btn-secondary">Tra cứu</button>
+                </div>
+                <div class="pos-member-card" data-member-card hidden></div>
+            </form>
+
+            <div class="pos-cart-show" data-cart-showtime hidden></div>
+
+            <div data-cart-tickets-wrap hidden>
+                <div class="pos-section-head">
+                    <h3 class="h6 mb-0">Vé</h3>
+                    <label class="visually-hidden" for="pos-aud-all">Áp một đối tượng cho tất cả vé</label>
+                    <select id="pos-aud-all" class="form-select form-select-sm pos-aud-all" data-aud-all>
+                        <option value="">Áp cho tất cả vé…</option>
+                        @foreach (var a in Model.Audiences)
+                        {
+                            <option value="@a.AudienceType">@StatusDisplay.Of(StatusDisplay.Audience, a.AudienceType).Label</option>
+                        }
+                    </select>
+                </div>
+                <ul class="pos-lines" data-cart-tickets></ul>
+                <label class="form-check pos-guardian" data-guardian hidden>
+                    <input type="checkbox" class="form-check-input" data-guardian-check />
+                    <span class="form-check-label">Có người giám hộ đi cùng</span>
+                </label>
+            </div>
+
+            <div data-cart-items-wrap hidden>
+                <h3 class="h6">Bắp nước</h3>
+                <ul class="pos-lines" data-cart-items></ul>
+            </div>
+
+            <div data-cart-empty>
+                <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-receipt", Title = "Hóa đơn trống", Text = "Chọn suất và ghế, hoặc thêm món bắp nước để bắt đầu." })" />
+            </div>
+
+            <div class="pos-discounts" data-cart-discounts hidden>
+                <form class="input-group" data-voucher-form autocomplete="off">
+                    <label class="visually-hidden" for="pos-voucher">Mã voucher</label>
+                    <input id="pos-voucher" name="code" class="form-control" placeholder="Mã voucher" />
+                    <button type="submit" class="btn btn-secondary">Áp dụng</button>
+                </form>
+                <form class="input-group" data-points-form autocomplete="off" hidden>
+                    <label class="visually-hidden" for="pos-points">Số điểm đổi</label>
+                    <input id="pos-points" name="points" type="number" min="0" step="1" class="form-control" placeholder="Số điểm đổi" />
+                    <button type="submit" class="btn btn-secondary">Đổi điểm</button>
+                </form>
+                <p class="form-text mb-0" data-points-hint></p>
+            </div>
+        </div>
+
+        <div class="pos-cart-foot">
+            <div class="money-summary" aria-label="Tổng tiền" data-cart-summary></div>
+            <div class="pos-pay">
+                <button type="button" class="btn btn-primary btn-pay" data-pay="CASH" disabled><i class="bi bi-cash-coin" aria-hidden="true"></i>Tiền mặt <kbd>F4</kbd></button>
+                <button type="button" class="btn btn-secondary btn-pay" data-pay="VIETQR_SIM" disabled><i class="bi bi-qr-code" aria-hidden="true"></i>Chuyển khoản QR</button>
+            </div>
+            <button type="button" class="btn btn-ghost w-100" data-cancel-bill disabled><i class="bi bi-x-circle" aria-hidden="true"></i>Hủy hóa đơn <kbd>Esc</kbd></button>
+        </div>
+    </aside>
+</div>
+
+<partial name="_PosModals" model="Model" />
+
+<script type="application/json" id="pos-state">@Json.Serialize(new { cart = Model.Cart, lowSeat = Model.LowSeatThreshold })</script>
+
+@section Scripts {
+    <script src="~/lib/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
+    <script src="~/js/realtime.js" asp-append-version="true"></script>
+    <script src="~/js/seatmap.js" asp-append-version="true"></script>
+    <script src="~/js/pages/void-bill.js" asp-append-version="true"></script>
+    <script src="~/js/pages/pos.js" asp-append-version="true"></script>
+}
