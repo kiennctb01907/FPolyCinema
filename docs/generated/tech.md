@@ -34,7 +34,7 @@ Thư mục wwwroot/lib: be-vietnam-pro, bootstrap, bootstrap-icons, chart.js, ht
 
 ## Kiểm thử
 
-266 test trong 25 file.
+267 test trong 25 file.
 
 - tests/FPolyCinema.Tests/ArchitectureTests.cs: 8
 - tests/FPolyCinema.Tests/BillStateMachineTests.cs: 14
@@ -53,7 +53,7 @@ Thư mục wwwroot/lib: be-vietnam-pro, bootstrap, bootstrap-icons, chart.js, ht
 - tests/FPolyCinema.Tests/Phase4WebTests.cs: 3
 - tests/FPolyCinema.Tests/Phase5RulesTests.cs: 12
 - tests/FPolyCinema.Tests/Phase5ServiceTests.cs: 12
-- tests/FPolyCinema.Tests/Phase5WebTests.cs: 5
+- tests/FPolyCinema.Tests/Phase5WebTests.cs: 6
 - tests/FPolyCinema.Tests/PricingCalculatorTests.cs: 17
 - tests/FPolyCinema.Tests/SeatScoringTests.cs: 10
 - tests/FPolyCinema.Tests/SeedDataTests.cs: 13
@@ -89,7 +89,7 @@ src/
         PricingConstants.cs
         Roles.cs
       Rules/
-        (19 file: AgeRules.cs, AuditoriumLayout.cs, BillStateMachine.cs, CashDropCalculator.cs, ClusterFinder.cs, CodeGenerator.cs, …)
+        (23 file: AgeRules.cs, AuditoriumLayout.cs, BillStateMachine.cs, CashDropCalculator.cs, ClusterFinder.cs, CodeGenerator.cs, …)
       BusinessRuleException.cs
       FieldErrors.cs
     Entities/
@@ -129,6 +129,7 @@ src/
     Views/
       Account/
         _AccountBill.cshtml
+        _ProfileForm.cshtml
         Index.cshtml
       Auditoriums/
         Design.cshtml

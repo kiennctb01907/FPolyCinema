@@ -6,11 +6,11 @@
 Phase 5 – Web khách và đặt vé online: xong ngày 14/11/2026 (verify 5 --final ĐẠT, commit "Phase 5: …"; Phase 5 không có tag lab). Phase kế tiếp: Phase 6 – Vận hành thời gian thực.
 
 ### Việc đã làm ở Phase 5
-- Domain/Rules (logic thuần, có unit test, file ClusterFinder.cs): ClusterFinder (điểm ghế theo persona, cụm ghế liền nhau, bỏ cụm vi phạm ghế mồ côi và ghế đôi, tối đa 3 cụm), SelfCancelRules, OnlineAgeRules (câu xác nhận độ tuổi, người giám hộ phim K, nhắc giờ chiếu cho trẻ em), WebhookSignature (HMAC-SHA256), TierProgressCalculator.
+- Domain/Rules (logic thuần, có unit test, mỗi lớp một file): ClusterFinder (điểm ghế theo persona, cụm ghế liền nhau, bỏ cụm vi phạm ghế mồ côi và ghế đôi, tối đa 3 cụm), SelfCancelRules, OnlineAgeRules (câu xác nhận độ tuổi, người giám hộ phim K, nhắc giờ chiếu cho trẻ em), WebhookSignature (HMAC-SHA256), TierProgressCalculator.
 - Services: OnlineBookingService (giỏ online, giữ ghế, bắp nước, voucher, điểm, xác nhận tuổi, thanh toán VietQR mô phỏng hoặc ví, webhook có chữ ký, chống lặp, webhook đến muộn giữ lại đúng ghế hoặc OVERBOOKED_REFUNDED kèm voucher bù, tự hủy hoàn vào ví), SeatSuggestService (gợi ý theo persona, gợi ý chuyển suất), WalletService; CinemaHub.JoinBill và sự kiện PAYMENT_STATUS_CHANGED.
 - Màn hình: C1 trang chủ (hero, mua vé nhanh, tab phim, combo, ưu đãi), /movies, /showtimes, /menu; C2 chi tiết phim; C3 đặt vé 4 bước (persona, bản đồ điểm AI, Chọn nhanh, bắp nước và ưu đãi, thanh toán, màn hình QR trực tiếp); trang mô phỏng cổng thanh toán; C4 vé điện tử có tự hủy; C5 tài khoản 5 tab. Menu web khách mở khóa.
 - Kiểm tra giao diện: 13 đường dẫn, 39 ảnh; sửa BUG-031, BUG-032. Test kiến trúc phát hiện BUG-033.
-- Kiểm tra độc lập: lượt đầu 78/89 Đạt, 6 Thiếu, 5 Sai; đã sửa (BUG-034..040, quyết định 57–62) và kiểm lại (docs/audit/phase-5.md).
+- Kiểm tra độc lập: lượt đầu 78/89 Đạt, 6 Thiếu, 5 Sai; đã sửa (BUG-034..040, quyết định 57–62); sau đó sửa thêm BUG-041, BUG-042 và tách file quy tắc (quyết định 63–65) và kiểm lại (docs/audit/phase-5.md).
 
 Phase 4 – POS, hóa đơn, thống kê: xong ngày 13/11/2026 (verify 4 --final ĐẠT, commit "Phase 4: …", tag lab-6).
 
@@ -124,6 +124,9 @@ Phase 3 – Phim, phòng chiếu, giá, suất chiếu: xong ngày 13/11/2026 (v
 60. 14/11/2026 – Khách đăng nhập hoặc đăng ký xong quay lại returnUrl nếu RoleRouting.CanReturnTo cho phép (mọi trang web khách); returnUrl vào /admin, /pos, /scheduler, /me thì về trang chủ.
 61. 14/11/2026 – Poster mẫu (SvgArtGenerator) đặt chữ "FPoly Cinema" ở đáy, giữ nhãn tuổi góc trên phải theo U7.ART-01; góc trên trái để trống cho nhãn tuổi của thẻ phim (U5-13).
 62. 14/11/2026 – tools/ui-snapshots: route có đường dẫn sinh ngẫu nhiên hoặc phụ thuộc ngày (vé, suất chiếu) khai báo resolveFrom và resolveLink (một selector hoặc mảng selector); snap.mjs mở trang bắt đầu rồi theo liên kết đầu tiên khớp từng selector.
+63. 14/11/2026 – Form Thông tin cá nhân của khách gửi POST /account/profile (AccountController); dữ liệu sai thì hiện lại tab profile của /account kèm lỗi từng ô. /Login/Profile giữ cho nhân viên (trang /me).
+64. 14/11/2026 – Mỗi lớp quy tắc thuần một file: ClusterFinder, SelfCancelRules, OnlineAgeRules, WebhookSignature, TierProgressCalculator (trước đây chung ClusterFinder.cs).
+65. 14/11/2026 – Hộp xác nhận có nút chính là một hành động hủy thì nút đóng không ghi "Hủy" (dễ nhầm): hủy vé dùng "Giữ vé", hủy hóa đơn dùng "Không hủy".
 
 ## Thay đổi mô hình (ngày – bảng/cột/use case/màn hình – trước – sau)
 - 13/11/2026 – Bills thêm cột HoldExtended BIT NOT NULL DEFAULT 0 (thu ngân đã gia hạn giữ ghế một lần, SPEC 3.5); ShowtimeSeats thêm HoldAudienceType VARCHAR(20) NULL (đối tượng vé đã chọn cho ghế đang giữ, vé thật tạo khi thanh toán). Đã sửa S6-19, S6-23 trong docs/spec/s05-07-realtime-csdl-kiem-thu.md, chạy sync. CONTRACTS C3-39 thêm AuditAction VOID_BILL, ORPHAN_SEAT_OVERRIDE; C8-07 mã lỗi Phase 4 khai báo trong ErrorCodes.
@@ -135,7 +138,6 @@ Phase 3 – Phim, phòng chiếu, giá, suất chiếu: xong ngày 13/11/2026 (v
 ## Lỗi biết trước và việc còn lại
 - Phase 5: ảnh chụp lúc rạng sáng (ngày vận hành vẫn là hôm trước) có trang lịch chiếu và chi tiết phim "Hôm nay" rỗng vì mọi suất đã qua – đúng nghiệp vụ; routes.json chụp C3 bằng ngày thứ hai của dải ngày.
 - Phase 5: lời nhắc giờ chiếu cho trẻ em ở chip suất là tooltip trên icon mặt trăng (đã có trong aria-label của chip); trên điện thoại câu nhắc đầy đủ hiện ở trang đặt vé.
-- Phase 5: khách lưu hồ sơ mà dữ liệu sai thì trang hiện lại form ở Views/Login/Profile (vẫn báo lỗi đúng ô) thay vì tab Thông tin cá nhân của /account.
 - Phase 5: nút "Tôi đã tới rạp", trạng thái vào cửa trực tiếp trên vé (UI C4-03, C4-05) làm ở Phase 6; nút trợ lý AI (C1-06) ở Phase 7.
 - Phase 2: DeveloperExceptionPage của .NET vẫn tự bật trong Development nhưng chỉ hiện khi chính trang lỗi /Home/Error hỏng; mọi lỗi thường đi qua UseExceptionHandler, không hiện stack trace.
 - Phase 2: _SeatMap mới hiển thị trạng thái; chọn ghế, bàn phím, tooltip giá, thời gian thực làm ở Phase 4. Nút Đặt vé trên thẻ phim khóa đến Phase 5.

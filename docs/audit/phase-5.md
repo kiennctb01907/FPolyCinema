@@ -96,6 +96,6 @@ Cột "Đã sửa" ghi việc đã làm cho các dòng Thiếu hoặc Sai, ghi c
 | UC12 | Đạt | Ví, điểm, voucher, thông báo và đánh dấu đã đọc | – |
 
 Tổng lượt đầu: 78 Đạt, 6 Thiếu, 5 Sai (89 mã).
-Đã sửa 11 mã Thiếu hoặc Sai (BUG-034..040, quyết định 57–62 trong PROGRESS.md) và các ghi chú nhỏ (xóa UserDAL.AddWallet không dùng, số phút giữ ghế đọc từ cấu hình). Lượt kiểm lại U7.C3-05, U7.C4-02, S3.1-24, S3.6-12, S8.5-06, U7.C1-02, U7.C1-03, U7.C2-09, S4.1-12, S8.5-01, U8-09, S3.13-04: 12 Đạt, 0 Thiếu, 0 Sai (agent chạy 6 test liên quan, đều qua). Ghi chú còn lại, không chặn: lưu hồ sơ của khách bị lỗi kiểm tra dữ liệu thì trang hiện lại form ở Views/Login/Profile thay vì tab Thông tin cá nhân (ghi ở PROGRESS.md mục Lỗi biết trước).
+Đã sửa 11 mã Thiếu hoặc Sai (BUG-034..040, quyết định 57–62 trong PROGRESS.md) và các ghi chú nhỏ (xóa UserDAL.AddWallet không dùng, số phút giữ ghế đọc từ cấu hình). Lượt kiểm lại U7.C3-05, U7.C4-02, S3.1-24, S3.6-12, S8.5-06, U7.C1-02, U7.C1-03, U7.C2-09, S4.1-12, S8.5-01, U8-09, S3.13-04: 12 Đạt, 0 Thiếu, 0 Sai (agent chạy 6 test liên quan, đều qua). Ghi chú còn lại (lưu hồ sơ của khách bị lỗi kiểm tra dữ liệu thì hiện form ở Views/Login/Profile thay vì tab Thông tin cá nhân) đã sửa sau đó: BUG-041, POST /account/profile, có test.
 
 Kết quả: Đạt

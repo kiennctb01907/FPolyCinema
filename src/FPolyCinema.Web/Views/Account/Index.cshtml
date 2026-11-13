@@ -171,32 +171,7 @@
     default:
         <div class="row g-4">
             <section class="col-12 col-lg-7 card-ui" aria-labelledby="info-title">
-                <form asp-antiforgery="true" method="post" action="/Login/Profile" novalidate data-dirty-guard>
-                    <div class="card-section">
-                        <h2 class="card-section-title h5" id="info-title">Thông tin cá nhân</h2>
-                        <div class="mb-3">
-                            <label class="form-label" for="pf-name">Họ tên <span class="req" aria-hidden="true">*</span></label>
-                            <input class="form-control" id="pf-name" name="FullName" value="@Model.Profile.FullName" required maxlength="150" autocomplete="name" />
-                        </div>
-                        <div class="row g-3">
-                            <div class="col-12 col-sm-6">
-                                <label class="form-label" for="pf-phone">Số điện thoại</label>
-                                <input class="form-control" id="pf-phone" name="Phone" value="@Model.Profile.Phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="0901234567" />
-                            </div>
-                            <div class="col-12 col-sm-6">
-                                <label class="form-label" for="pf-birth">Ngày sinh</label>
-                                <div class="date-field">
-                                    <input class="form-control" id="pf-birth" name="BirthDate" type="date" value="@(Model.Profile.BirthDate?.ToString("yyyy-MM-dd"))" />
-                                    <span class="date-display" aria-hidden="true"></span>
-                                </div>
-                                <div class="form-text">Dùng để kiểm tra độ tuổi khi mua vé phim T13, T16, T18.</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="form-actions-sticky">
-                        <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Lưu</button>
-                    </div>
-                </form>
+                <partial name="_ProfileForm" model="Model.Profile" />
             </section>
             <section class="col-12 col-lg-5" aria-labelledby="pw-title">
                 <div class="card-ui card-ui-body">

@@ -1,0 +1,33 @@
+@model ProfileVm
+@* Form Thông tin cá nhân trong tab của trang tài khoản C5 (UC04): gửi POST /account/profile; dữ liệu sai thì trang hiện lại tab này,
+   lỗi chung ở đầu form và lỗi từng ô ngay dưới ô (UI mục 9). *@
+<form asp-antiforgery="true" method="post" action="/account/profile" novalidate data-dirty-guard>
+    <div class="card-section">
+        <h2 class="card-section-title h5" id="info-title">Thông tin cá nhân</h2>
+        <partial name="~/Views/Login/_FormErrors.cshtml" />
+        <div class="mb-3">
+            <label asp-for="FullName" class="form-label">Họ tên <span class="req" aria-hidden="true">*</span></label>
+            <input asp-for="FullName" class="form-control" maxlength="150" autocomplete="name" />
+            <span asp-validation-for="FullName"></span>
+        </div>
+        <div class="row g-3">
+            <div class="col-12 col-sm-6">
+                <label asp-for="Phone" class="form-label">Số điện thoại</label>
+                <input asp-for="Phone" class="form-control" type="tel" inputmode="tel" autocomplete="tel" placeholder="0901234567" />
+                <span asp-validation-for="Phone"></span>
+            </div>
+            <div class="col-12 col-sm-6">
+                <label asp-for="BirthDate" class="form-label">Ngày sinh</label>
+                <div class="date-field">
+                    <input asp-for="BirthDate" class="form-control" type="date" />
+                    <span class="date-display" aria-hidden="true"></span>
+                </div>
+                <span asp-validation-for="BirthDate"></span>
+                <div class="form-text">Dùng để kiểm tra độ tuổi khi mua vé phim T13, T16, T18.</div>
+            </div>
+        </div>
+    </div>
+    <div class="form-actions-sticky">
+        <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Lưu</button>
+    </div>
+</form>

@@ -10,7 +10,7 @@
       title: 'Hủy vé này?',
       message: 'Vé sẽ không dùng được nữa và ghế được mở bán lại.',
       consequences: ['Hoàn 100% số tiền đã trả vào ví FPoly.', 'Voucher và điểm đã dùng được trả lại; điểm đã cộng bị thu hồi.', 'Lượt tự hủy trong tháng giảm đi 1.'],
-      confirmText: 'Hủy vé',
+      confirmText: 'Hủy vé', cancelText: 'Giữ vé',
       tone: 'danger',
     });
     if (!ok) return;

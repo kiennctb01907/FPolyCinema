@@ -169,4 +169,39 @@ public class Phase5WebTests
         Assert.Equal("/", await LoginTo("/admin/bills"));
         Assert.Equal("/", await LoginTo("/pos/index"));
     }
+
+    [Fact]
+    public async Task AccountProfile_InvalidShowsErrorsInProfileTab_ValidSavesAndRedirects()
+    {
+        // UC04: form Thông tin cá nhân của /account gửi /account/profile; dữ liệu sai thì hiện lại tab kèm lỗi ô, đúng thì lưu và quay lại tab
+        using var f = new WebAppFactory(_db.ConnectionString, tools: false);
+        var c = Client(f);
+        var login = await (await c.GetAsync("/Login/Login")).Content.ReadAsStringAsync();
+        string FormToken(string html) => Regex.Match(html, "name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"").Groups[1].Value;
+        await c.PostAsync("/Login/Login", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["Email"] = "khach@fpolycinema.vn", ["Password"] = "123456", ["__RequestVerificationToken"] = FormToken(login),
+        }));
+        var page = await (await c.GetAsync("/account?tab=profile")).Content.ReadAsStringAsync();
+        Assert.Contains("action=\"/account/profile\"", page);
+        var token = FormToken(page);
+        var user = UserDAL.GetByEmail("khach@fpolycinema.vn")!;
+
+        var bad = await c.PostAsync("/account/profile", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["FullName"] = user.FullName, ["Phone"] = "12ab", ["__RequestVerificationToken"] = token,
+        }));
+        Assert.Equal(HttpStatusCode.OK, bad.StatusCode);
+        var html = await bad.Content.ReadAsStringAsync();
+        Assert.Contains("Số điện thoại gồm 9–11 chữ số", html);
+        Assert.Contains("Tài khoản của tôi", html);
+        Assert.Contains("aria-current=\"page\"><i class=\"bi bi-person\"", html);
+
+        var ok = await c.PostAsync("/account/profile", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["FullName"] = user.FullName, ["Phone"] = user.Phone ?? "0901234567", ["BirthDate"] = user.BirthDate?.ToString("yyyy-MM-dd") ?? "", ["__RequestVerificationToken"] = token,
+        }));
+        Assert.Equal(HttpStatusCode.Redirect, ok.StatusCode);
+        Assert.Equal("/account?tab=profile", ok.Headers.Location!.OriginalString);
+    }
 }

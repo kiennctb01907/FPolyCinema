@@ -1,12 +1,13 @@
 # Controller, route và quyền (sinh từ Controllers/*.cs)
 
-22 controller, 157 route.
+22 controller, 158 route.
 
 | Route | HTTP | Controller.Action | Quyền | File |
 |---|---|---|---|---|
 | / | GET | Home.Index | AllowAnonymous | src/FPolyCinema.Web/Controllers/HomeController.cs:30 |
-| /account | GET | Account.Index | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/AccountController.cs:30 |
-| /account/notifications/read | POST | Account.ReadAll | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/AccountController.cs:55 |
+| /account | GET | Account.Index | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/AccountController.cs:37 |
+| /account/notifications/read | POST | Account.ReadAll | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/AccountController.cs:95 |
+| /account/profile | POST | Account.Profile | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/AccountController.cs:46 |
 | /admin | GET | Statistics.Dashboard | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/StatisticsController.cs:37 |
 | /admin/auditoriums | GET | Auditoriums.Index | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/AuditoriumsController.cs:36 |
 | /admin/auditoriums/{}/design | GET | Auditoriums.Design | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/AuditoriumsController.cs:107 |
