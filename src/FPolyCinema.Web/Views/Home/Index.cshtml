@@ -1,43 +1,147 @@
+@model HomeVm
+@* Trang chủ C1 (UI mục 7): hero 420px (điện thoại 320px) giới thiệu 1 phim nổi bật; thanh mua vé nhanh kính mờ ngay dưới hero;
+   tab Đang chiếu và Sắp chiếu với lưới thẻ phim 5/4/3/2 cột; khối 4 combo bắp nước; khối ưu đãi công khai. *@
 @{
     ViewData["Title"] = "Trang chủ";
-    var user = Shell.User;
+    var f = Model.Featured;
 }
-@* TODO(Phase 5): thay bằng trang chủ C1 (hero phim nổi bật, mua vé nhanh, lưới phim đang chiếu và sắp chiếu, combo, ưu đãi). *@
-<section class="hero-lite site-section">
-    <h1>Chào mừng tới FPoly Cinema</h1>
-    <p class="text-muted fs-5">Chuỗi rạp chiếu phim của sinh viên FPT Polytechnic. Đặt vé online, chọn ghế đẹp và nhận bắp nước ngay khi tới rạp.</p>
-    <div class="d-flex flex-wrap gap-2 mt-4">
-        @if (user == null)
-        {
-            <a class="btn btn-primary btn-lg" href="/Login/Register"><i class="bi bi-person-plus" aria-hidden="true"></i>Đăng ký thành viên</a>
-            <a class="btn btn-ghost btn-lg" href="/Login/Login">Đăng nhập</a>
-        }
-        else if (Shell.IsStaff)
-        {
-            <a class="btn btn-primary btn-lg" href="@Shell.HomePath"><i class="bi bi-speedometer2" aria-hidden="true"></i>Vào trang làm việc</a>
-        }
-        else
-        {
-            <a class="btn btn-primary btn-lg" href="/Login/Profile"><i class="bi bi-person-circle" aria-hidden="true"></i>Xem tài khoản của bạn</a>
-        }
+@if (f != null)
+{
+    <section class="home-hero" aria-labelledby="hero-title">
+        <img class="home-hero-bg" src="@(f.PosterUrl ?? "/img/placeholder-poster.svg")" alt="" width="1200" height="420" onerror="this.onerror=null;this.src='/img/placeholder-poster.svg'" />
+        <div class="home-hero-body">
+            <partial name="_AgeBadge" model="@(new AgeBadgeVm(f.AgeRating, false, true))" />
+            <h1 id="hero-title" class="home-hero-title">@f.Title</h1>
+            <p class="home-hero-meta">@f.Meta</p>
+            <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-primary btn-lg" href="@f.BookUrl"><i class="bi bi-ticket-perforated" aria-hidden="true"></i>Đặt vé</a>
+                @if (!string.IsNullOrEmpty(f.TrailerUrl))
+                {
+                    <a class="btn btn-ghost btn-lg" href="@f.TrailerUrl" target="_blank" rel="noopener"><i class="bi bi-play-circle" aria-hidden="true"></i>Xem trailer</a>
+                }
+                else
+                {
+                    <a class="btn btn-ghost btn-lg" href="/movies/@f.Id"><i class="bi bi-info-circle" aria-hidden="true"></i>Xem chi tiết</a>
+                }
+            </div>
+        </div>
+    </section>
+}
+else
+{
+    <section class="hero-lite site-section">
+        <h1>Chào mừng tới FPoly Cinema</h1>
+        <p class="text-muted fs-5 mb-0">Lịch chiếu mới sẽ sớm được cập nhật.</p>
+    </section>
+}
+
+<form class="quick-buy" action="/booking" method="get" data-quick-buy aria-label="Mua vé nhanh">
+    <div class="quick-buy-field">
+        <label class="form-label" for="qb-cinema">Rạp</label>
+        <select class="form-select" id="qb-cinema" data-qb="cinema">
+            <option value="">Tất cả rạp</option>
+            @foreach (var c in Model.Cinemas)
+            {
+                <option value="@c.Id" selected="@(c.Id == Model.CinemaId)">@c.Name</option>
+            }
+        </select>
     </div>
+    <div class="quick-buy-field">
+        <label class="form-label" for="qb-movie">Phim</label>
+        <select class="form-select" id="qb-movie" data-qb="movie" disabled><option value="">Chọn phim</option></select>
+    </div>
+    <div class="quick-buy-field">
+        <label class="form-label" for="qb-date">Ngày</label>
+        <select class="form-select" id="qb-date" data-qb="date" disabled><option value="">Chọn ngày</option></select>
+    </div>
+    <div class="quick-buy-field">
+        <label class="form-label" for="qb-time">Suất</label>
+        <select class="form-select" id="qb-time" data-qb="time" disabled><option value="">Chọn suất</option></select>
+    </div>
+    <button type="submit" class="btn btn-primary quick-buy-go" disabled data-qb="go"><i class="bi bi-lightning-charge" aria-hidden="true"></i>Mua vé</button>
+    <p class="field-error quick-buy-error" role="alert" data-qb="error" hidden><span>Chưa tải được lịch chiếu. Bạn kiểm tra mạng rồi</span> <button type="button" class="btn btn-link btn-sm p-0 align-baseline" data-qb="retry">thử lại</button></p>
+</form>
+
+<section class="site-section" aria-labelledby="movies-title">
+    <div class="section-head">
+        <h2 id="movies-title" class="visually-hidden">Phim</h2>
+        <nav class="page-tabs" aria-label="Danh sách phim">
+            <a class="@(Model.Tab == "now" ? "active" : null)" href="/?tab=now#movies-title" aria-current="@(Model.Tab == "now" ? "page" : null)">Đang chiếu</a>
+            <a class="@(Model.Tab == "soon" ? "active" : null)" href="/?tab=soon#movies-title" aria-current="@(Model.Tab == "soon" ? "page" : null)">Sắp chiếu</a>
+        </nav>
+        <a class="btn btn-ghost" href="/movies?tab=@Model.Tab">Xem tất cả<i class="bi bi-arrow-right" aria-hidden="true"></i></a>
+    </div>
+    @{ var list = Model.Tab == "now" ? Model.NowShowing : Model.ComingSoon; }
+    @if (list.Count == 0)
+    {
+        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-film", Title = Model.Tab == "now" ? "Chưa có phim đang chiếu" : "Chưa có phim sắp chiếu", Text = "Lịch chiếu mới sẽ sớm được cập nhật.", ActionLabel = "Xem lịch chiếu", ActionUrl = "/showtimes", ActionIcon = "bi-calendar3" })" />
+    }
+    else
+    {
+        <div class="movie-grid">
+            @foreach (var m in list.Take(10))
+            {
+                <partial name="_MovieCard" model="m" />
+            }
+        </div>
+    }
 </section>
 
-<section class="site-section" aria-labelledby="cinemas-title">
-    <h2 id="cinemas-title">Hệ thống rạp</h2>
-    <div class="row g-4">
-        @foreach (var c in Shell.Cinema.Cinemas)
-        {
-            <div class="col-12 col-md-6">
-                <div class="card-ui card-ui-body h-100">
-                    <h3 class="h5 mb-1">@c.Name</h3>
-                    <p class="text-muted mb-2">@c.Address</p>
-                    @if (!string.IsNullOrEmpty(c.Phone))
-                    {
-                        <p class="mb-0"><i class="bi bi-telephone" aria-hidden="true"></i> <a href="tel:@c.Phone">@c.Phone</a></p>
-                    }
-                </div>
-            </div>
-        }
+<section class="site-section" aria-labelledby="combo-title">
+    <div class="section-head">
+        <h2 id="combo-title">Combo bắp nước nổi bật</h2>
+        <a class="btn btn-ghost" href="/menu">Xem thực đơn<i class="bi bi-arrow-right" aria-hidden="true"></i></a>
     </div>
+    @if (Model.Combos.Count == 0)
+    {
+        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-cup-straw", Title = "Chưa có combo", Text = "Thực đơn bắp nước sẽ sớm được cập nhật.", ActionLabel = "Xem thực đơn", ActionUrl = "/menu", ActionIcon = "bi-cup-straw" })" />
+    }
+    else
+    {
+        <div class="combo-grid">
+            @foreach (var c in Model.Combos)
+            {
+                <article class="combo-card @(c.SoldOut ? "is-soldout" : null)">
+                    <div class="food-img">
+                        <img src="@(c.Image ?? "/img/placeholder-food.svg")" alt="@c.Name" width="300" height="300" loading="lazy" onerror="this.onerror=null;this.src='/img/placeholder-food.svg'" />
+                        @if (c.SoldOut)
+                        {
+                            <div class="soldout" role="status">Tạm hết</div>
+                        }
+                    </div>
+                    <h3 class="h6 text-clamp-2 mb-1">@c.Name</h3>
+                    <p class="money mb-0">@Fmt.Money(c.Price)</p>
+                </article>
+            }
+        </div>
+        <p class="text-muted small mt-3 mb-0">Chọn combo khi đặt vé online (bước 3) hoặc mua tại quầy.</p>
+    }
 </section>
+
+<section class="site-section" id="uu-dai" aria-labelledby="promo-title">
+    <h2 id="promo-title">Ưu đãi</h2>
+    @if (Model.Promos.Count == 0)
+    {
+        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-gift", Title = "Chưa có ưu đãi công khai", Text = "Theo dõi trang để nhận ưu đãi mới nhất.", ActionLabel = "Xem phim", ActionUrl = "/movies", ActionIcon = "bi-film" })" />
+    }
+    else
+    {
+        <div class="promo-grid">
+            @foreach (var v in Model.Promos)
+            {
+                <article class="promo-card">
+                    <i class="bi bi-ticket-detailed promo-icon" aria-hidden="true"></i>
+                    <div class="min-w-0">
+                        <h3 class="h6 mb-1">@VoucherText.Title(v)</h3>
+                        <p class="small text-muted mb-2">@VoucherText.Condition(v)</p>
+                        <p class="mb-0">Mã <span class="promo-code">@v.Code</span></p>
+                    </div>
+                </article>
+            }
+        </div>
+    }
+</section>
+
+@section Scripts {
+    <script src="~/js/pages/quick-buy.js" asp-append-version="true"></script>
+}

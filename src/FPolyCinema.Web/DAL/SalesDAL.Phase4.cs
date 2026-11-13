@@ -356,10 +356,7 @@ public static partial class UserDAL
     /// <summary>Cộng hoặc trừ điểm (không âm) và đặt hạng mới. Trả số dòng đã đổi (0 nếu số dư không đủ).</summary>
     public static int AddPoints(int id, int delta, string tier, SqlConnection conn, SqlTransaction tx) =>
         DBUtil.ExecuteNonQuery("UPDATE Users SET LoyaltyPoints = LoyaltyPoints + @2, Tier = @3 WHERE Id = @1 AND LoyaltyPoints + @2 >= 0", new List<object> { id, delta, tier }, conn, tx);
-
-    /// <summary>Cộng tiền vào ví (hoàn tiền), trả số dư mới.</summary>
-    public static long AddWallet(int id, long amount, SqlConnection conn, SqlTransaction tx) =>
-        Convert.ToInt64(DBUtil.ExecuteScalar("UPDATE Users SET WalletBalance = WalletBalance + @2 OUTPUT inserted.WalletBalance WHERE Id = @1", new List<object> { id, amount }, conn, tx));
+    // Ví chỉ đổi qua WalletService.Debit, Credit (luôn ghi WalletTransactions trong cùng transaction, SPEC 3.13).
 }
 
 public static partial class VoucherDAL

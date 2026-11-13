@@ -1,0 +1,259 @@
+@model BookingVm
+@* Đặt vé C3 /booking/{showtimeId}: stepper 4 bước ở trên cùng; từ 992px chia 2 cột (nội dung 8/12, khối tóm tắt dính bên phải 4/12, cách đỉnh 88px);
+   điện thoại một cột, thanh dính đáy hiện tổng tiền và nút chính, chạm vào thanh mở bottom sheet chi tiết. Chưa đăng nhập vẫn xem sơ đồ ghế;
+   bấm chọn ghế thì mở hộp đăng nhập hoặc đăng ký, xong quay lại đúng suất. *@
+@{
+    var s = Model.Info.Showtime;
+    var mv = Model.Info.Movie;
+    ViewData["Title"] = "Đặt vé · " + mv.Title;
+    var lang = StatusDisplay.Of(StatusDisplay.Language, s.LanguageFormat).Label;
+    var personas = new[] { (SeatPersona.BestViewAudio, "Đẹp nhất", "bi-stars"), (SeatPersona.NearScreen, "Gần màn hình", "bi-display"), (SeatPersona.PrivateCouple, "Cặp đôi", "bi-heart"), (SeatPersona.NearAisle, "Gần lối đi", "bi-signpost-split") };
+    var steps = new StepperVm { Steps = new() { "Chọn suất", "Chọn ghế", "Bắp nước và ưu đãi", "Thanh toán" }, Current = 2 };
+    var loginUrl = "/Login/Login?returnUrl=" + Uri.EscapeDataString(Model.ReturnUrl);
+    var registerUrl = "/Login/Register?returnUrl=" + Uri.EscapeDataString(Model.ReturnUrl);
+}
+<div class="booking" data-booking data-showtime-id="@s.Id" data-logged-in="@(Model.LoggedIn ? "1" : "0")" data-customer="@(Model.IsCustomer ? "1" : "0")">
+    <div class="booking-stepper" data-stepper>
+        <partial name="_Stepper" model="steps" />
+    </div>
+    @* Nhãn tuổi luôn thấy được ở mọi bước (SPEC 3.1-24): trên điện thoại khối tóm tắt ẩn nên hiện tên phim và nhãn ở đây;
+       template dùng chung partial _AgeBadge cho khối tóm tắt do booking.js dựng. *@
+    <p class="booking-movie-line d-lg-none"><strong>@mv.Title</strong> <partial name="_AgeBadge" model="@(new AgeBadgeVm(mv.AgeRating, ShowExplanation: true))" /></p>
+    <template data-age-badge-tpl><partial name="_AgeBadge" model="@(new AgeBadgeVm(mv.AgeRating))" /></template>
+
+    @if (!Model.SalesOpen)
+    {
+        <div class="alert-ui tone-warning mb-4" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i>Suất @Fmt.Time(s.StartTime) đã hết giờ bán online. Bạn chọn suất khác ở trang phim.</div>
+    }
+    @if (Model.LoggedIn && !Model.IsCustomer)
+    {
+        <div class="alert-ui tone-info mb-4" role="status"><i class="bi bi-info-circle" aria-hidden="true"></i>Đặt vé online dành cho tài khoản khách hàng. Bạn đang đăng nhập bằng tài khoản nhân viên nên chỉ xem được sơ đồ ghế.</div>
+    }
+
+    <div class="row g-4">
+        <div class="col-12 col-lg-8">
+            @* Bước 1: chọn suất *@
+            <section class="card-ui card-ui-body booking-step" data-step-panel="1" hidden aria-labelledby="step1-title">
+                <h2 id="step1-title" class="card-ui-title">Chọn suất · @mv.Title</h2>
+                <p class="text-muted">@Model.CinemaName · @Fmt.WeekdayDate(s.StartTime). Bấm giờ để đổi suất; ghế đang chọn ở suất cũ sẽ được trả lại.</p>
+                <ul class="time-chips">
+                    @foreach (var o in Model.OtherTimes)
+                    {
+                        var current = o.ShowtimeId == s.Id;
+                        <li>
+                            @if (o.FreeSeats <= 0 && !current)
+                            {
+                                <span class="time-chip is-soldout" aria-disabled="true"><span class="time-chip-time">@Fmt.Time(o.StartTime)</span><span class="time-chip-sub">Hết vé</span></span>
+                            }
+                            else
+                            {
+                                <a class="time-chip @(current ? "is-active" : null)" href="/booking/@o.ShowtimeId" aria-current="@(current ? "true" : null)">
+                                    <span class="time-chip-time">@Fmt.Time(o.StartTime)</span>
+                                    <span class="time-chip-sub">@o.AuditoriumFormat · @StatusDisplay.Of(StatusDisplay.Language, o.LanguageFormat).Label · còn @o.FreeSeats ghế</span>
+                                </a>
+                            }
+                        </li>
+                    }
+                </ul>
+                <div class="booking-nav">
+                    <a class="btn btn-ghost" href="/movies/@mv.Id#lich-chieu"><i class="bi bi-calendar3" aria-hidden="true"></i>Ngày khác</a>
+                    <button type="button" class="btn btn-primary" data-go="2">Chọn ghế<i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+                </div>
+            </section>
+
+            @* Bước 2: chọn ghế *@
+            <section class="booking-step" data-step-panel="2" aria-labelledby="step2-title">
+                <h2 id="step2-title" class="visually-hidden">Chọn ghế</h2>
+                <div class="seat-tools">
+                    <div class="segmented" role="radiogroup" aria-label="Kiểu chỗ ngồi bạn thích">
+                        @foreach (var (key, label, icon) in personas)
+                        {
+                            <button type="button" role="radio" aria-checked="@(Model.Persona == key ? "true" : "false")" class="@(Model.Persona == key ? "is-active" : null)" data-persona="@key"><i class="bi @icon" aria-hidden="true"></i>@label</button>
+                        }
+                    </div>
+                    <div class="seat-tools-row">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="heat-toggle" data-heat-toggle />
+                            <label class="form-check-label" for="heat-toggle">Bản đồ điểm AI</label>
+                        </div>
+                        <div class="qty-stepper" role="group" aria-label="Số vé">
+                            <button type="button" class="btn btn-secondary" data-qty-step="-1" aria-label="Bớt một vé"><i class="bi bi-dash-lg" aria-hidden="true"></i></button>
+                            <span class="qty" aria-live="polite"><span data-qty-value>@Model.Quantity</span> vé</span>
+                            <button type="button" class="btn btn-secondary" data-qty-step="1" aria-label="Thêm một vé"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
+                        </div>
+                        <button type="button" class="btn btn-secondary" data-pick-for-me disabled="@(!Model.SalesOpen)"><i class="bi bi-magic" aria-hidden="true"></i>Chọn giúp tôi</button>
+                    </div>
+                </div>
+
+                <div class="ai-banner" data-ai-banner hidden role="status">
+                    <i class="bi bi-stars" aria-hidden="true"></i>
+                    <span class="ai-banner-text" data-ai-text></span>
+                    <div class="ai-banner-alts" data-ai-alts></div>
+                    <button type="button" class="btn btn-primary btn-sm" data-ai-pick disabled="@(!Model.SalesOpen)">Chọn nhanh</button>
+                </div>
+                <div class="ai-banner is-switch" data-switch-banner hidden role="status">
+                    <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
+                    <span class="ai-banner-text" data-switch-text></span>
+                    <a class="btn btn-secondary btn-sm" data-switch-link href="#">Chuyển suất</a>
+                </div>
+                @if (Model.CurfewNotice != null)
+                {
+                    <p class="notice-line"><i class="bi bi-moon-stars-fill" aria-hidden="true"></i>@Model.CurfewNotice (suất kết thúc lúc @Fmt.Time(s.EndTime)).</p>
+                }
+
+                <div class="seatmap-zoom" role="group" aria-label="Phóng to sơ đồ ghế">
+                    <button type="button" class="btn btn-secondary btn-icon" data-zoom="-1" aria-label="Thu nhỏ sơ đồ"><i class="bi bi-zoom-out" aria-hidden="true"></i></button>
+                    <span class="small text-muted" data-zoom-label>Cỡ 1/3</span>
+                    <button type="button" class="btn btn-secondary btn-icon" data-zoom="1" aria-label="Phóng to sơ đồ"><i class="bi bi-zoom-in" aria-hidden="true"></i></button>
+                </div>
+                <div class="seatmap-scroll" data-seat-region>
+                    <partial name="_SeatMap" model="Model.SeatMap" />
+                </div>
+                <p class="small text-muted mt-2 mb-0">Bấm ghế để chọn hoặc bỏ chọn; trên điện thoại nhấn giữ để xem điểm và giá. Ghế được giữ @(Model.Cart?.HoldExpiresAt is DateTime ? "đến khi hết đồng hồ" : Model.SeatHoldMinutes + " phút") sau khi chọn ghế đầu tiên.</p>
+                <div class="booking-nav">
+                    <button type="button" class="btn btn-ghost" data-go="1"><i class="bi bi-arrow-left" aria-hidden="true"></i>Đổi suất</button>
+                    <button type="button" class="btn btn-primary" data-go="3" data-need-seat>Tiếp tục<i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+                </div>
+            </section>
+
+            @* Bước 3: bắp nước và ưu đãi *@
+            <section class="card-ui card-ui-body booking-step" data-step-panel="3" hidden aria-labelledby="step3-title">
+                <h2 id="step3-title" class="card-ui-title">Bắp nước và ưu đãi</h2>
+                <div class="booking-food-grid">
+                    @foreach (var d in Model.Drinks)
+                    {
+                        <div data-drink-id="@d.Id"><partial name="_FoodCard" model="d" /></div>
+                    }
+                </div>
+                <div class="row g-4 mt-1">
+                    <div class="col-12 col-md-6">
+                        <form class="voucher-form" data-voucher-form novalidate>
+                            <label class="form-label" for="bk-voucher">Mã voucher</label>
+                            <div class="d-flex gap-2">
+                                <input class="form-control text-uppercase" id="bk-voucher" name="code" autocomplete="off" placeholder="Ví dụ CHAOBAN" maxlength="30" />
+                                <button type="submit" class="btn btn-secondary">Áp dụng</button>
+                            </div>
+                            <p class="field-error" data-field-error="code" hidden></p>
+                            <p class="small mt-1 mb-0" data-voucher-applied hidden></p>
+                        </form>
+                    </div>
+                    <div class="col-12 col-md-6 d-flex flex-column gap-3">
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="bk-points" data-use-points disabled="@(Model.LoyaltyPoints <= 0)" />
+                            <label class="form-check-label" for="bk-points">Dùng điểm: bạn có <strong>@Fmt.Number(Model.LoyaltyPoints)</strong> điểm (<span class="money">@Fmt.Money(Model.LoyaltyPoints * Model.PointValueVnd)</span>)</label>
+                        </div>
+                        <p class="small text-muted mb-0" data-points-hint></p>
+                        <div class="form-check form-switch mb-0">
+                            <input class="form-check-input" type="checkbox" role="switch" id="bk-wallet" data-use-wallet disabled="@(Model.WalletBalance <= 0)" />
+                            <label class="form-check-label" for="bk-wallet">Dùng ví FPoly: số dư <strong class="money">@Fmt.Money(Model.WalletBalance)</strong></label>
+                        </div>
+                    </div>
+                </div>
+                <div class="booking-nav">
+                    <button type="button" class="btn btn-ghost" data-go="2"><i class="bi bi-arrow-left" aria-hidden="true"></i>Chọn ghế</button>
+                    <button type="button" class="btn btn-primary" data-go="4">Tiếp tục<i class="bi bi-arrow-right" aria-hidden="true"></i></button>
+                </div>
+            </section>
+
+            @* Bước 4: thanh toán *@
+            <section class="card-ui card-ui-body booking-step" data-step-panel="4" hidden aria-labelledby="step4-title">
+                <h2 id="step4-title" class="card-ui-title">Thanh toán</h2>
+                <fieldset class="pay-methods">
+                    <legend class="form-label">Phương thức thanh toán</legend>
+                    <label class="pay-method">
+                        <input type="radio" name="pay-method" value="@PaymentMethod.VietQrSim" checked data-pay-method />
+                        <span class="pay-method-body"><i class="bi bi-qr-code" aria-hidden="true"></i><span><strong>VietQR (mô phỏng)</strong><span class="d-block small text-muted">Quét mã QR bằng ứng dụng ngân hàng.</span></span></span>
+                    </label>
+                    <label class="pay-method">
+                        <input type="radio" name="pay-method" value="@PaymentMethod.Wallet" data-pay-method disabled="@(Model.WalletBalance <= 0)" />
+                        <span class="pay-method-body"><i class="bi bi-wallet2" aria-hidden="true"></i><span><strong>Ví FPoly</strong><span class="d-block small text-muted">Số dư <span class="money">@Fmt.Money(Model.WalletBalance)</span>.</span></span></span>
+                    </label>
+                </fieldset>
+                @if (Model.Confirmations.Count > 0)
+                {
+                    <div class="confirm-list" role="group" aria-label="Xác nhận theo quy định">
+                        @foreach (var c in Model.Confirmations)
+                        {
+                            var id = "bk-" + c.Code.ToLowerInvariant();
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="@id" data-confirm="@(c.Code == ErrorCodes.GuardianRequired ? "guardian" : "age")" />
+                                <label class="form-check-label" for="@id">@c.Text</label>
+                            </div>
+                        }
+                    </div>
+                }
+                <p class="small text-muted">Bằng việc thanh toán, bạn đồng ý với <a href="/policies/terms">điều khoản sử dụng</a> và <a href="/policies/cancellation">chính sách hủy vé</a>.</p>
+                <div class="booking-nav">
+                    <button type="button" class="btn btn-ghost" data-go="3"><i class="bi bi-arrow-left" aria-hidden="true"></i>Bắp nước</button>
+                    <button type="button" class="btn btn-primary btn-lg" data-pay-btn disabled="@(!Model.SalesOpen)"><i class="bi bi-lock" aria-hidden="true"></i><span data-pay-label>Thanh toán</span></button>
+                </div>
+            </section>
+        </div>
+
+        @* Khối tóm tắt dính bên phải *@
+        <aside class="col-12 col-lg-4 d-none d-lg-block" aria-label="Tóm tắt đơn">
+            <div class="booking-summary card-ui" data-summary-host>
+                <div data-summary></div>
+            </div>
+        </aside>
+    </div>
+
+    @* Thanh dính đáy trên điện thoại *@
+    <div class="booking-bar d-lg-none" data-booking-bar>
+        <button type="button" class="booking-bar-sum" data-bs-toggle="offcanvas" data-bs-target="#booking-sheet" aria-controls="booking-sheet">
+            <span class="small text-muted d-block">Tổng tiền · xem chi tiết</span>
+            <span class="booking-bar-total money" data-bar-total>0 ₫</span>
+        </button>
+        <button type="button" class="btn btn-primary" data-bar-primary>Tiếp tục</button>
+    </div>
+    <div class="offcanvas offcanvas-bottom booking-sheet" tabindex="-1" id="booking-sheet" aria-labelledby="booking-sheet-title" data-theme="cinema" data-bs-theme="dark">
+        <div class="offcanvas-header">
+            <h2 class="offcanvas-title h5" id="booking-sheet-title">Chi tiết đơn</h2>
+            <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Đóng"></button>
+        </div>
+        <div class="offcanvas-body" data-summary-sheet></div>
+    </div>
+
+    @* Hộp đăng nhập khi chưa đăng nhập mà bấm chọn ghế *@
+    <div class="modal fade" id="booking-login" tabindex="-1" aria-labelledby="booking-login-title" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2 class="modal-title" id="booking-login-title">Đăng nhập để chọn ghế</h2>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="confirm-icon tone-info"><i class="bi bi-person-lock" aria-hidden="true"></i></div>
+                    <p class="mb-0">Bạn đăng nhập hoặc đăng ký thành viên để giữ ghế và thanh toán. Xong bạn quay lại đúng suất @Fmt.Time(s.StartTime) này.</p>
+                </div>
+                <div class="modal-footer">
+                    <a class="btn btn-secondary" href="@registerUrl">Đăng ký</a>
+                    <a class="btn btn-primary" href="@loginUrl">Đăng nhập</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script type="application/json" id="booking-state">@Json.Serialize(new
+{
+    showtimeId = s.Id,
+    cart = Model.Cart,
+    persona = Model.Persona,
+    quantity = Model.Quantity,
+    salesOpen = Model.SalesOpen,
+    loyaltyPoints = Model.LoyaltyPoints,
+    pointValue = Model.PointValueVnd,
+    walletBalance = Model.WalletBalance,
+    goodScore = Model.GoodClusterScore,
+    holdMinutes = Model.SeatHoldMinutes,
+    movie = new { title = mv.Title, ageRating = mv.AgeRating, ageText = StatusDisplay.AgeExplanation(mv.AgeRating), poster = mv.PosterUrl ?? "/img/placeholder-poster.svg" },
+    show = new { cinema = Model.CinemaName, room = Model.Info.Auditorium.Name, date = Fmt.WeekdayDate(s.StartTime), time = Fmt.Time(s.StartTime) + "–" + Fmt.Time(s.EndTime), format = Model.Info.Auditorium.Format, language = lang },
+})</script>
+
+@section Scripts {
+    <script src="~/lib/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
+    <script src="~/js/realtime.js" asp-append-version="true"></script>
+    <script src="~/js/seatmap.js" asp-append-version="true"></script>
+    <script src="~/js/pages/booking.js" asp-append-version="true"></script>
+}

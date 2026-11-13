@@ -40,7 +40,8 @@ public class LoginController : AppControllerBase
     {
         var target = SafeReturn(returnUrl, role);
         if (target.StartsWith("/Login/", StringComparison.OrdinalIgnoreCase)) target = RoleRouting.HomePath(role);
-        if (role == Roles.Customer && RoleRouting.AreaOfPath(target, Roles.Manager) != UiArea.Customer && !target.StartsWith("/me")) target = RoleRouting.HomePath(role);
+        // Khách quay lại đúng trang đang đứng (ví dụ /booking/{suất}), trừ khu vực quản trị, quầy và /me (UI C3-05)
+        if (role == Roles.Customer && !RoleRouting.CanReturnTo(target, role)) target = RoleRouting.HomePath(role);
         return target;
     }
 
@@ -180,6 +181,7 @@ public class LoginController : AppControllerBase
     public IActionResult Profile()
     {
         if (RoleRouting.IsStaff(CurrentRole)) return Redirect("/me");
+        if (CurrentRole == Roles.Customer) return Redirect("/account?tab=profile");
         var user = _auth.GetUser(CurrentUserId);
         if (user == null) return NotFoundPage();
         return ProfileView(user, new ProfileVm { FullName = user.FullName, Phone = user.Phone, BirthDate = user.BirthDate });
@@ -210,7 +212,7 @@ public class LoginController : AppControllerBase
             await SignInAsync(user);
             if (WantsJson) return ApiOk(new { message = "Đã lưu thay đổi", fullName = user.FullName, initials = Fmt.Initials(user.FullName) });
             Toast("success", "Đã lưu thay đổi");
-            return Redirect(RoleRouting.IsStaff(user.Role) ? "/me" : "/Login/Profile");
+            return Redirect(RoleRouting.IsStaff(user.Role) ? "/me" : "/account?tab=profile");
         }
         catch (BusinessRuleException ex) when (ex.Code == ErrorCodes.ValidationFailed && !WantsJson)
         {

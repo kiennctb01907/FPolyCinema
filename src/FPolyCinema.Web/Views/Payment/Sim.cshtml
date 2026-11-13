@@ -1,0 +1,39 @@
+@model PaymentSimVm
+@* Trang mô phỏng cổng thanh toán /payment-sim/pay?billId= (SPEC 3.7-01): hiện QR và hai nút "Thanh toán thành công", "Thất bại".
+   Bấm nút thì trang gọi POST /payments/webhook giống cổng thật, kèm chữ ký HMAC-SHA256 ở header X-Signature và ProviderTxnId. *@
+@{
+    ViewData["Title"] = "Cổng thanh toán mô phỏng";
+    var b = Model.Bill!;
+}
+<div class="form-narrow mx-auto">
+    <section class="card-ui card-ui-body sim-card" aria-labelledby="sim-title" data-payment-sim>
+        <p class="soon-pill mb-2">Cổng thanh toán mô phỏng</p>
+        <h1 id="sim-title" class="h4">Thanh toán đơn @b.Code</h1>
+        <p class="pay-amount money">@Fmt.Money(b.Total)</p>
+        <div class="d-flex justify-content-center mb-3">
+            <partial name="_QrBlock" model="@(new QrBlockVm(Model.QrDataUri, "FPOLYCINEMA · " + b.Code))" />
+        </div>
+        @if (b.Status != BillStatus.Waiting && !(b.Status == BillStatus.Cancel && b.CancelReason == CancelReason.Expired))
+        {
+            <div class="alert-ui tone-info" role="status"><i class="bi bi-info-circle" aria-hidden="true"></i>Đơn này đang ở trạng thái "@StatusDisplay.Of(StatusDisplay.Bill, b.Status).Label". Gửi thanh toán lúc này sẽ được hoàn lại.</div>
+        }
+        else if (b.Status == BillStatus.Cancel)
+        {
+            <div class="alert-ui tone-warning" role="status"><i class="bi bi-hourglass-bottom" aria-hidden="true"></i>Đơn đã hết giờ giữ ghế. Thanh toán lúc này là webhook đến muộn: hệ thống giữ lại ghế cũ nếu còn trống, nếu không thì hoàn tiền và tặng voucher.</div>
+        }
+        <div class="d-grid gap-2" data-sim-actions>
+            <button type="button" class="btn btn-success btn-lg" data-sim-send="success"><i class="bi bi-check2-circle" aria-hidden="true"></i>Thanh toán thành công</button>
+            <button type="button" class="btn btn-danger" data-sim-send="fail"><i class="bi bi-x-circle" aria-hidden="true"></i>Thất bại</button>
+        </div>
+        <p class="small mt-3 mb-0" data-sim-result role="status" aria-live="polite"></p>
+        @if (Model.ReturnUrl != null)
+        {
+            <a class="btn btn-ghost mt-3" href="@Model.ReturnUrl"><i class="bi bi-arrow-left" aria-hidden="true"></i>Về màn hình chờ thanh toán</a>
+        }
+    </section>
+</div>
+<script type="application/json" id="sim-state">@Json.Serialize(new { success = Model.SuccessPayload, successSig = Model.SuccessSignature, fail = Model.FailPayload, failSig = Model.FailSignature })</script>
+
+@section Scripts {
+    <script src="~/js/pages/payment-sim.js" asp-append-version="true"></script>
+}

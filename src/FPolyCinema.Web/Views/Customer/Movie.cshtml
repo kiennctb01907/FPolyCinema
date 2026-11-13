@@ -1,0 +1,58 @@
+@model MovieDetailVm
+@* Chi tiết phim C2: phần đầu có ảnh nền; cột trái poster rộng 280px; cột phải tên phim và nhãn tuổi kèm câu giải thích, chip cảnh báo nội dung,
+   lưới thông tin (thời lượng, khởi chiếu, thể loại, ngôn ngữ, nhà phát hành, số giấy phép), mô tả tối đa 65 ký tự mỗi dòng. Bên dưới là lịch chiếu 7 ngày. *@
+@{
+    var m = Model.Movie;
+    ViewData["Title"] = m.Title;
+}
+<section class="movie-hero" aria-labelledby="movie-title">
+    <img class="movie-hero-bg" src="@(m.PosterUrl ?? "/img/placeholder-poster.svg")" alt="" width="1200" height="480" onerror="this.onerror=null;this.src='/img/placeholder-poster.svg'" />
+    <div class="movie-hero-inner">
+        <div class="movie-hero-poster">
+            <img src="@(m.PosterUrl ?? "/img/placeholder-poster.svg")" alt="Poster phim @m.Title" width="280" height="420" onerror="this.onerror=null;this.src='/img/placeholder-poster.svg'" />
+        </div>
+        <div class="movie-hero-info">
+            <nav aria-label="Đường dẫn"><ol class="breadcrumb"><li class="breadcrumb-item"><a href="/">Trang chủ</a></li><li class="breadcrumb-item"><a href="/movies">Phim</a></li><li class="breadcrumb-item active" aria-current="page">@m.Title</li></ol></nav>
+            <h1 id="movie-title" class="movie-title">@m.Title</h1>
+            @if (!string.IsNullOrEmpty(m.OriginalTitle))
+            {
+                <p class="text-muted mb-2">@m.OriginalTitle</p>
+            }
+            <partial name="_AgeBadge" model="@(new AgeBadgeVm(m.AgeRating, true, true))" />
+            @if (Model.Warnings.Count > 0)
+            {
+                <ul class="warning-chips" aria-label="Cảnh báo nội dung">
+                    @foreach (var w in Model.Warnings)
+                    {
+                        <li><i class="bi bi-exclamation-triangle" aria-hidden="true"></i>@w</li>
+                    }
+                </ul>
+            }
+            <dl class="movie-facts">
+                <div><dt>Thời lượng</dt><dd>@Fmt.Duration(m.DurationMinutes)</dd></div>
+                <div><dt>Khởi chiếu</dt><dd>@Fmt.Date(m.ReleaseDate)</dd></div>
+                <div><dt>Thể loại</dt><dd>@string.Join(", ", Model.Genres)</dd></div>
+                <div><dt>Ngôn ngữ</dt><dd>@string.Join(", ", Model.Languages)</dd></div>
+                <div><dt>Nhà phát hành</dt><dd>@(Model.DistributorName ?? "–")</dd></div>
+                <div><dt>Số giấy phép</dt><dd>@(m.ClassificationLicenseNo ?? "–")</dd></div>
+            </dl>
+            @if (!string.IsNullOrEmpty(m.Description))
+            {
+                <p class="movie-desc">@m.Description</p>
+            }
+            <div class="d-flex flex-wrap gap-2">
+                <a class="btn btn-primary" href="#lich-chieu"><i class="bi bi-ticket-perforated" aria-hidden="true"></i>Đặt vé</a>
+                @if (!string.IsNullOrEmpty(m.TrailerUrl))
+                {
+                    <a class="btn btn-ghost" href="@m.TrailerUrl" target="_blank" rel="noopener"><i class="bi bi-play-circle" aria-hidden="true"></i>Xem trailer</a>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="site-section" id="lich-chieu" aria-labelledby="schedule-title">
+    <h2 id="schedule-title">Lịch chiếu</h2>
+    <partial name="_ScheduleFilter" model="Model.Filter" />
+    <partial name="_Schedule" model="Model.Groups" />
+</section>

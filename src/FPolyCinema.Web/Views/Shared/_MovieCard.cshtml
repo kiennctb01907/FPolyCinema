@@ -2,19 +2,19 @@
 @* Thẻ phim (UI U5-13–15): poster 2:3 bo góc 10px, nhãn tuổi góc trên trái, tên tối đa 2 dòng,
    dòng phụ "Hành động · 2 giờ 05 phút", nút "Đặt vé"; hover nâng 2px. *@
 <article class="movie-card">
-    <div class="poster">
+    <a class="poster" href="@(Model.Id > 0 ? $"/movies/{Model.Id}" : "#")" aria-label="Xem phim @Model.Title" tabindex="-1">
         <img src="@(Model.PosterUrl ?? "/img/placeholder-poster.svg")" alt="Poster phim @Model.Title" width="200" height="300" loading="lazy" onerror="this.onerror=null;this.src='/img/placeholder-poster.svg'" />
         <partial name="_AgeBadge" model="@(new AgeBadgeVm(Model.AgeRating))" />
-    </div>
-    <h3 class="title text-clamp-2" title="@Model.Title">@Model.Title</h3>
+    </a>
+    <h3 class="title text-clamp-2" title="@Model.Title">@if (Model.Id > 0) { <a href="/movies/@Model.Id">@Model.Title</a> } else { @Model.Title }</h3>
     <p class="subline" title="@Model.Subline">@Model.Subline</p>
     @if (Model.BookUrl != null)
     {
-        <a class="btn btn-primary" href="@Model.BookUrl"><i class="bi bi-ticket-perforated" aria-hidden="true"></i>Đặt vé</a>
+        <a class="btn @(Model.ActionLabel == "Đặt vé" ? "btn-primary" : "btn-secondary")" href="@Model.BookUrl"><i class="bi @(Model.ActionLabel == "Đặt vé" ? "bi-ticket-perforated" : "bi-info-circle")" aria-hidden="true"></i>@Model.ActionLabel</a>
     }
     else
     {
-        <span class="d-grid" tabindex="0" data-bs-toggle="tooltip" title="Đặt vé online sẽ mở ở bản cập nhật tới.">
+        <span class="d-grid" tabindex="0" data-bs-toggle="tooltip" title="Phim chưa có suất chiếu.">
             <button type="button" class="btn btn-primary" disabled><i class="bi bi-ticket-perforated" aria-hidden="true"></i>Đặt vé</button>
         </span>
     }

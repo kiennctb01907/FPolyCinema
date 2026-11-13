@@ -1,0 +1,24 @@
+@model MoviesVm
+@* Danh sách phim (UC06): tab Đang chiếu và Sắp chiếu; lưới thẻ phim 5/4/3/2 cột. *@
+@{
+    ViewData["Title"] = "Phim";
+    var list = Model.Tab == "now" ? Model.NowShowing : Model.ComingSoon;
+}
+<partial name="_PageHeader" model="@(new PageHeaderVm { Title = "Phim", Description = "Phim đang chiếu và sắp chiếu tại các rạp FPoly Cinema.", Crumbs = new() { new("Trang chủ", "/"), new("Phim") } })" />
+<nav class="page-tabs mb-4" aria-label="Danh sách phim">
+    <a class="@(Model.Tab == "now" ? "active" : null)" href="/movies?tab=now" aria-current="@(Model.Tab == "now" ? "page" : null)">Đang chiếu <span class="count-pill">@Model.NowShowing.Count</span></a>
+    <a class="@(Model.Tab == "soon" ? "active" : null)" href="/movies?tab=soon" aria-current="@(Model.Tab == "soon" ? "page" : null)">Sắp chiếu <span class="count-pill">@Model.ComingSoon.Count</span></a>
+</nav>
+@if (list.Count == 0)
+{
+    <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-film", Title = Model.Tab == "now" ? "Chưa có phim đang chiếu" : "Chưa có phim sắp chiếu", Text = "Lịch chiếu mới sẽ sớm được cập nhật.", ActionLabel = "Về trang chủ", ActionUrl = "/", ActionIcon = "bi-house" })" />
+}
+else
+{
+    <div class="movie-grid">
+        @foreach (var m in list)
+        {
+            <partial name="_MovieCard" model="m" />
+        }
+    </div>
+}

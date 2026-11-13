@@ -1,0 +1,29 @@
+@model CustomerBillRow
+@* Một đơn trong "Vé của tôi": poster, phim, suất, rạp, trạng thái thanh toán và bắp nước, liên kết vé điện tử. *@
+<a class="account-bill" href="/tickets/@Model.Code">
+    <img src="@(Model.PosterUrl ?? "/img/placeholder-poster.svg")" alt="" width="56" height="84" loading="lazy" onerror="this.onerror=null;this.src='/img/placeholder-poster.svg'" />
+    <span class="min-w-0 flex-fill">
+        <span class="d-block fw-500 text-truncate-1">@(Model.MovieTitle ?? "Bắp nước")
+            @if (Model.AgeRating != null)
+            {
+                <partial name="_AgeBadge" model="@(new AgeBadgeVm(Model.AgeRating))" />
+            }
+        </span>
+        <span class="d-block small">@(Model.StartTime is DateTime st ? Fmt.WeekdayDate(st) + " · " + Fmt.Time(st) : Fmt.DateTime(Model.CreatedAt)) · @Model.CinemaName@(Model.AuditoriumName != null ? " · " + Model.AuditoriumName : null)</span>
+        <span class="d-block small text-muted">@Model.Code · @Model.TicketCount vé · <span class="money">@Fmt.Money(Model.Total)</span></span>
+    </span>
+    <span class="d-flex flex-column align-items-end gap-1">
+        @if (Model.Status == BillStatus.Cancel)
+        {
+            <span class="status-badge tone-neutral">@StatusDisplay.Of(StatusDisplay.CancelReasons, Model.CancelReason).Label</span>
+        }
+        else
+        {
+            <partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.BillCheckIn, Model.CheckInStatus))" />
+            @if (Model.FnbStatus != FnbStatus.None)
+            {
+                <partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Fnb, Model.FnbStatus))" />
+            }
+        }
+    </span>
+</a>

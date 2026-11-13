@@ -1,0 +1,8 @@
+@model ShowtimesVm
+@* Lịch chiếu (UC06, SPEC 8.5-01): mọi phim lọc theo rạp, ngày, định dạng, ngôn ngữ; nhóm theo phim. *@
+@{
+    ViewData["Title"] = "Lịch chiếu";
+}
+<partial name="_PageHeader" model="@(new PageHeaderVm { Title = "Lịch chiếu", Description = "Chọn rạp, ngày, định dạng và ngôn ngữ rồi bấm giờ chiếu để đặt vé.", Crumbs = new() { new("Trang chủ", "/"), new("Lịch chiếu") } })" />
+<partial name="_ScheduleFilter" model="Model.Filter" />
+<partial name="_Schedule" model="Model.Groups" />

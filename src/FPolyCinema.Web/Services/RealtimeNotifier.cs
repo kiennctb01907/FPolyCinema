@@ -10,6 +10,7 @@ public sealed record SeatChange(int SeatId, string Status, DateTime? HoldExpires
 public static class RealtimeEvents
 {
     public const string SeatMapUpdated = "SEAT_MAP_UPDATED";
+    public const string PaymentStatusChanged = "PAYMENT_STATUS_CHANGED";
 }
 
 /// <summary>
@@ -55,5 +56,21 @@ public class RealtimeNotifier
     public async Task SeatMapUpdated(IEnumerable<KeyValuePair<int, List<SeatChange>>> byShowtime)
     {
         foreach (var (showtimeId, changes) in byShowtime) await SeatMapUpdated(showtimeId, changes);
+    }
+
+    /// <summary>
+    /// Kênh 3: PAYMENT_STATUS_CHANGED { billId, code, status, cancelReason, message, ticketUrl } gửi nhóm bill_{billId} sau khi thanh toán
+    /// thành công, thất bại, hoặc đến muộn phải hoàn tiền.
+    /// </summary>
+    public async Task PaymentStatusChanged(int billId, string code, string status, string? cancelReason, string message, string? ticketUrl)
+    {
+        try
+        {
+            await _hub.Clients.Group(CinemaHub.BillGroup(billId)).SendAsync(RealtimeEvents.PaymentStatusChanged, new { billId, code, status, cancelReason, message, ticketUrl });
+        }
+        catch (Exception ex)
+        {
+            _log.LogWarning(ex, "Không gửi được PAYMENT_STATUS_CHANGED cho hóa đơn {BillId}.", billId);
+        }
     }
 }

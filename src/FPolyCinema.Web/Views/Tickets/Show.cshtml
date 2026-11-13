@@ -1,0 +1,121 @@
+@model TicketPageVm
+@* Vé điện tử C4 /tickets/{billCode}: thẻ vé có đường răng cưa như cuống vé; QR 240px trên nền trắng; mã vé; thông tin suất chiếu;
+   khối bắp nước theo trạng thái ở UI mục 6; nút "Hủy vé" kèm giải thích điều kiện, không đủ điều kiện thì nút bị khóa và ghi lý do (SPEC 3.9-08). *@
+@{
+    var b = Model.Bill;
+    var info = Model.Info;
+    ViewData["Title"] = "Vé " + b.Code;
+    var cancelled = b.Status == BillStatus.Cancel;
+    // Tên phòng mẫu đã gồm định dạng ("Phòng 1 – IMAX"): chỉ ghi thêm định dạng khi tên chưa có
+    var room = info == null ? null : info.Auditorium.Name.Contains(info.Auditorium.Format) ? info.Auditorium.Name : info.Auditorium.Name + " · " + info.Auditorium.Format;
+}
+<partial name="_PageHeader" model="@(new PageHeaderVm { Title = "Vé điện tử", Description = $"Đơn {b.Code} · {Model.CinemaName}", Crumbs = new() { new("Trang chủ", "/"), new("Vé của tôi", "/account"), new(b.Code) } })" />
+
+@if (cancelled)
+{
+    <div class="alert-ui tone-warning" role="status"><i class="bi bi-info-circle" aria-hidden="true"></i>Đơn này đã hủy: @StatusDisplay.Of(StatusDisplay.CancelReasons, b.CancelReason).Label.</div>
+}
+<div class="row g-4">
+    <div class="col-12 col-lg-7">
+        @if (info != null)
+        {
+            <div class="ticket-head card-ui card-ui-body">
+                <img src="@(info.Movie.PosterUrl ?? "/img/placeholder-poster.svg")" alt="Poster phim @info.Movie.Title" width="72" height="108" onerror="this.onerror=null;this.src='/img/placeholder-poster.svg'" />
+                <div class="min-w-0">
+                    <h2 class="h5 mb-1">@info.Movie.Title <partial name="_AgeBadge" model="@(new AgeBadgeVm(info.Movie.AgeRating))" /></h2>
+                    <p class="mb-1">@Fmt.WeekdayDate(info.Showtime.StartTime) · <strong>@Fmt.Time(info.Showtime.StartTime)–@Fmt.Time(info.Showtime.EndTime)</strong></p>
+                    <p class="small text-muted mb-0">@Model.CinemaName · @room · @StatusDisplay.Of(StatusDisplay.Language, info.Showtime.LanguageFormat).Label</p>
+                    <p class="small text-muted mb-0">@StatusDisplay.AgeExplanation(info.Movie.AgeRating)</p>
+                </div>
+            </div>
+        }
+        <div class="ticket-list">
+            @foreach (var t in Model.Tickets)
+            {
+                <article class="ticket-stub @(t.CheckInStatus != TicketCheckInStatus.NotCheckedIn ? "is-used" : null)" aria-label="Vé ghế @t.SeatLabel">
+                    <div class="ticket-stub-main">
+                        @if (info != null)
+                        {
+                            @* Thông tin suất chiếu ngay trên cuống vé (UI C4-02) để mỗi vé đứng riêng được khi đưa máy soát vé *@
+                            <p class="ticket-stub-movie mb-1"><strong>@info.Movie.Title</strong> <partial name="_AgeBadge" model="@(new AgeBadgeVm(info.Movie.AgeRating))" /></p>
+                            <p class="small mb-1">@Fmt.WeekdayDate(info.Showtime.StartTime) · <strong>@Fmt.Time(info.Showtime.StartTime)</strong> · @room</p>
+                        }
+                        <p class="ticket-seat">Ghế <strong>@t.SeatLabel</strong></p>
+                        <p class="small text-muted mb-1">@StatusDisplay.Of(StatusDisplay.Seat, t.SeatType).Label · @StatusDisplay.Of(StatusDisplay.Audience, t.AudienceType).Label</p>
+                        <p class="small mb-1">Mã vé <span class="qr-code">@t.QrCode</span></p>
+                        <partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Ticket, t.CheckInStatus))" />
+                    </div>
+                    <div class="ticket-stub-qr">
+                        @if (t.CheckInStatus == TicketCheckInStatus.Voided)
+                        {
+                            <span class="ticket-void">Vé đã hủy</span>
+                        }
+                        else
+                        {
+                            <partial name="_QrBlock" model="@(new QrBlockVm(QrSvg.DataUri(t.QrCode), t.QrCode))" />
+                        }
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+    <div class="col-12 col-lg-5 d-flex flex-column gap-4">
+        <section class="card-ui card-ui-body" aria-labelledby="fnb-title">
+            <h2 class="card-ui-title" id="fnb-title">Bắp nước</h2>
+            @if (Model.Lines.Count == 0)
+            {
+                <p class="text-muted mb-0">Đơn này không có bắp nước.</p>
+            }
+            else
+            {
+                <p class="mb-2"><partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Fnb, b.FnbStatus))" />
+                    @if (b.PickupNumber is int pn)
+                    {
+                        <span class="ms-2">Số gọi <strong class="num">@CodeGenerator.FormatPickupNumber(pn)</strong></span>
+                    }
+                </p>
+                <ul class="plain-list">
+                    @foreach (var l in Model.Lines)
+                    {
+                        <li><span>@l.Quantity × @l.DrinkName</span><span class="money">@Fmt.Money(l.LineFinalAmount)</span></li>
+                    }
+                </ul>
+                @if (b.FnbStatus == FnbStatus.PendingPickup)
+                {
+                    <p class="small text-muted mt-2 mb-0">Món được làm khi bạn tới rạp. Đưa mã vé cho nhân viên quầy bắp nước để nhận.</p>
+                }
+            }
+        </section>
+        <section class="card-ui card-ui-body" aria-labelledby="pay-title">
+            <h2 class="card-ui-title" id="pay-title">Thanh toán</h2>
+            <dl class="detail-list">
+                <dt>Tạm tính</dt><dd class="money">@Fmt.Money(b.TicketSubtotal + b.FnbSubtotal)</dd>
+                <dt>Giảm giá</dt><dd class="money">@(b.DiscountTotal > 0 ? "−" : null)@Fmt.Money(b.DiscountTotal)</dd>
+                <dt>Tổng cộng</dt><dd class="money fw-500">@Fmt.Money(b.Total)</dd>
+                <dt>Đã trả</dt><dd class="money">@Fmt.Money(Model.Paid)</dd>
+            </dl>
+        </section>
+        <section class="card-ui card-ui-body" aria-labelledby="cancel-title" data-self-cancel data-code="@b.Code">
+            <h2 class="card-ui-title" id="cancel-title">Hủy vé</h2>
+            <ul class="small text-muted ps-3 mb-3">
+                <li>Hủy trước giờ chiếu ít nhất @SelfCancelRules.HoursText(Model.MinMinutesBeforeStart)@(Model.Cancel != null ? $" (trước {Fmt.Time(Model.Cancel.Deadline)} ngày {Fmt.Date(Model.Cancel.Deadline)})" : null).</li>
+                <li>Chưa có vé nào vào cửa; bắp nước chưa được làm.</li>
+                <li>Tối đa @Model.MaxPerMonth lần mỗi tháng. Tháng này bạn còn <strong>@(Model.Cancel?.RemainingThisMonth ?? 0)</strong> lần.</li>
+                <li>Hoàn 100% số tiền đã trả vào ví FPoly; voucher và điểm đã dùng được trả lại.</li>
+            </ul>
+            @if (Model.Cancel is { Ok: true })
+            {
+                <button type="button" class="btn btn-danger" data-cancel-ticket><i class="bi bi-x-circle" aria-hidden="true"></i>Hủy vé</button>
+            }
+            else
+            {
+                <button type="button" class="btn btn-danger" disabled aria-describedby="cancel-reason"><i class="bi bi-x-circle" aria-hidden="true"></i>Hủy vé</button>
+                <p class="field-error mt-2 mb-0" id="cancel-reason">@(Model.Cancel?.Reason)</p>
+            }
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/js/pages/ticket.js" asp-append-version="true"></script>
+}

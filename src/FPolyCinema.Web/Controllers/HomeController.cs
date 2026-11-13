@@ -15,12 +15,19 @@ namespace FPolyCinema.Web.Controllers;
 public class HomeController : AppControllerBase
 {
     private readonly CinemaRules _rules;
+    private readonly CustomerCatalogPages _catalog;
+    private readonly Services.CinemaContextService _cinema;
 
-    public HomeController(CinemaRules rules) => _rules = rules;
+    public HomeController(CinemaRules rules, CustomerCatalogPages catalog, Services.CinemaContextService cinema)
+    {
+        _rules = rules;
+        _catalog = catalog;
+        _cinema = cinema;
+    }
 
-    // TODO(Phase 5): trang chủ C1 (hero, mua vé nhanh, lưới phim, combo, ưu đãi).
+    /// <summary>Trang chủ C1: hero phim nổi bật, thanh mua vé nhanh, tab Đang chiếu và Sắp chiếu, combo nổi bật, ưu đãi công khai.</summary>
     [HttpGet("/")]
-    public IActionResult Index() => View();
+    public IActionResult Index(string? tab) => View(_catalog.Home(_cinema.CurrentCinemaId, tab));
 
     /// <summary>Từ chối truy cập (AccessDeniedPath): layout của khu vực đang đứng, icon 48px, nút về trang chính của vai trò.</summary>
     [HttpGet("/Home/AccessDenied")]

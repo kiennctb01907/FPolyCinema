@@ -1,10 +1,12 @@
 # Controller, route và quyền (sinh từ Controllers/*.cs)
 
-17 controller, 133 route.
+22 controller, 157 route.
 
 | Route | HTTP | Controller.Action | Quyền | File |
 |---|---|---|---|---|
-| / | GET | Home.Index | AllowAnonymous | src/FPolyCinema.Web/Controllers/HomeController.cs:23 |
+| / | GET | Home.Index | AllowAnonymous | src/FPolyCinema.Web/Controllers/HomeController.cs:30 |
+| /account | GET | Account.Index | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/AccountController.cs:30 |
+| /account/notifications/read | POST | Account.ReadAll | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/AccountController.cs:55 |
 | /admin | GET | Statistics.Dashboard | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/StatisticsController.cs:37 |
 | /admin/auditoriums | GET | Auditoriums.Index | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/AuditoriumsController.cs:36 |
 | /admin/auditoriums/{}/design | GET | Auditoriums.Design | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/AuditoriumsController.cs:107 |
@@ -73,6 +75,19 @@
 | /admin/users/{}/set-active | POST | Users.SetActive | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/UsersController.cs:128 |
 | /admin/users/create | GET | Users.Create | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/UsersController.cs:59 |
 | /admin/users/create | POST | Users.Create | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/UsersController.cs:62 |
+| /booking/{} | GET | Booking.Index | AllowAnonymous | src/FPolyCinema.Web/Controllers/CustomerController.cs:101 |
+| /booking/{}/cancel | POST | Booking.Cancel | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/CustomerController.cs:189 |
+| /booking/{}/cart | GET | Booking.Cart | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/CustomerController.cs:157 |
+| /booking/{}/checkout | POST | Booking.Checkout | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/CustomerController.cs:185 |
+| /booking/{}/confirm | POST | Booking.Confirm | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/CustomerController.cs:180 |
+| /booking/{}/hold | POST | Booking.Hold | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/CustomerController.cs:161 |
+| /booking/{}/points | POST | Booking.Points | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/CustomerController.cs:176 |
+| /booking/{}/quantity | POST | Booking.Quantity | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/CustomerController.cs:168 |
+| /booking/{}/seat-map | GET | Booking.SeatMap | AllowAnonymous | src/FPolyCinema.Web/Controllers/CustomerController.cs:145 |
+| /booking/{}/suggest | GET | Booking.Suggest | AllowAnonymous | src/FPolyCinema.Web/Controllers/CustomerController.cs:136 |
+| /booking/{}/voucher | POST | Booking.Voucher | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/CustomerController.cs:172 |
+| /booking/pay/{} | GET | Booking.Pay | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/CustomerController.cs:197 |
+| /booking/pay/{}/status | GET | Booking.PayStatus | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/CustomerController.cs:212 |
 | /cinema/select | POST | Cinema.Select | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:22 |
 | /demo/switch-role | GET | Demo.SwitchRole | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:45 |
 | /dev/layouts/display | GET | Dev.LayoutDisplay | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:145 |
@@ -86,23 +101,28 @@
 | /dev/style-guide/slow | GET | Dev.SampleSlow | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:114 |
 | /file/delete | POST | File.Delete | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/FileController.cs:40 |
 | /file/upload | POST | File.Upload | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/FileController.cs:24 |
-| /home/accessdenied | GET | Home.AccessDenied | AllowAnonymous | src/FPolyCinema.Web/Controllers/HomeController.cs:27 |
-| /home/error | GET | Home.Error | AllowAnonymous | src/FPolyCinema.Web/Controllers/HomeController.cs:46 |
-| /login/changepassword | GET | Login.ChangePassword | Authorize | src/FPolyCinema.Web/Controllers/LoginController.cs:141 |
-| /login/changepassword | POST | Login.ChangePassword | Authorize | src/FPolyCinema.Web/Controllers/LoginController.cs:150 |
-| /login/forgotpassword | GET | Login.ForgotPassword | AllowAnonymous | src/FPolyCinema.Web/Controllers/LoginController.cs:118 |
-| /login/forgotpassword | POST | Login.ForgotPassword | AllowAnonymous | src/FPolyCinema.Web/Controllers/LoginController.cs:123 |
-| /login/login | GET | Login.Login | AllowAnonymous | src/FPolyCinema.Web/Controllers/LoginController.cs:50 |
-| /login/login | POST | Login.Login | AllowAnonymous | src/FPolyCinema.Web/Controllers/LoginController.cs:58 |
-| /login/logout | POST | Login.Logout | Authorize | src/FPolyCinema.Web/Controllers/LoginController.cs:78 |
-| /login/profile | GET | Login.Profile | Authorize | src/FPolyCinema.Web/Controllers/LoginController.cs:180 |
-| /login/profile | POST | Login.Profile | Authorize | src/FPolyCinema.Web/Controllers/LoginController.cs:199 |
-| /login/register | GET | Login.Register | AllowAnonymous | src/FPolyCinema.Web/Controllers/LoginController.cs:88 |
-| /login/register | POST | Login.Register | AllowAnonymous | src/FPolyCinema.Web/Controllers/LoginController.cs:97 |
-| /login/verifyotp | POST | Login.VerifyOtp | AllowAnonymous | src/FPolyCinema.Web/Controllers/LoginController.cs:132 |
-| /me | GET | Login.Me | Policy Policies.EmployeeOrManager | src/FPolyCinema.Web/Controllers/LoginController.cs:191 |
-| /policies/cancellation | GET | Home.Cancellation | AllowAnonymous | src/FPolyCinema.Web/Controllers/HomeController.cs:91 |
-| /policies/terms | GET | Home.Terms | AllowAnonymous | src/FPolyCinema.Web/Controllers/HomeController.cs:88 |
+| /home/accessdenied | GET | Home.AccessDenied | AllowAnonymous | src/FPolyCinema.Web/Controllers/HomeController.cs:34 |
+| /home/error | GET | Home.Error | AllowAnonymous | src/FPolyCinema.Web/Controllers/HomeController.cs:53 |
+| /login/changepassword | GET | Login.ChangePassword | Authorize | src/FPolyCinema.Web/Controllers/LoginController.cs:142 |
+| /login/changepassword | POST | Login.ChangePassword | Authorize | src/FPolyCinema.Web/Controllers/LoginController.cs:151 |
+| /login/forgotpassword | GET | Login.ForgotPassword | AllowAnonymous | src/FPolyCinema.Web/Controllers/LoginController.cs:119 |
+| /login/forgotpassword | POST | Login.ForgotPassword | AllowAnonymous | src/FPolyCinema.Web/Controllers/LoginController.cs:124 |
+| /login/login | GET | Login.Login | AllowAnonymous | src/FPolyCinema.Web/Controllers/LoginController.cs:51 |
+| /login/login | POST | Login.Login | AllowAnonymous | src/FPolyCinema.Web/Controllers/LoginController.cs:59 |
+| /login/logout | POST | Login.Logout | Authorize | src/FPolyCinema.Web/Controllers/LoginController.cs:79 |
+| /login/profile | GET | Login.Profile | Authorize | src/FPolyCinema.Web/Controllers/LoginController.cs:181 |
+| /login/profile | POST | Login.Profile | Authorize | src/FPolyCinema.Web/Controllers/LoginController.cs:201 |
+| /login/register | GET | Login.Register | AllowAnonymous | src/FPolyCinema.Web/Controllers/LoginController.cs:89 |
+| /login/register | POST | Login.Register | AllowAnonymous | src/FPolyCinema.Web/Controllers/LoginController.cs:98 |
+| /login/verifyotp | POST | Login.VerifyOtp | AllowAnonymous | src/FPolyCinema.Web/Controllers/LoginController.cs:133 |
+| /me | GET | Login.Me | Policy Policies.EmployeeOrManager | src/FPolyCinema.Web/Controllers/LoginController.cs:193 |
+| /menu | GET | Customer.Menu | AllowAnonymous | src/FPolyCinema.Web/Controllers/CustomerController.cs:62 |
+| /movies | GET | Customer.Movies | AllowAnonymous | src/FPolyCinema.Web/Controllers/CustomerController.cs:29 |
+| /movies/{} | GET | Customer.Movie | AllowAnonymous | src/FPolyCinema.Web/Controllers/CustomerController.cs:42 |
+| /payment-sim/pay | GET | Payment.Sim | AllowAnonymous | src/FPolyCinema.Web/Controllers/CustomerController.cs:232 |
+| /payments/webhook | POST | Payment.Webhook | AllowAnonymous | src/FPolyCinema.Web/Controllers/CustomerController.cs:251 |
+| /policies/cancellation | GET | Home.Cancellation | AllowAnonymous | src/FPolyCinema.Web/Controllers/HomeController.cs:98 |
+| /policies/terms | GET | Home.Terms | AllowAnonymous | src/FPolyCinema.Web/Controllers/HomeController.cs:95 |
 | /pos | GET,GET | Pos.Index | Policy Policies.PosStaff | src/FPolyCinema.Web/Controllers/PosController.cs:66 |
 | /pos/apply-points | POST | Pos.ApplyPoints | Policy Policies.PosStaff | src/FPolyCinema.Web/Controllers/PosController.cs:260 |
 | /pos/apply-voucher | POST | Pos.ApplyVoucher | Policy Policies.PosStaff | src/FPolyCinema.Web/Controllers/PosController.cs:256 |
@@ -130,6 +150,7 @@
 | /pos/set-guardian | POST | Pos.SetGuardian | Policy Policies.PosStaff | src/FPolyCinema.Web/Controllers/PosController.cs:235 |
 | /pos/shift-report/{} | GET | Pos.ShiftReport | Policy Policies.PosStaff | src/FPolyCinema.Web/Controllers/PosController.cs:158 |
 | /pos/update-quantity | POST | Pos.UpdateQuantity | Policy Policies.PosStaff | src/FPolyCinema.Web/Controllers/PosController.cs:239 |
+| /quick-buy | GET | Customer.QuickBuy | AllowAnonymous | src/FPolyCinema.Web/Controllers/CustomerController.cs:66 |
 | /scheduler | GET | Scheduler.Index | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:43 |
 | /scheduler/{}/delete | POST | Scheduler.Delete | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:126 |
 | /scheduler/{}/delete-check | GET | Scheduler.DeleteCheck | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:118 |
@@ -137,6 +158,9 @@
 | /scheduler/check | POST | Scheduler.Check | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:102 |
 | /scheduler/create | GET | Scheduler.Create | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:51 |
 | /scheduler/save | POST | Scheduler.Save | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:107 |
+| /showtimes | GET | Customer.Showtimes | AllowAnonymous | src/FPolyCinema.Web/Controllers/CustomerController.cs:54 |
+| /tickets/{} | GET | Tickets.Show | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/CustomerController.cs:277 |
+| /tickets/{}/cancel | POST | Tickets.Cancel | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/CustomerController.cs:295 |
 
 ## Màn hình trong UI mục 7 và route tương ứng
 
@@ -153,10 +177,10 @@
 | A9 | 2 | /me | có |
 | ART | 1 |  |  |
 | C1 | 5, 7 | / | có |
-| C2 | 5 | /movies/{id} | chưa |
-| C3 | 5 | /booking/{showtimeId} | chưa |
-| C4 | 5, 6 | /tickets/{billCode} | chưa |
-| C5 | 5 | /account | chưa |
+| C2 | 5 | /movies/{id} | có |
+| C3 | 5 | /booking/{showtimeId} | có |
+| C4 | 5, 6 | /tickets/{billCode} | có |
+| C5 | 5 | /account | có |
 | C6 | 2 |  |  |
 | C7 | 7 |  |  |
 | D1 | 2 | /dev/style-guide | có |

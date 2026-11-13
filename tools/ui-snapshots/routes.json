@@ -68,6 +68,19 @@
     { "screen": "A6", "role": "manager", "variant": "doi-soat", "path": "/admin/reports/settlement?movieId=6&week=3", "area": "admin", "phase": 4, "note": "Đối soát nhà phát hành" },
     { "screen": "A8", "role": "manager", "path": "/admin/bills", "area": "admin", "phase": 4, "note": "Danh sách hóa đơn" },
     { "screen": "A8", "role": "manager", "variant": "chi-tiet", "path": "/admin/bills/1", "area": "admin", "phase": 4, "note": "Chi tiết hóa đơn" },
-    { "screen": "A8", "role": "manager", "variant": "rong", "path": "/admin/bills?q=KHONGCOMA", "area": "admin", "phase": 4, "note": "Danh sách rỗng" }
+    { "screen": "A8", "role": "manager", "variant": "rong", "path": "/admin/bills?q=KHONGCOMA", "area": "admin", "phase": 4, "note": "Danh sách rỗng" },
+    { "screen": "C1", "role": "guest", "path": "/", "area": "customer", "phase": 5, "note": "Trang chủ: hero, mua vé nhanh, tab phim, combo, ưu đãi" },
+    { "screen": "C1", "role": "guest", "variant": "phim", "path": "/movies", "area": "customer", "phase": 5, "note": "Danh sách phim" },
+    { "screen": "C1", "role": "guest", "variant": "lich-chieu", "path": "/showtimes", "area": "customer", "phase": 5, "note": "Lịch chiếu theo rạp và ngày" },
+    { "screen": "C1", "role": "guest", "variant": "bap-nuoc", "path": "/menu", "area": "customer", "phase": 5, "note": "Thực đơn bắp nước" },
+    { "screen": "C2", "role": "guest", "resolveFrom": "/", "resolveLink": "a.poster[href^='/movies/']", "area": "customer", "phase": 5, "note": "Chi tiết phim và lịch chiếu 7 ngày" },
+    { "screen": "C3", "role": "guest", "resolveFrom": "/showtimes", "resolveLink": ["a.day-chip:nth-child(2)", "a[href^='/booking/']"], "area": "customer", "phase": 5, "note": "Đặt vé khi chưa đăng nhập: xem sơ đồ ghế" },
+    { "screen": "C3", "role": "khach", "variant": "dang-nhap", "resolveFrom": "/showtimes", "resolveLink": ["a.day-chip:nth-child(2)", "a[href^='/booking/']"], "area": "customer", "phase": 5, "note": "Đặt vé bước chọn ghế, có gợi ý AI" },
+    { "screen": "C4", "role": "khach", "resolveFrom": "/account?tab=tickets", "resolveLink": "a[href^='/tickets/']", "area": "customer", "phase": 5, "note": "Vé điện tử" },
+    { "screen": "C5", "role": "khach", "path": "/account", "area": "customer", "phase": 5, "note": "Tài khoản: thẻ hạng, vé của tôi" },
+    { "screen": "C5", "role": "khach", "variant": "vi", "path": "/account?tab=wallet", "area": "customer", "phase": 5, "note": "Ví và điểm" },
+    { "screen": "C5", "role": "khach", "variant": "voucher", "path": "/account?tab=voucher", "area": "customer", "phase": 5, "note": "Voucher" },
+    { "screen": "C5", "role": "khach", "variant": "thong-bao", "path": "/account?tab=notifications", "area": "customer", "phase": 5, "note": "Thông báo" },
+    { "screen": "C5", "role": "khach", "variant": "thong-tin", "path": "/account?tab=profile", "area": "customer", "phase": 5, "note": "Thông tin cá nhân" }
   ]
 }

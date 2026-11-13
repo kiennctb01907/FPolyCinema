@@ -5,6 +5,9 @@
    - Thời gian thực: tham gia nhóm showtime_{id} bằng JoinShowtime và nhận SEAT_MAP_UPDATED; ghế đổi trạng thái chuyển màu mờ dần 200ms;
      ghế vừa định chọn bị người khác lấy thì báo "Ghế G7 vừa có người chọn trước." (U8-12).
    - Vi phạm luật: ghế liên quan rung nhẹ 320ms và nháy viền đỏ 2 lần (U8-11), không xóa lựa chọn.
+   - Điện thoại (U8-03, U8-09): chạm để chọn, nhấn giữ để xem tooltip; nút phóng to, thu nhỏ 3 mức (setZoom).
+   - Bản đồ điểm AI (U8-10): setScores tô ghế trống theo thang --heat-* (ghế đã bán, đang giữ vẫn hiện đúng trạng thái); highlight đánh dấu
+     cụm AI đề xuất bằng viền vàng phát sáng kèm nhãn "AI đề xuất 96/100".
    Sơ đồ phát sự kiện DOM 'seat-toggle' { seatIds, seats, selecting } để trang (POS, đặt vé) gọi API giữ ghế. */
 (function () {
   'use strict';
@@ -18,6 +21,9 @@
   };
   const LOCKED = new Set(['HELD', 'BOOKED', 'HOUSE_HOLD', 'MAINTENANCE']);
   const money = (n) => Number(n).toLocaleString('vi-VN') + ' ₫';
+  // Mức heatmap theo điểm (cùng ngưỡng AuditoriumLayout.HeatLevel)
+  const heatLevel = (v) => (v >= 90 ? 5 : v >= 75 ? 4 : v >= 60 ? 3 : v >= 40 ? 2 : 1);
+  const ZOOM = ['', 'zoom-2', 'zoom-3'];
   let tip = null;
 
   function tipEl() {
@@ -91,7 +97,34 @@
       this.seats.forEach(describe);
       const first = this.seats.find((b) => b.dataset.status === 'SELECTED') || this.seats.find((b) => !LOCKED.has(b.dataset.status)) || this.seats[0];
       if (first) first.tabIndex = 0;
-      root.addEventListener('click', (e) => { const b = e.target.closest('.seat[data-seat-id]'); if (b) this.toggle(b); });
+      root.addEventListener('click', (e) => {
+        const b = e.target.closest('.seat[data-seat-id]');
+        if (!b) return;
+        if (Date.now() < this.suppressUntil) return; // vừa nhấn giữ để xem tooltip, click ngay sau đó không chọn ghế
+        this.toggle(b);
+      });
+      // Điện thoại: nhấn giữ 500ms để xem tooltip, không chọn ghế. Ngón tay rung dưới 10px vẫn tính là giữ;
+      // click do trình duyệt phát ngay sau khi nhả (nếu có) bị bỏ qua trong 400ms, không phụ thuộc trình duyệt có phát click hay không.
+      let press = null, start = null, longPressed = false;
+      this.suppressUntil = 0;
+      root.addEventListener('pointerdown', (e) => {
+        if (e.pointerType !== 'touch') return;
+        const b = e.target.closest('.seat[data-seat-id]');
+        hideTip();
+        longPressed = false;
+        if (!b) return;
+        start = { x: e.clientX, y: e.clientY };
+        press = setTimeout(() => { longPressed = true; showTip(b); }, 500);
+      });
+      root.addEventListener('pointermove', (e) => {
+        if (e.pointerType !== 'touch' || !start) return;
+        if (Math.hypot(e.clientX - start.x, e.clientY - start.y) > 10) { clearTimeout(press); start = null; }
+      });
+      ['pointerup', 'pointercancel'].forEach((ev) => root.addEventListener(ev, () => {
+        clearTimeout(press); start = null;
+        if (longPressed) { this.suppressUntil = Date.now() + 400; longPressed = false; }
+      }));
+      root.addEventListener('contextmenu', (e) => { if (e.target.closest('.seat[data-seat-id]')) e.preventDefault(); });
       root.addEventListener('keydown', (e) => this.onKey(e));
       root.addEventListener('mouseover', (e) => { const b = e.target.closest('.seat[data-seat-id]'); if (b) { showTip(b); this.pairHover(b, true); } });
       root.addEventListener('mouseout', (e) => { const b = e.target.closest('.seat[data-seat-id]'); if (b) { hideTip(b); this.pairHover(b, false); } });
@@ -157,6 +190,48 @@
       });
       if (taken.length && window.ui) ui.toast.warning(`Ghế ${taken.join(', ')} vừa có người chọn trước.`);
       this.root.dispatchEvent(new CustomEvent('seatmap-change', { bubbles: true }));
+    }
+
+    /** Điểm theo persona cho từng ghế { seatId: điểm } (tooltip, aria-label, mức heatmap); goodScore là ngưỡng "góc nhìn tốt". */
+    setScores(scores, goodScore = 75) {
+      this.seats.forEach((b) => {
+        const v = scores[b.dataset.seatId];
+        if (v === undefined) return;
+        b.dataset.score = v;
+        b.dataset.scoreNote = v >= 90 ? 'tọa độ vàng' : v >= goodScore ? 'góc nhìn tốt' : '';
+        b.classList.remove('heat-1', 'heat-2', 'heat-3', 'heat-4', 'heat-5');
+        b.classList.add('heat-' + heatLevel(v));
+        describe(b);
+      });
+    }
+
+    /** Bật, tắt bản đồ điểm AI. */
+    setHeat(on) { this.root.classList.toggle('show-heat', !!on); }
+
+    /** Đánh dấu cụm AI đề xuất (viền vàng phát sáng) kèm nhãn; ids rỗng là bỏ đánh dấu. */
+    highlight(ids, label) {
+      this.seats.forEach((b) => b.classList.remove('is-ai'));
+      this.root.querySelector('.ai-tag')?.remove();
+      if (!ids || !ids.length) return;
+      const btns = ids.map((id) => this.byId.get(Number(id))).filter(Boolean);
+      btns.forEach((b) => b.classList.add('is-ai'));
+      if (!btns.length || !label) return;
+      const tag = document.createElement('span');
+      tag.className = 'ai-tag';
+      tag.textContent = label;
+      tag.setAttribute('aria-hidden', 'true');
+      this.root.appendChild(tag);
+      const r0 = this.root.getBoundingClientRect(), b0 = btns[0].getBoundingClientRect(), b1 = btns[btns.length - 1].getBoundingClientRect();
+      tag.style.setProperty('--tag-x', (b0.left + (b1.right - b0.left) / 2 - r0.left + this.root.scrollLeft) + 'px');
+      tag.style.setProperty('--tag-y', (b0.top - r0.top + this.root.scrollTop) + 'px');
+    }
+
+    /** Phóng to, thu nhỏ 3 mức (0, 1, 2). */
+    setZoom(level) {
+      this.zoom = Math.max(0, Math.min(2, level));
+      ZOOM.forEach((c) => c && this.root.classList.remove(c));
+      if (ZOOM[this.zoom]) this.root.classList.add(ZOOM[this.zoom]);
+      return this.zoom;
     }
 
     /** Vi phạm luật: rung nhẹ và nháy viền đỏ 2 lần các ghế liên quan (không đổi lựa chọn). */

@@ -4,9 +4,9 @@
 @{
     var chrome = ViewData["Chrome"] as string;
     var demo = Shell.DemoEnabled && chrome != "bare";
-    // TODO(Phase 5): Phim, Lịch chiếu, Bắp nước, Ưu đãi mở các trang C1, C2 của web khách.
-    var menu = new[] { ("Phim", "bi-film"), ("Lịch chiếu", "bi-calendar3"), ("Bắp nước", "bi-cup-straw"), ("Ưu đãi", "bi-gift") };
-    const string soon = "Trang này sẽ mở ở bản cập nhật tới.";
+    var menu = new[] { ("Phim", "bi-film", "/movies"), ("Lịch chiếu", "bi-calendar3", "/showtimes"), ("Bắp nước", "bi-cup-straw", "/menu"), ("Ưu đãi", "bi-gift", "/#uu-dai") };
+    var path = Context.Request.Path.Value ?? "/";
+    bool Active(string href) => href != "/#uu-dai" && path.StartsWith(href, StringComparison.OrdinalIgnoreCase);
 }
 <!DOCTYPE html>
 <html lang="vi" data-theme="cinema" data-bs-theme="dark">
@@ -38,9 +38,9 @@
                 <partial name="_Logo" model="@("/")" />
                 <nav class="d-none d-xl-block" aria-label="Menu chính">
                     <ul class="site-nav">
-                        @foreach (var (label, icon) in menu)
+                        @foreach (var (label, icon, href) in menu)
                         {
-                            <li><span class="nav-link disabled" aria-disabled="true" tabindex="0" data-bs-toggle="tooltip" title="@label – @soon"><i class="bi @icon" aria-hidden="true"></i>@label</span></li>
+                            <li><a class="nav-link @(Active(href) ? "active" : null)" href="@href" aria-current="@(Active(href) ? "page" : null)"><i class="bi @icon" aria-hidden="true"></i>@label</a></li>
                         }
                     </ul>
                 </nav>
@@ -64,9 +64,9 @@
             </div>
             <div class="offcanvas-body d-flex flex-column gap-4">
                 <ul class="site-nav">
-                    @foreach (var (label, icon) in menu)
+                    @foreach (var (label, icon, href) in menu)
                     {
-                        <li><span class="nav-link disabled" aria-disabled="true">@label<span class="soon-pill ms-auto">Sắp có</span></span></li>
+                        <li><a class="nav-link @(Active(href) ? "active" : null)" href="@href"><i class="bi @icon" aria-hidden="true"></i>@label</a></li>
                     }
                 </ul>
                 @{ ViewData["PickerId"] = "mobile"; }

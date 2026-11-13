@@ -104,6 +104,16 @@ public static class ErrorCodes
     /// <summary>Đã hết thời gian giữ ghế của hóa đơn (CONTRACTS C8-08; quầy dùng khi thanh toán sau lúc hết hạn).</summary>
     public const string PaymentExpired = "PAYMENT_EXPIRED";
 
+    // ---------------------------------------------------------------- Phase 5 (CONTRACTS C8-08)
+    /// <summary>Phim T13 trở lên hoặc suất có giới hạn giờ cho trẻ em: khách phải tích "Tôi xác nhận người xem đủ tuổi theo quy định" (SPEC 3.1).</summary>
+    public const string AgeConfirmRequired = "AGE_CONFIRM_REQUIRED";
+
+    /// <summary>Hóa đơn không đủ điều kiện tự hủy (SPEC 3.9); message ghi lý do cụ thể.</summary>
+    public const string SelfCancelNotAllowed = "SELF_CANCEL_NOT_ALLOWED";
+
+    /// <summary>Số dư ví không đủ để thanh toán (SPEC 3.13).</summary>
+    public const string WalletInsufficient = "WALLET_INSUFFICIENT";
+
     /// <summary>Mã HTTP của từng mã lỗi; mặc định 422 (vi phạm quy tắc nghiệp vụ).</summary>
     public static int HttpStatusOf(string code) => code switch
     {

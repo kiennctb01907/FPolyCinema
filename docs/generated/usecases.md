@@ -4,16 +4,16 @@
 |---|---|---|---|---|---|---|---|
 | UC01 | Đăng nhập, đăng xuất | Khách hàng, mọi nhân viên |  | C6 | 2 | Xong | src/FPolyCinema.Web/Controllers/LoginController.cs#public async Task<IActionResult> Login(LoginVm vm); src/FPolyCinema.Web/Controllers/LoginController.cs#public async Task<IActionResult> Logout(); test:Login_FormHasTokenAndRedirectsToRoleHome_LockedAccountRejected; ui:C6 |
 | UC02 | Quên mật khẩu (OTP, cấp mật khẩu mới qua email) | Khách hàng, mọi nhân viên; Dịch vụ email | extend UC01 | C6 | 2 | Xong | src/FPolyCinema.Web/Services/PasswordResetService.cs#public class PasswordResetService; test:ForgotPassword_OtpFlow_WrongThenRightSendsNewPasswordAndForcesChange; ui:C6 |
-| UC03 | Đổi mật khẩu | Khách hàng, mọi nhân viên | include UC01 | C5, A9 | 2, 5 | Chưa |  |
-| UC04 | Cập nhật thông tin cá nhân | Khách hàng, mọi nhân viên | include UC01 | C5, A9 | 2, 5 | Chưa |  |
+| UC03 | Đổi mật khẩu | Khách hàng, mọi nhân viên | include UC01 | C5, A9 | 2, 5 | Xong | src/FPolyCinema.Web/Views/Account/Index.cshtml#/Login/ChangePassword; src/FPolyCinema.Web/Controllers/LoginController.cs#ChangePassword; test:Customer_AccountTabs_ProfileRedirect_StaffCannotBook |
+| UC04 | Cập nhật thông tin cá nhân | Khách hàng, mọi nhân viên | include UC01 | C5, A9 | 2, 5 | Xong | src/FPolyCinema.Web/Views/Account/Index.cshtml#action="/Login/Profile"; src/FPolyCinema.Web/Controllers/LoginController.cs#/account?tab=profile; test:Customer_AccountTabs_ProfileRedirect_StaffCannotBook |
 | UC05 | Đăng ký tài khoản | Khách vãng lai |  | C6 | 2 | Xong | src/FPolyCinema.Web/Services/AuthService.cs#public User Register(RegisterInput input); test:Register_CreatesMemberCustomerAndRejectsDuplicateEmail; ui:C6 |
-| UC06 | Xem phim, lịch chiếu, thực đơn bắp nước | Khách vãng lai |  | C1, C2 | 5 | Chưa |  |
-| UC07 | Đặt vé online | Khách hàng | include UC08, UC09 | C3 | 5 | Chưa |  |
-| UC08 | Chọn ghế với gợi ý AI | Khách hàng, Thu ngân |  | C3, P1 | 4, 5 | Chưa |  |
-| UC09 | Thanh toán online | Khách hàng; Cổng thanh toán |  | C3 | 5 | Chưa |  |
+| UC06 | Xem phim, lịch chiếu, thực đơn bắp nước | Khách vãng lai |  | C1, C2 | 5 | Xong | src/FPolyCinema.Web/Controllers/CustomerController.cs#public IActionResult Movies; src/FPolyCinema.Web/Controllers/CustomerController.cs#public IActionResult Showtimes; test:Guest_SeesHomeMoviesScheduleMenuAndSeatMap_ButCannotHoldSeats |
+| UC07 | Đặt vé online | Khách hàng | include UC08, UC09 | C3 | 5 | Xong | src/FPolyCinema.Web/Controllers/CustomerController.cs#class BookingController; src/FPolyCinema.Web/Services/OnlineBookingService.cs#class OnlineBookingService; test:Online_VietQrWebhook_SignatureIdempotencyFinish_ReservesStock_NotifiesBillGroup |
+| UC08 | Chọn ghế với gợi ý AI | Khách hàng, Thu ngân |  | C3, P1 | 4, 5 | Xong | src/FPolyCinema.Web/Services/OnlineBookingService.cs#class SeatSuggestService; src/FPolyCinema.Web/wwwroot/js/pages/booking.js#pickCluster; test:Suggest_ThreeClusters_PersonaScores_AndSwitchShowtimeWhenBelowThreshold |
+| UC09 | Thanh toán online | Khách hàng; Cổng thanh toán |  | C3 | 5 | Xong | src/FPolyCinema.Web/Services/OnlineBookingService.cs#HandleWebhook; src/FPolyCinema.Web/Views/Booking/Pay.cshtml#data-pay-screen; test:Online_VietQrWebhook_SignatureIdempotencyFinish_ReservesStock_NotifiesBillGroup |
 | UC10 | Xem vé điện tử, báo "Tôi đã tới rạp" | Khách hàng |  | C4 | 5, 6 | Chưa |  |
-| UC11 | Tự hủy vé | Khách hàng |  | C4, C5 | 5 | Chưa |  |
-| UC12 | Quản lý ví, điểm, voucher, thông báo | Khách hàng |  | C5 | 5 | Chưa |  |
+| UC11 | Tự hủy vé | Khách hàng |  | C4, C5 | 5 | Xong | src/FPolyCinema.Web/Services/OnlineBookingService.cs#public async Task<long> SelfCancel; src/FPolyCinema.Web/Views/Tickets/Show.cshtml#data-self-cancel; test:SelfCancel_RefundsToWallet_ReleasesSeatsAndStock_RestoresPointsAndVoucher |
+| UC12 | Quản lý ví, điểm, voucher, thông báo | Khách hàng |  | C5 | 5 | Xong | src/FPolyCinema.Web/Views/Account/Index.cshtml#Ví và điểm; src/FPolyCinema.Web/Controllers/AccountController.cs#ReadAll; test:Customer_AccountTabs_ProfileRedirect_StaffCannotBook |
 | UC13 | Đặt vé bằng trợ lý AI | Khách hàng | extend UC07 | C7 | 7 | Chưa |  |
 | UC14 | Mở ca, đóng ca mù | Thu ngân |  | P7 | 4 | Xong | src/FPolyCinema.Web/Controllers/PosController.cs#OpenShift; src/FPolyCinema.Web/Controllers/PosController.cs#CloseShift; test:CloseShift_BlockedByWaitingBill_ThenBlindCountComputesExpectedAndDiscrepancy |
 | UC15 | Bán vé và bắp nước tại quầy | Thu ngân | include UC08 | P1, P2 | 4 | Xong | src/FPolyCinema.Web/Controllers/PosController.cs#Checkout; src/FPolyCinema.Web/Views/Pos/Index.cshtml#Hóa đơn tạm tính; test:Checkout_Cash_CreatesTicketsBooksSeatsConsumesStockEarnsPoints_ThenVoidWithPin |
@@ -51,7 +51,7 @@
 | 2 | Giao diện nền, đăng nhập, CRUD cơ bản | 177/177 | 9 |
 | 3 | Phim, phòng chiếu, giá, suất chiếu | 53/53 | 1 |
 | 4 | POS, hóa đơn, thống kê | 142/142 | 2 |
-| 5 | Web khách và đặt vé online | 0/86 | 3 |
+| 5 | Web khách và đặt vé online | 86/86 | 3 |
 | 6 | Vận hành thời gian thực | 0/95 | 7 |
 | 7 | AI xếp lịch và trợ lý đặt vé | 0/53 | 1 |
 | 8 | Hoàn thiện, demo, kiểm tra tổng thể | 0/15 | 0 |

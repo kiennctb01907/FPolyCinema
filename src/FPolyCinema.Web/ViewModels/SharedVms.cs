@@ -141,7 +141,7 @@ public sealed record AgeBadgeVm(string Rating, bool ShowExplanation = false, boo
 public sealed record QrBlockVm(string DataUri, string Code, DateTime? ExpiresAt = null, bool Large = false);
 
 /// <summary>Thẻ phim (_MovieCard).</summary>
-public sealed record MovieCardVm(int Id, string Title, string? PosterUrl, string AgeRating, string Subline, string? BookUrl);
+public sealed record MovieCardVm(int Id, string Title, string? PosterUrl, string AgeRating, string Subline, string? BookUrl, string ActionLabel = "Đặt vé");
 
 /// <summary>Thẻ món bắp nước (_FoodCard).</summary>
 public sealed record FoodCardVm(int Id, string Name, string? Image, long Price, bool SoldOut, int Quantity = 0);

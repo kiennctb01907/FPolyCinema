@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Security.Claims;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
+using FPolyCinema.Web.Controllers;
 using FPolyCinema.Web.Domain.Constants;
 using FPolyCinema.Web.Infrastructure;
 using FPolyCinema.Web.Infrastructure.Web;
@@ -67,6 +68,10 @@ builder.Services.AddScoped<ShiftService>();
 builder.Services.AddScoped<ManagerPinService>();
 builder.Services.AddScoped<StatisticsService>();
 builder.Services.AddScoped<BillQueryService>();
+builder.Services.Configure<PaymentOptions>(builder.Configuration.GetSection(PaymentOptions.SectionName));
+builder.Services.AddScoped<SeatSuggestService>();
+builder.Services.AddScoped<OnlineBookingService>();
+builder.Services.AddScoped<CustomerCatalogPages>();
 builder.Services.AddSignalR();
 builder.Services.AddHostedService<FPolyCinema.Web.Background.SeatHoldSweeper>();
 

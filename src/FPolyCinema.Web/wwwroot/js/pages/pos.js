@@ -114,6 +114,9 @@
 
     const blocked = tickets.some((t) => t.warning);
     $$('[data-pay]').forEach((b) => { b.disabled = empty || blocked; b.title = blocked ? 'Xử lý cảnh báo trên vé trước khi thanh toán' : ''; });
+    const wallet = $('[data-pay="WALLET"]');
+    wallet.hidden = !cart.member;
+    if (cart.member) wallet.title = 'Số dư ví ' + money(cart.member.walletBalance || 0);
     $('[data-cancel-bill]').disabled = !hasBill;
 
     // Đồng bộ sơ đồ ghế với lựa chọn của hóa đơn
@@ -286,7 +289,7 @@
     }
     if (t.closest('[data-member-clear]')) { try { await call('/pos/lookup-member', { query: '' }); } catch { /* đã báo */ } return; }
     const ext = t.closest('[data-extend-hold]'); if (ext) { try { await call('/pos/extend-hold', {}, { button: ext }); } catch { /* đã báo */ } return; }
-    const pay = t.closest('[data-pay]'); if (pay && !pay.disabled) { pay.dataset.pay === 'CASH' ? openCash() : openQr(); return; }
+    const pay = t.closest('[data-pay]'); if (pay && !pay.disabled) { if (pay.dataset.pay === 'CASH') openCash(); else if (pay.dataset.pay === 'WALLET') payWallet(pay); else openQr(); return; }
     if (t.closest('[data-cancel-bill]')) { cancelBill(); return; }
     if (t.closest('[data-void-open]')) { VoidBill.open(); }
   });
@@ -397,16 +400,21 @@
   }
   $('[data-qr-confirm]').addEventListener('click', (e) => checkout('VIETQR_SIM', null, e.currentTarget, qrModal));
 
+  async function payWallet(button) {
+    const ok = await ui.confirm({ title: 'Thanh toán bằng ví thành viên', message: 'Trừ ' + money(cart.total || 0) + ' từ ví của thành viên?', confirmText: 'Trừ ví và thanh toán' });
+    if (ok) await checkout('WALLET', null, button, null);
+  }
+
   async function checkout(method, cashReceived, button, modal) {
     try {
       const r = await ui.api('/pos/checkout', { method: 'POST', body: { method, cashReceived }, button });
-      bootstrap.Modal.getOrCreateInstance(modal).hide();
+      if (modal) bootstrap.Modal.getOrCreateInstance(modal).hide();
       ui.toast.success(method === 'CASH' && r.change > 0 ? `Đã thanh toán ${r.code}. Tiền thối ${money(r.change)}.` : `Đã thanh toán ${r.code}.`);
       window.open(r.printUrl + '&auto=1', '_blank', 'noopener');
       renderCart({});
       await reloadAll();
     } catch (e) {
-      if (e.code === 'PAYMENT_EXPIRED' || e.code === 'SEAT_TAKEN') { bootstrap.Modal.getOrCreateInstance(modal).hide(); await reloadAll(); }
+      if (e.code === 'PAYMENT_EXPIRED' || e.code === 'SEAT_TAKEN') { if (modal) bootstrap.Modal.getOrCreateInstance(modal).hide(); await reloadAll(); }
       if (e.code === 'VALIDATION_FAILED' && e.details && e.details.cashReceived) ui.showFieldErrors($('[data-cash-form]'), e.details);
     }
   }

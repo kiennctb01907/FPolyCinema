@@ -1,0 +1,40 @@
+@model MenuVm
+@* Thực đơn bắp nước (UC06): lọc theo loại; món hết nguyên liệu ở rạp đang chọn hiện "Tạm hết" (SPEC 3.11-13). Chọn món khi đặt vé online (bước 3). *@
+@{
+    ViewData["Title"] = "Bắp nước";
+}
+<partial name="_PageHeader" model="@(new PageHeaderVm { Title = "Bắp nước", Description = $"Thực đơn tại {Model.CinemaName}. Chọn món khi đặt vé online hoặc mua tại quầy.", Crumbs = new() { new("Trang chủ", "/"), new("Bắp nước") } })" />
+<div class="pos-chips mb-4" role="group" aria-label="Loại món">
+    <a class="filter-chip @(Model.CategoryId == null ? "is-active" : null)" href="/menu" aria-current="@(Model.CategoryId == null ? "true" : null)">Tất cả</a>
+    @foreach (var c in Model.Categories)
+    {
+        <a class="filter-chip @(Model.CategoryId == c.Id ? "is-active" : null)" href="/menu?categoryId=@c.Id" aria-current="@(Model.CategoryId == c.Id ? "true" : null)">@c.Name</a>
+    }
+</div>
+@if (Model.Items.Count == 0)
+{
+    <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-cup-straw", Title = "Chưa có món trong loại này", Text = "Bạn chọn loại khác để xem thêm món.", ActionLabel = "Xem tất cả", ActionUrl = "/menu", ActionIcon = "bi-grid" })" />
+}
+else
+{
+    <div class="combo-grid">
+        @foreach (var (c, _, desc) in Model.Items)
+        {
+            <article class="combo-card @(c.SoldOut ? "is-soldout" : null)">
+                <div class="food-img">
+                    <img src="@(c.Image ?? "/img/placeholder-food.svg")" alt="@c.Name" width="300" height="300" loading="lazy" onerror="this.onerror=null;this.src='/img/placeholder-food.svg'" />
+                    @if (c.SoldOut)
+                    {
+                        <div class="soldout" role="status">Tạm hết</div>
+                    }
+                </div>
+                <h2 class="h6 text-clamp-2 mb-1">@c.Name</h2>
+                @if (!string.IsNullOrEmpty(desc))
+                {
+                    <p class="small text-muted text-clamp-2 mb-1">@desc</p>
+                }
+                <p class="money mb-0">@Fmt.Money(c.Price)</p>
+            </article>
+        }
+    </div>
+}

@@ -169,7 +169,8 @@ public class BillService
             DBUtil.InTransaction((conn, tx) => ExpireBill(b.Id, now, conn, tx));
     }
 
-    private static Dictionary<int, List<SeatChange>> ReleaseHeld(Bill bill, SqlConnection conn, SqlTransaction tx)
+    /// <summary>Trả mọi ghế HELD của hóa đơn về AVAILABLE; trả các ghế đã đổi theo suất.</summary>
+    public static Dictionary<int, List<SeatChange>> ReleaseHeld(Bill bill, SqlConnection conn, SqlTransaction tx)
     {
         var result = new Dictionary<int, List<SeatChange>>();
         foreach (var g in ShowtimeSeatDAL.HeldByBill(bill.Id, conn, tx).GroupBy(s => s.ShowtimeId))
@@ -185,6 +186,15 @@ public class BillService
     private async Task<Cart> Mutate(PosContext ctx, Action<Bill, SqlConnection, SqlTransaction> change)
     {
         var bill = await Ensure(ctx);
+        return MutateBill(bill.Id, change);
+    }
+
+    /// <summary>
+    /// Chạy một thay đổi trên một hóa đơn waiting (quầy hoặc online) trong transaction có khóa hóa đơn, rồi tính lại; trả giỏ và lời nhắc.
+    /// </summary>
+    public Cart MutateBill(int billId, Action<Bill, SqlConnection, SqlTransaction> change)
+    {
+        var bill = BillDAL.GetById(billId) ?? throw CategoryService.NotFound("Không tìm thấy hóa đơn.");
         var notices = DBUtil.InTransaction((conn, tx) =>
         {
             var b = BillDAL.GetForUpdate(bill.Id, conn, tx)!;
@@ -225,7 +235,10 @@ public class BillService
     // ------------------------------------------------------------------ bắp nước (/pos/update-quantity)
 
     /// <summary>Tăng, giảm, xóa một món (action incr, decr, delete). Món không đủ nguyên liệu bị chặn (STOCK_INSUFFICIENT).</summary>
-    public Task<Cart> UpdateQuantity(PosContext ctx, int drinkId, string? action) => Mutate(ctx, (b, conn, tx) =>
+    public Task<Cart> UpdateQuantity(PosContext ctx, int drinkId, string? action) => Mutate(ctx, QuantityChange(drinkId, action));
+
+    /// <summary>Thay đổi bắp nước dùng chung cho quầy và online (action incr, decr, delete; STOCK_INSUFFICIENT khi thiếu nguyên liệu).</summary>
+    public Action<Bill, SqlConnection, SqlTransaction> QuantityChange(int drinkId, string? action) => (b, conn, tx) =>
     {
         if (action is not ("incr" or "decr" or "delete")) throw FieldErrors.Of("action", "Thao tác không hợp lệ.");
         var lines = BillDetailDAL.GetByBill(b.Id, conn, tx);
@@ -256,7 +269,7 @@ public class BillService
                 BillDetailDAL.Update(line, conn, tx);
             }
         }
-    });
+    };
 
     // ------------------------------------------------------------------ thành viên, voucher, điểm
 
@@ -277,7 +290,10 @@ public class BillService
     });
 
     /// <summary>Áp voucher (SPEC 3.13); mã rỗng là gỡ voucher. Không hợp lệ thì VOUCHER_INVALID kèm lý do cụ thể.</summary>
-    public Task<Cart> ApplyVoucher(PosContext ctx, string? code) => Mutate(ctx, (b, conn, tx) =>
+    public Task<Cart> ApplyVoucher(PosContext ctx, string? code) => Mutate(ctx, VoucherChange(code));
+
+    /// <summary>Áp hoặc gỡ voucher, dùng chung cho quầy và online.</summary>
+    public Action<Bill, SqlConnection, SqlTransaction> VoucherChange(string? code) => (b, conn, tx) =>
     {
         if (string.IsNullOrWhiteSpace(code))
         {
@@ -292,10 +308,13 @@ public class BillService
         if (!check.Ok) throw new BusinessRuleException(ErrorCodes.VoucherInvalid, check.Reason!);
         bill.VoucherId = v.Id;
         BillDAL.Update(bill, conn, tx);
-    });
+    };
 
     /// <summary>Đổi điểm: cần thành viên; 1 điểm = PointValueVnd, tối đa MaxPointsRedeemPercent giá trị hóa đơn (POINTS_INVALID).</summary>
-    public Task<Cart> ApplyPoints(PosContext ctx, int points) => Mutate(ctx, (b, conn, tx) =>
+    public Task<Cart> ApplyPoints(PosContext ctx, int points) => Mutate(ctx, PointsChange(points));
+
+    /// <summary>Đổi điểm (0 là bỏ đổi điểm), dùng chung cho quầy và online.</summary>
+    public Action<Bill, SqlConnection, SqlTransaction> PointsChange(int points) => (b, conn, tx) =>
     {
         if (b.CustomerId is not int cid)
         {
@@ -311,7 +330,7 @@ public class BillService
         if (error != null) throw new BusinessRuleException(ErrorCodes.PointsInvalid, error, new { max = LoyaltyCalculator.MaxRedeemPoints(bill.TicketSubtotal + bill.FnbSubtotal - totals.VoucherDiscount, customer.LoyaltyPoints, _rules) });
         bill.PointsUsed = points;
         BillDAL.Update(bill, conn, tx);
-    });
+    };
 
     /// <summary>Gia hạn giữ ghế một lần thêm SeatHoldExtendMinutes (SPEC 3.5).</summary>
     public async Task<Cart> ExtendHold(PosContext ctx)
@@ -361,7 +380,7 @@ public class BillService
     /// </summary>
     public async Task<CheckoutResult> Checkout(PosContext ctx, string? method, long? cashReceived)
     {
-        if (method is not (PaymentMethod.Cash or PaymentMethod.VietQrSim)) throw FieldErrors.Of("method", "Bạn chọn phương thức thanh toán.");
+        if (method is not (PaymentMethod.Cash or PaymentMethod.VietQrSim or PaymentMethod.Wallet)) throw FieldErrors.Of("method", "Bạn chọn phương thức thanh toán.");
         var bill = await Current(ctx) ?? throw FieldErrors.Of("bill", "Hóa đơn trống. Bạn chọn ghế hoặc món trước.");
         var now = _clock.Now;
         var (result, changes) = DBUtil.InTransaction((conn, tx) =>
@@ -416,7 +435,14 @@ public class BillService
                 booked.Add(new SeatChange(t.SeatId, SeatDisplayStatus.Booked, null, null));
             }
 
-            if (b.Total > 0)
+            // WALLET (SPEC 3.6-12): dành cho thành viên đã tra cứu; trừ ví theo 3.13 (WALLET_INSUFFICIENT)
+            if (method == PaymentMethod.Wallet)
+            {
+                if (b.CustomerId is not int wid) throw FieldErrors.Of("method", "Thanh toán bằng ví cần tra cứu thành viên (F1) trước.");
+                WalletService.Debit(wid, b.Total, $"Thanh toán hóa đơn {b.Code} tại quầy", b.Id, now, conn, tx);
+            }
+
+            if (b.Total > 0 || method == PaymentMethod.Wallet)
                 PaymentDAL.Insert(new Payment
                 {
                     BillId = b.Id, PosShiftId = ctx.Shift.Id, Method = method!, Direction = PaymentDirection.In, Amount = b.Total, Status = PaymentStatus.Succeeded,
@@ -492,8 +518,7 @@ public class BillService
                 }, conn, tx);
                 if (p.Key == PaymentMethod.Wallet && b.CustomerId is int wc)
                 {
-                    var balance = UserDAL.AddWallet(wc, amount, conn, tx);
-                    WalletTransactionDAL.Insert(new WalletTransaction { UserId = wc, Amount = amount, BalanceAfter = balance, Reason = $"Hoàn tiền hóa đơn {b.Code}", BillId = b.Id, CreatedAt = now }, conn, tx);
+                    WalletService.Credit(wc, amount, $"Hoàn tiền hóa đơn {b.Code}", b.Id, now, conn, tx);
                 }
             }
 
@@ -567,7 +592,7 @@ public class BillService
         int maxPoints = 0;
         if (bill.CustomerId is int cid && UserDAL.GetById(cid) is { } u)
         {
-            member = new CartMember(u.Id, u.FullName, u.MemberCode, u.Tier, StatusDisplay.Of(StatusDisplay.Tier, u.Tier).Label, u.LoyaltyPoints, LoyaltyCalculator.PointsValue(u.LoyaltyPoints, _rules));
+            member = new CartMember(u.Id, u.FullName, u.MemberCode, u.Tier, StatusDisplay.Of(StatusDisplay.Tier, u.Tier).Label, u.LoyaltyPoints, LoyaltyCalculator.PointsValue(u.LoyaltyPoints, _rules), u.WalletBalance);
             long voucher = bill.DiscountTotal - LoyaltyCalculator.PointsValue(bill.PointsUsed, _rules);
             maxPoints = LoyaltyCalculator.MaxRedeemPoints(bill.TicketSubtotal + bill.FnbSubtotal - voucher, u.LoyaltyPoints, _rules);
         }

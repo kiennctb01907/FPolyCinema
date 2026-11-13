@@ -35,6 +35,12 @@ public static class CodeGenerator
 
     public static string TerminalCode(int number) => "POS-" + number.ToString("D2");
 
+    /// <summary>Mã voucher bù cho khách (SPEC 3.7, OVERBOOKED_REFUNDED): BU + 8 ký tự ngẫu nhiên dễ đọc.</summary>
+    public static string CompensationVoucherCode() => "BU" + RandomString(QrAlphabet, 8);
+
+    /// <summary>Mã giao dịch mô phỏng của cổng thanh toán: SIM + 17 ký tự ngẫu nhiên.</summary>
+    public static string SimTxnId() => "SIM" + RandomString(QrAlphabet, 17);
+
     private static string RandomString(string alphabet, int length)
     {
         var chars = new char[length];

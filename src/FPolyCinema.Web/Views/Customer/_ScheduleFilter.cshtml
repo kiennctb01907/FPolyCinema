@@ -1,0 +1,40 @@
+@model ScheduleFilterVm
+@* Bộ lọc lịch chiếu (UI C2): dải chip 7 ngày ("Hôm nay 06/11", "T7 07/11"); định dạng và ngôn ngữ dạng segmented; rạp (trang lịch chiếu). *@
+<div class="schedule-filter">
+    <nav class="day-chips" aria-label="Chọn ngày">
+        @foreach (var d in Model.Days)
+        {
+            var on = d == Model.Date;
+            <a class="day-chip @(on ? "is-active" : null)" href="@Model.Url(date: d)" aria-current="@(on ? "date" : null)">
+                <span class="day-chip-top">@(d == Model.Today ? "Hôm nay" : Fmt.WeekdayShort(d.DayOfWeek))</span>
+                <span class="day-chip-date">@d.ToString("dd/MM")</span>
+            </a>
+        }
+    </nav>
+    <div class="schedule-segments">
+        @if (Model.BasePath == "/showtimes")
+        {
+            <div class="segmented" role="group" aria-label="Rạp">
+                <a class="@(Model.CinemaId == null ? "is-active" : null)" href="@Model.Url(cinemaId: null)" aria-current="@(Model.CinemaId == null ? "true" : null)">Tất cả rạp</a>
+                @foreach (var c in Model.Cinemas)
+                {
+                    <a class="@(Model.CinemaId == c.Id ? "is-active" : null)" href="@Model.Url(cinemaId: c.Id)" aria-current="@(Model.CinemaId == c.Id ? "true" : null)">@c.Name</a>
+                }
+            </div>
+        }
+        <div class="segmented" role="group" aria-label="Định dạng">
+            <a class="@(Model.Format == null ? "is-active" : null)" href="@Model.Url(format: null)" aria-current="@(Model.Format == null ? "true" : null)">Mọi định dạng</a>
+            @foreach (var f in Model.Formats)
+            {
+                <a class="@(Model.Format == f ? "is-active" : null)" href="@Model.Url(format: f)" aria-current="@(Model.Format == f ? "true" : null)">@f</a>
+            }
+        </div>
+        <div class="segmented" role="group" aria-label="Ngôn ngữ">
+            <a class="@(Model.Language == null ? "is-active" : null)" href="@Model.Url(language: null)" aria-current="@(Model.Language == null ? "true" : null)">Mọi ngôn ngữ</a>
+            @foreach (var l in Model.Languages)
+            {
+                <a class="@(Model.Language == l ? "is-active" : null)" href="@Model.Url(language: l)" aria-current="@(Model.Language == l ? "true" : null)">@StatusDisplay.Of(StatusDisplay.Language, l).Label</a>
+            }
+        </div>
+    </div>
+</div>

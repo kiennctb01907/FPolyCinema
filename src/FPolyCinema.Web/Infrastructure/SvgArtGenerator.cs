@@ -112,8 +112,8 @@ public static class SvgArtGenerator
         sb.Append($"  <rect x=\"468\" y=\"32\" width=\"100\" height=\"56\" rx=\"10\" fill=\"{ageColor}\"/>\n");
         sb.Append($"  <text x=\"518\" y=\"70\" text-anchor=\"middle\" font-family=\"{FontFamily}\" font-size=\"30\" font-weight=\"700\" fill=\"{ageText}\">{Esc(ageRating)}</text>\n");
 
-        // Thương hiệu nhỏ ở góc trên bên trái
-        sb.Append($"  <text x=\"36\" y=\"68\" font-family=\"{FontFamily}\" font-size=\"22\" font-weight=\"600\" fill=\"#FFFFFF\" fill-opacity=\"0.85\">FPoly Cinema</text>\n");
+        // Thương hiệu nhỏ ở đáy poster (góc trên trái để trống cho nhãn tuổi mà thẻ phim phủ lên, UI U5-13)
+        sb.Append($"  <text x=\"36\" y=\"872\" font-family=\"{FontFamily}\" font-size=\"22\" font-weight=\"600\" fill=\"#FFFFFF\" fill-opacity=\"0.85\">FPoly Cinema</text>\n");
 
         // Tên phim: chữ lớn, đậm, tự xuống dòng; tên dài thì giảm cỡ chữ
         var fontSize = title.Length > 32 ? 46 : title.Length > 20 ? 54 : 64;

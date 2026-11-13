@@ -8,6 +8,8 @@
 //
 // Đọc routes.json: mã màn hình, vai trò, đường dẫn, khu vực (kích thước theo UI mục 11).
 // Đăng nhập bằng /demo/switch-role (vai trò guest thì không đăng nhập), chờ trang tải xong và font sẵn sàng,
+// Đường dẫn có mã sinh ngẫu nhiên hoặc phụ thuộc ngày (mã vé, suất chiếu): khai báo "resolveFrom" (trang bắt đầu) và
+// "resolveLink" (CSS selector hoặc mảng selector); script mở resolveFrom, lần lượt theo liên kết đầu tiên khớp từng selector rồi chụp.
 // chụp toàn trang vào artifacts/ui/phase-N/{mãMànHình}-{vai-tro}[-{biến thể}]-{rong}x{cao}.png.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -54,12 +56,21 @@ for (const r of routes) {
     // Bỏ qua thông báo "Failed to load resource" của chính trang khi trang cố ý trả 403, 404 (trang lỗi, từ chối truy cập)
     page.on('console', (m) => { if (m.type() === 'error' && !(m.location().url === page.url() && /Failed to load resource/.test(m.text()))) consoleErrors.push(m.text()); });
     page.on('pageerror', (e) => consoleErrors.push(e.message));
+    const entry = r.resolveFrom || r.path;
     const url = r.role === 'guest'
-      ? base + r.path
-      : `${base}/demo/switch-role?role=${encodeURIComponent(r.role)}&returnUrl=${encodeURIComponent(r.path)}`;
+      ? base + entry
+      : `${base}/demo/switch-role?role=${encodeURIComponent(r.role)}&returnUrl=${encodeURIComponent(entry)}`;
     let status = 0;
     try {
-      const resp = await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+      let resp = await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+      if (r.resolveFrom) {
+        // resolveLink là một selector hoặc mảng selector: đi lần lượt qua từng liên kết (ví dụ chọn ngày rồi chọn suất).
+        for (const sel of [].concat(r.resolveLink)) {
+          const href = await page.evaluate((q) => document.querySelector(q)?.getAttribute('href'), sel);
+          if (!href) throw new Error(`không tìm thấy liên kết "${sel}" từ ${r.resolveFrom}`);
+          resp = await page.goto(new URL(href, page.url()).href, { waitUntil: 'networkidle', timeout: 30000 });
+        }
+      }
       status = resp ? resp.status() : 0;
       await page.evaluate(() => document.fonts.ready);
       await page.waitForTimeout(300);

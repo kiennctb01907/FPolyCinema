@@ -71,6 +71,21 @@ public class InventoryService
     }
 
     /// <summary>
+    /// Giữ kho khi đơn online thanh toán thành công (SPEC 3.11-03): khóa nguyên liệu, kiểm lại khả dụng, ghi RESERVE theo định mức và tăng ReservedStock.
+    /// Bắp nước chờ khách tới lấy (FnbStatus PENDING_PICKUP); khi làm món ở Phase 6 mới trừ ActualStock.
+    /// </summary>
+    public void ReserveForBill(int billId, int cinemaId, int? userId, DateTime now, SqlConnection conn, SqlTransaction tx)
+    {
+        var details = BillDetailDAL.GetByBill(billId, conn, tx);
+        if (details.Count == 0) return;
+        var lines = RawMaterialDAL.LockForBill(billId, cinemaId, conn, tx);
+        var qty = details.GroupBy(d => d.DrinkId).ToDictionary(g => g.Key, g => g.Sum(d => d.Quantity));
+        Check(lines.Select(l => (l.DrinkId, l.RawMaterialId, l.PerPortion, l.Available)), qty, conn, tx);
+        InventoryTransactionDAL.InsertForBill(billId, cinemaId, InventoryTxnType.Reserve, "Đơn online đã thanh toán, chờ lấy", userId, now, conn, tx);
+        RawMaterialDAL.ApplyForBill(billId, cinemaId, 0, 1, conn, tx);
+    }
+
+    /// <summary>
     /// Hủy hóa đơn đã thanh toán (SPEC 3.6-23): bắp nước chưa làm (đơn online PENDING_PICKUP) thì giải phóng phần giữ (RELEASE);
     /// đã làm (PREPARING, READY_FOR_PICKUP, FULFILLED) thì không hoàn kho. Trả true nếu đã giải phóng.
     /// </summary>

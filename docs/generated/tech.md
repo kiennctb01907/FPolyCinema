@@ -30,11 +30,11 @@ Thư mục wwwroot/lib: be-vietnam-pro, bootstrap, bootstrap-icons, chart.js, ht
 
 ## SignalR
 
-- src/FPolyCinema.Web/Hubs/CinemaHub.cs: JoinShowtime, LeaveShowtime
+- src/FPolyCinema.Web/Hubs/CinemaHub.cs: JoinShowtime, LeaveShowtime, JoinBill, LeaveBill
 
 ## Kiểm thử
 
-237 test trong 22 file.
+266 test trong 25 file.
 
 - tests/FPolyCinema.Tests/ArchitectureTests.cs: 8
 - tests/FPolyCinema.Tests/BillStateMachineTests.cs: 14
@@ -51,6 +51,9 @@ Thư mục wwwroot/lib: be-vietnam-pro, bootstrap, bootstrap-icons, chart.js, ht
 - tests/FPolyCinema.Tests/Phase4RulesTests.cs: 18
 - tests/FPolyCinema.Tests/Phase4ServiceTests.cs: 15
 - tests/FPolyCinema.Tests/Phase4WebTests.cs: 3
+- tests/FPolyCinema.Tests/Phase5RulesTests.cs: 12
+- tests/FPolyCinema.Tests/Phase5ServiceTests.cs: 12
+- tests/FPolyCinema.Tests/Phase5WebTests.cs: 5
 - tests/FPolyCinema.Tests/PricingCalculatorTests.cs: 17
 - tests/FPolyCinema.Tests/SeatScoringTests.cs: 10
 - tests/FPolyCinema.Tests/SeedDataTests.cs: 13
@@ -68,9 +71,9 @@ src/
       .gitkeep
       SeatHoldSweeper.cs
     Controllers/
-      (16 file: .gitkeep, AppControllerBase.cs, AuditoriumsController.cs, BillsController.cs, CategoriesController.cs, DrinksController.cs, …)
+      (19 file: .gitkeep, AccountController.cs, AppControllerBase.cs, AuditoriumsController.cs, BillsController.cs, CategoriesController.cs, …)
     DAL/
-      (44 file: AccountDAL.Phase2.cs, AudienceDiscountDAL.cs, AuditLogDAL.cs, AuditoriumDAL.cs, BillDAL.cs, BillDetailDAL.cs, …)
+      (45 file: AccountDAL.Phase2.cs, AudienceDiscountDAL.cs, AuditLogDAL.cs, AuditoriumDAL.cs, BillDAL.cs, BillDetailDAL.cs, …)
     Database/
       01_schema.sql
       02_procedures.sql
@@ -86,11 +89,11 @@ src/
         PricingConstants.cs
         Roles.cs
       Rules/
-        (18 file: AgeRules.cs, AuditoriumLayout.cs, BillStateMachine.cs, CashDropCalculator.cs, CodeGenerator.cs, DeleteRules.cs, …)
+        (19 file: AgeRules.cs, AuditoriumLayout.cs, BillStateMachine.cs, CashDropCalculator.cs, ClusterFinder.cs, CodeGenerator.cs, …)
       BusinessRuleException.cs
       FieldErrors.cs
     Entities/
-      (37 file: AudienceDiscount.cs, AuditLog.cs, Auditorium.cs, Bill.cs, BillDetail.cs, Category.cs, …)
+      (38 file: AudienceDiscount.cs, AuditLog.cs, Auditorium.cs, Bill.cs, BillDetail.cs, Category.cs, …)
     Hubs/
       .gitkeep
       CinemaHub.cs
@@ -104,22 +107,11 @@ src/
         Flash.cs
         Middlewares.cs
         QueryUrl.cs
-      AppOptions.cs
-      CinemaRules.cs
-      DbInitializer.cs
-      DbSeeder.cs
-      DbSeeder.Finalize.cs
-      DbSeeder.Sales.cs
-      Fmt.cs
-      IClock.cs
-      QrSvg.cs
-      StatusDisplay.cs
-      SvgArtGenerator.cs
-      SystemClock.cs
+      (14 file: AppOptions.cs, CinemaRules.cs, DbInitializer.cs, DbSeeder.cs, DbSeeder.Finalize.cs, DbSeeder.Sales.cs, …)
     Properties/
       launchSettings.json
     Services/
-      (20 file: AuditoriumService.cs, AuthService.cs, BillService.cs, BillStatusService.cs, CatalogServices.cs, DevToolsService.cs, …)
+      (21 file: AuditoriumService.cs, AuthService.cs, BillService.cs, BillStatusService.cs, CatalogServices.cs, DevToolsService.cs, …)
     Utils/
       DBUtil.cs
       FileUtil.cs
@@ -128,12 +120,16 @@ src/
       .gitkeep
       AccountVms.cs
       AdminVms.cs
+      CustomerVms.cs
       Phase3Vms.cs
       Phase4AdminVms.cs
       PosVms.cs
       SharedVms.cs
       StyleGuideSamples.cs
     Views/
+      Account/
+        _AccountBill.cshtml
+        Index.cshtml
       Auditoriums/
         Design.cshtml
         Form.cshtml
@@ -142,11 +138,21 @@ src/
         _Table.cshtml
         Details.cshtml
         Index.cshtml
+      Booking/
+        Index.cshtml
+        Pay.cshtml
       Categories/
         _Table.cshtml
         Details.cshtml
         Form.cshtml
         Index.cshtml
+      Customer/
+        _Schedule.cshtml
+        _ScheduleFilter.cshtml
+        Menu.cshtml
+        Movie.cshtml
+        Movies.cshtml
+        Showtimes.cshtml
       Dev/
         _StyleGuideBody.cshtml
         LayoutDisplay.cshtml
@@ -181,6 +187,8 @@ src/
         Details.cshtml
         Form.cshtml
         Index.cshtml
+      Payment/
+        Sim.cshtml
       Pos/
         _PosModals.cshtml
         _SeatMapRegion.cshtml
@@ -206,6 +214,8 @@ src/
         Dashboard.cshtml
         Reports.cshtml
         Settlement.cshtml
+      Tickets/
+        Show.cshtml
       Users/
         _Table.cshtml
         Details.cshtml
@@ -237,7 +247,7 @@ src/
     Program.cs
 tests/
   FPolyCinema.Tests/
-    (24 file: ArchitectureTests.cs, BillStateMachineTests.cs, ConventionTests.cs, DatabaseTests.cs, FileUtilTests.cs, FPolyCinema.Tests.csproj, …)
+    (27 file: ArchitectureTests.cs, BillStateMachineTests.cs, ConventionTests.cs, DatabaseTests.cs, FileUtilTests.cs, FPolyCinema.Tests.csproj, …)
 tools/
   spec-check/
     check.mjs

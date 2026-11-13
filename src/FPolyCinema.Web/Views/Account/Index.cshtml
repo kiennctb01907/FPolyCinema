@@ -1,0 +1,214 @@
+@model AccountVm
+@* Tài khoản C5 /account: thẻ hạng thành viên có thanh tiến độ tới hạng kế tiếp, kèm mã thành viên dạng QR để quét ở quầy; các tab Vé của tôi
+   (sắp tới, đã xem), Ví và điểm (số dư, lịch sử), Voucher, Thông báo, Thông tin cá nhân (UC03 đổi mật khẩu, UC04 cập nhật thông tin, UC12). *@
+@{
+    ViewData["Title"] = "Tài khoản";
+    var u = Model.User;
+    var p = Model.Progress;
+    var tabs = new[] { ("tickets", "Vé của tôi", "bi-ticket-perforated"), ("wallet", "Ví và điểm", "bi-wallet2"), ("voucher", "Voucher", "bi-ticket-detailed"), ("notifications", "Thông báo", "bi-bell"), ("profile", "Thông tin cá nhân", "bi-person") };
+}
+<partial name="_PageHeader" model="@(new PageHeaderVm { Title = "Tài khoản của tôi", Description = u.Email, Crumbs = new() { new("Trang chủ", "/"), new("Tài khoản") } })" />
+
+<section class="tier-card" aria-labelledby="tier-title">
+    <div class="tier-card-main">
+        <p class="tier-card-label">Hạng thành viên</p>
+        <h2 id="tier-title" class="tier-card-tier">@StatusDisplay.Of(StatusDisplay.Tier, u.Tier).Label</h2>
+        <p class="mb-2">@u.FullName · <span class="num">@(u.MemberCode ?? "–")</span></p>
+        <div class="tier-progress" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="@p.Percent" aria-label="Tiến độ tới hạng kế tiếp">
+            <span class="tier-progress-fill" style="--pct: @p.Percent%"></span>
+        </div>
+        <p class="small mb-0">
+            @if (p.NextTier != null)
+            {
+                @:Chi tiêu 12 tháng <span class="money">@Fmt.Money(p.Spend)</span> / <span class="money">@Fmt.Money(p.NextThreshold)</span> để lên hạng @StatusDisplay.Of(StatusDisplay.Tier, p.NextTier).Label.
+            }
+            else
+            {
+                @:Bạn đang ở hạng cao nhất. Chi tiêu 12 tháng <span class="money">@Fmt.Money(p.Spend)</span>.
+            }
+        </p>
+        <dl class="tier-stats">
+            <div><dt>Điểm</dt><dd class="num">@Fmt.Number(u.LoyaltyPoints)</dd></div>
+            <div><dt>Ví FPoly</dt><dd class="money">@Fmt.Money(u.WalletBalance)</dd></div>
+        </dl>
+    </div>
+    <figure class="tier-card-qr mb-0">
+        <img src="@Model.MemberQr" width="140" height="140" alt="Mã thành viên @u.MemberCode dạng QR" />
+        <figcaption class="small text-center">Đưa mã này cho thu ngân để tích điểm</figcaption>
+    </figure>
+</section>
+
+<nav class="page-tabs my-4" aria-label="Mục tài khoản">
+    @foreach (var (key, label, icon) in tabs)
+    {
+        <a class="@(Model.Tab == key ? "active" : null)" href="/account?tab=@key" aria-current="@(Model.Tab == key ? "page" : null)"><i class="bi @icon" aria-hidden="true"></i>@label@if (key == "notifications" && Model.Unread > 0) { <span class="count-pill">@Model.Unread</span> }</a>
+    }
+</nav>
+
+@switch (Model.Tab)
+{
+    case "tickets":
+        <section aria-labelledby="up-title" class="mb-5">
+            <h2 id="up-title" class="h5">Sắp tới</h2>
+            @if (Model.Upcoming.Count == 0)
+            {
+                <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-ticket-perforated", Title = "Chưa có vé sắp tới", Text = "Chọn phim và suất chiếu để đặt vé online.", ActionLabel = "Đặt vé", ActionUrl = "/showtimes", ActionIcon = "bi-calendar3" })" />
+            }
+            else
+            {
+                <div class="account-bills">
+                    @foreach (var b in Model.Upcoming) { <partial name="_AccountBill" model="b" /> }
+                </div>
+            }
+        </section>
+        <section aria-labelledby="past-title">
+            <h2 id="past-title" class="h5">Đã xem và đã hủy</h2>
+            @if (Model.Past.Count == 0)
+            {
+                <p class="text-muted">Chưa có vé nào.</p>
+            }
+            else
+            {
+                <div class="account-bills">
+                    @foreach (var b in Model.Past) { <partial name="_AccountBill" model="b" /> }
+                </div>
+            }
+        </section>
+        break;
+    case "wallet":
+        <div class="row g-4">
+            <section class="col-12 col-lg-6" aria-labelledby="wallet-title">
+                <h2 id="wallet-title" class="h5">Ví FPoly · <span class="money">@Fmt.Money(u.WalletBalance)</span></h2>
+                <p class="small text-muted">Nhận tiền hoàn khi tự hủy vé; dùng để thanh toán online hoặc tại quầy.</p>
+                @if (Model.Wallet.Count == 0)
+                {
+                    <p class="text-muted">Chưa có giao dịch ví.</p>
+                }
+                else
+                {
+                    <ul class="history-list">
+                        @foreach (var w in Model.Wallet)
+                        {
+                            <li><span class="min-w-0"><span class="d-block">@w.Reason</span><span class="small text-muted">@Fmt.DateTime(w.CreatedAt) · số dư <span class="money">@Fmt.Money(w.BalanceAfter)</span></span></span><span class="money @(w.Amount >= 0 ? "text-success-fg" : "text-danger-fg")">@(w.Amount >= 0 ? "+" : "−")@Fmt.Money(Math.Abs(w.Amount))</span></li>
+                        }
+                    </ul>
+                }
+            </section>
+            <section class="col-12 col-lg-6" aria-labelledby="points-title">
+                <h2 id="points-title" class="h5">Điểm · <span class="num">@Fmt.Number(u.LoyaltyPoints)</span></h2>
+                <p class="small text-muted">1 điểm = @Fmt.Money(Model.PointValueVnd) khi đổi, tối đa @Model.MaxPointsRedeemPercent% giá trị đơn.</p>
+                @if (Model.Points.Count == 0)
+                {
+                    <p class="text-muted">Chưa có giao dịch điểm.</p>
+                }
+                else
+                {
+                    <ul class="history-list">
+                        @foreach (var pt in Model.Points)
+                        {
+                            <li><span class="min-w-0"><span class="d-block">@pt.Reason</span><span class="small text-muted">@Fmt.DateTime(pt.CreatedAt)</span></span><span class="num @(pt.Points >= 0 ? "text-success-fg" : "text-danger-fg")">@(pt.Points >= 0 ? "+" : "−")@Fmt.Number(Math.Abs(pt.Points)) điểm</span></li>
+                        }
+                    </ul>
+                }
+            </section>
+        </div>
+        break;
+    case "voucher":
+        @if (Model.Vouchers.Count == 0)
+        {
+            <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-ticket-detailed", Title = "Chưa có voucher", Text = "Voucher tặng và ưu đãi công khai sẽ hiện ở đây.", ActionLabel = "Xem ưu đãi", ActionUrl = "/#uu-dai", ActionIcon = "bi-gift" })" />
+        }
+        else
+        {
+            <div class="promo-grid">
+                @foreach (var v in Model.Vouchers)
+                {
+                    var st = VoucherText.State(v, Model.Now);
+                    <article class="promo-card">
+                        <i class="bi bi-ticket-detailed promo-icon" aria-hidden="true"></i>
+                        <div class="min-w-0">
+                            <h3 class="h6 mb-1">@VoucherText.Title(v) <span class="status-badge tone-@st.Tone">@st.Label</span></h3>
+                            <p class="small text-muted mb-2">@VoucherText.Condition(v)@(v.OwnerUserId == null ? " · Ưu đãi công khai" : v.Source == VoucherSource.Compensation ? " · Voucher bù" : null)</p>
+                            <p class="mb-0">Mã <span class="promo-code">@v.Code</span></p>
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+        break;
+    case "notifications":
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h2 class="h5 mb-0">Thông báo</h2>
+            @if (Model.Unread > 0)
+            {
+                <button type="button" class="btn btn-secondary btn-sm" data-read-all><i class="bi bi-check2-all" aria-hidden="true"></i>Đánh dấu đã đọc</button>
+            }
+        </div>
+        @if (Model.Notifications.Count == 0)
+        {
+            <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-bell", Title = "Chưa có thông báo", Text = "Thông báo về vé, hoàn tiền và voucher sẽ hiện ở đây.", ActionLabel = "Về trang chủ", ActionUrl = "/", ActionIcon = "bi-house" })" />
+        }
+        else
+        {
+            <ul class="history-list" data-notifications>
+                @foreach (var n in Model.Notifications)
+                {
+                    <li class="@(n.IsRead ? null : "is-unread")">
+                        <span class="min-w-0">
+                            <span class="d-block fw-500">@n.Title</span>
+                            <span class="d-block small">@n.Body</span>
+                            <span class="small text-muted">@Fmt.DateTime(n.CreatedAt)</span>
+                        </span>
+                        @if (!string.IsNullOrEmpty(n.Link))
+                        {
+                            <a class="btn btn-ghost btn-sm" href="@n.Link">Xem</a>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+        break;
+    default:
+        <div class="row g-4">
+            <section class="col-12 col-lg-7 card-ui" aria-labelledby="info-title">
+                <form asp-antiforgery="true" method="post" action="/Login/Profile" novalidate data-dirty-guard>
+                    <div class="card-section">
+                        <h2 class="card-section-title h5" id="info-title">Thông tin cá nhân</h2>
+                        <div class="mb-3">
+                            <label class="form-label" for="pf-name">Họ tên <span class="req" aria-hidden="true">*</span></label>
+                            <input class="form-control" id="pf-name" name="FullName" value="@Model.Profile.FullName" required maxlength="150" autocomplete="name" />
+                        </div>
+                        <div class="row g-3">
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label" for="pf-phone">Số điện thoại</label>
+                                <input class="form-control" id="pf-phone" name="Phone" value="@Model.Profile.Phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="0901234567" />
+                            </div>
+                            <div class="col-12 col-sm-6">
+                                <label class="form-label" for="pf-birth">Ngày sinh</label>
+                                <div class="date-field">
+                                    <input class="form-control" id="pf-birth" name="BirthDate" type="date" value="@(Model.Profile.BirthDate?.ToString("yyyy-MM-dd"))" />
+                                    <span class="date-display" aria-hidden="true"></span>
+                                </div>
+                                <div class="form-text">Dùng để kiểm tra độ tuổi khi mua vé phim T13, T16, T18.</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-actions-sticky">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Lưu</button>
+                    </div>
+                </form>
+            </section>
+            <section class="col-12 col-lg-5" aria-labelledby="pw-title">
+                <div class="card-ui card-ui-body">
+                    <h2 class="card-ui-title" id="pw-title">Mật khẩu</h2>
+                    <p class="text-muted">Đổi mật khẩu sẽ đăng xuất các phiên khác của tài khoản.</p>
+                    <a class="btn btn-secondary" href="/Login/ChangePassword"><i class="bi bi-key" aria-hidden="true"></i>Đổi mật khẩu</a>
+                </div>
+            </section>
+        </div>
+        break;
+}
+
+@section Scripts {
+    <script src="~/js/pages/account.js" asp-append-version="true"></script>
+}

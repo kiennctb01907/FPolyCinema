@@ -15,7 +15,7 @@ public sealed record CartTicket(int SeatId, string Label, string SeatType, strin
 public sealed record CartItem(int DrinkId, string Name, string? Image, int Quantity, long Price, long Amount, int MaxQuantity);
 
 /// <summary>Thành viên gắn với hóa đơn.</summary>
-public sealed record CartMember(int Id, string FullName, string? MemberCode, string Tier, string TierLabel, int Points, long PointValue);
+public sealed record CartMember(int Id, string FullName, string? MemberCode, string Tier, string TierLabel, int Points, long PointValue, long WalletBalance = 0);
 
 /// <summary>Suất của hóa đơn.</summary>
 public sealed record CartShowtime(int Id, string MovieTitle, string AgeRating, string AgeExplanation, DateTime StartTime, DateTime EndTime,

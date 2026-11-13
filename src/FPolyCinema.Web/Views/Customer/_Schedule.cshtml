@@ -1,0 +1,77 @@
+@model List<ScheduleGroupVm>
+@* Lịch chiếu (UI C2): nhóm theo rạp (hoặc theo phim), rồi theo "2D · Phụ đề"; mỗi suất là chip giờ (giờ 16px đậm 600, dòng nhỏ "còn 42 ghế");
+   suất hết vé bị khóa kèm chữ "Hết vé"; suất đã qua đã ẩn; suất kết thúc từ 22:00 có icon mặt trăng kèm tooltip quy định giờ chiếu cho trẻ em. *@
+@if (Model.Count == 0)
+{
+    <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-calendar-x", Title = "Không có suất phù hợp", Text = "Bạn chọn ngày khác hoặc bỏ bớt bộ lọc định dạng, ngôn ngữ.", ActionLabel = "Xem mọi phim", ActionUrl = "/movies", ActionIcon = "bi-film" })" />
+}
+@foreach (var g in Model)
+{
+    <section class="cust-schedule-group" aria-label="@g.Title">
+        <header class="cust-schedule-head">
+            @if (g.Link != null)
+            {
+                <img class="cust-schedule-poster" src="@(g.PosterUrl ?? "/img/placeholder-poster.svg")" alt="" width="48" height="72" loading="lazy" onerror="this.onerror=null;this.src='/img/placeholder-poster.svg'" />
+            }
+            <div class="min-w-0">
+                <h3 class="h5 mb-1">
+                    @if (g.Link != null)
+                    {
+                        <a href="@g.Link">@g.Title</a>
+                    }
+                    else
+                    {
+                        @g.Title
+                    }
+                    @if (g.AgeRating != null)
+                    {
+                        <partial name="_AgeBadge" model="@(new AgeBadgeVm(g.AgeRating))" />
+                    }
+                </h3>
+                @if (!string.IsNullOrEmpty(g.Subtitle))
+                {
+                    <p class="small text-muted mb-0">@g.Subtitle</p>
+                }
+            </div>
+        </header>
+        @foreach (var f in g.Formats)
+        {
+            <div class="cust-format-row">
+                <span class="outline-badge">@f.Label</span>
+                <ul class="time-chips">
+                    @foreach (var s in f.Showtimes)
+                    {
+                        <li>
+                            @if (s.SoldOut)
+                            {
+                                <span class="time-chip is-soldout" aria-disabled="true" aria-label="Suất @Fmt.Time(s.StartTime), hết vé@(s.LateNotice != null ? ". " + s.LateNotice : null)">
+                                    <span class="time-chip-time">
+                                        @Fmt.Time(s.StartTime)
+                                        @if (s.LateNotice != null)
+                                        {
+                                            <i class="bi bi-moon-stars-fill time-chip-moon" aria-hidden="true" data-bs-toggle="tooltip" title="@s.LateNotice (suất kết thúc lúc @Fmt.Time(s.EndTime))."></i>
+                                        }
+                                    </span>
+                                    <span class="time-chip-sub">Hết vé</span>
+                                </span>
+                            }
+                            else
+                            {
+                                <a class="time-chip" href="@s.Url" aria-label="Suất @Fmt.Time(s.StartTime), còn @s.FreeSeats ghế@(s.LateNotice != null ? ". " + s.LateNotice : null)">
+                                    <span class="time-chip-time">
+                                        @Fmt.Time(s.StartTime)
+                                        @if (s.LateNotice != null)
+                                        {
+                                            <i class="bi bi-moon-stars-fill time-chip-moon" aria-hidden="true" data-bs-toggle="tooltip" title="@s.LateNotice (suất kết thúc lúc @Fmt.Time(s.EndTime))."></i>
+                                        }
+                                    </span>
+                                    <span class="time-chip-sub">còn @s.FreeSeats ghế</span>
+                                </a>
+                            }
+                        </li>
+                    }
+                </ul>
+            </div>
+        }
+    </section>
+}
