@@ -1,7 +1,8 @@
 @model SchedulerVm
 @inject CinemaRules Rules
 @* A5. Lịch chiếu /scheduler, chế độ Bảng (UI A5-01, A5-02, A5-04):
-   - Thanh trên: chọn rạp, chọn ngày (‹ Hôm nay ›). TODO(Phase 7): nút chuyển Bảng/Gantt và "AI tự động xếp lịch" (UI A5-03).
+   - Thanh trên: chọn rạp, chọn ngày (‹ Hôm nay ›), nút chuyển chế độ Bảng/Gantt và nút "AI tự động xếp lịch" (UI A5-03).
+   - Chế độ Gantt (UI A5-05 → A5-08) ở partial _Gantt; hộp "AI tự động xếp lịch" ở partial _AiModal.
    - Mỗi phòng một nhóm, các suất xếp theo giờ; mỗi dòng có giờ, phim, nhãn tuổi, ngôn ngữ, số ghế đã bán, thao tác.
    - Lỗi chặn và cảnh báo của từng suất theo ScheduleConstraintChecker; tỷ lệ phim Việt của ngày, khung 18:00–22:00 và từ đầu năm. *@
 @{
@@ -9,14 +10,17 @@
     ViewData["Title"] = "Lịch chiếu";
     ViewData["Crumbs"] = new List<Crumb> { new("Phim và lịch chiếu"), new("Lịch chiếu") };
     var d = Model.Date;
-    string Q(DateTime day) => $"/scheduler?cinemaId={Model.CinemaId}&date={day:yyyy-MM-dd}";
+    var gantt = Model.Ai7.View == "gantt";
+    string Q(DateTime day) => $"/scheduler?cinemaId={Model.CinemaId}&date={day:yyyy-MM-dd}{(gantt ? "&view=gantt" : null)}";
+    string ViewUrl(string v) => $"/scheduler?cinemaId={Model.CinemaId}&date={Model.Date:yyyy-MM-dd}{(v == "gantt" ? "&view=gantt" : null)}";
     var cinemaName = Model.Cinemas.FirstOrDefault(c => c.Id == Model.CinemaId)?.Name ?? string.Empty;
     var header = new PageHeaderVm
     {
         Title = "Lịch chiếu",
         Description = $"{cinemaName} · {(d == Model.Today ? "Hôm nay, " : null)}{Fmt.WeekdayDate(d)}/{d.Year}. Suất bắt đầu trong khung {Rules.OperatingDayStart:hh\\:mm}–{Rules.LastShowStartLatest:hh\\:mm}.",
         Crumbs = new() { new("Phim và lịch chiếu"), new("Lịch chiếu") },
-        Actions = @<a class="btn btn-primary" href="/scheduler/create?cinemaId=@Model.CinemaId&date=@d.ToString("yyyy-MM-dd")"><i class="bi bi-plus-lg" aria-hidden="true"></i>Thêm suất</a>,
+        Actions = @<text><button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#ai-scheduler"><i class="bi bi-stars" aria-hidden="true"></i>AI tự động xếp lịch</button>
+        <a class="btn btn-primary" href="/scheduler/create?cinemaId=@Model.CinemaId&date=@d.ToString("yyyy-MM-dd")"><i class="bi bi-plus-lg" aria-hidden="true"></i>Thêm suất</a></text>,
     };
     var day = Model.Day;
     string Pct(int vn, int total) => total == 0 ? "–" : VietnameseFilmQuota.Percent(VietnameseFilmQuota.Share(vn, total));
@@ -32,6 +36,7 @@
                 @foreach (var c in Model.Cinemas) { <option value="@c.Id" selected="@(c.Id == Model.CinemaId)">@c.Name</option> }
             </select>
             <input type="hidden" name="date" value="@d.ToString("yyyy-MM-dd")" />
+            @if (gantt) { <input type="hidden" name="view" value="gantt" /> }
         </form>
     }
     <div class="filter-item">
@@ -45,12 +50,20 @@
     </div>
     <form method="get" class="filter-item" aria-label="Chọn ngày cụ thể">
         <input type="hidden" name="cinemaId" value="@Model.CinemaId" />
+        @if (gantt) { <input type="hidden" name="view" value="gantt" /> }
         <label class="form-label" for="f-date">Chọn ngày</label>
         <div class="d-flex gap-2">
             <div class="date-field"><input type="date" class="form-control" id="f-date" name="date" value="@d.ToString("yyyy-MM-dd")" /><span class="date-display" aria-hidden="true"></span></div>
             <button type="submit" class="btn btn-secondary">Xem</button>
         </div>
     </form>
+    <div class="filter-item">
+        <span class="form-label d-block" id="view-switch-label">Chế độ xem</span>
+        <div class="view-switch" role="group" aria-labelledby="view-switch-label">
+            <a href="@ViewUrl("table")" class="@(gantt ? null : "is-active")" aria-current="@(gantt ? null : "page")"><i class="bi bi-table" aria-hidden="true"></i>Bảng</a>
+            <a href="@ViewUrl("gantt")" class="@(gantt ? "is-active" : null)" aria-current="@(gantt ? "page" : null)"><i class="bi bi-bar-chart-steps" aria-hidden="true"></i>Gantt</a>
+        </div>
+    </div>
 </div>
 
 <div class="row g-4 mb-4">
@@ -67,8 +80,13 @@
 {
     <div class="card-ui"><partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-grid-3x3-gap", Title = "Rạp chưa có phòng chiếu", Text = "Thêm phòng chiếu và sơ đồ ghế trước khi xếp lịch.", ActionLabel = "Thêm phòng", ActionUrl = "/admin/auditoriums/create" })" /></div>
 }
+@if (gantt && day.Auditoriums.Count > 0)
+{
+    <partial name="_Gantt" model="Model" />
+}
 @foreach (var g in day.Auditoriums)
 {
+    if (gantt) { continue; }
     var a = g.Auditorium;
     <section class="card-ui schedule-group" aria-labelledby="aud-@a.Id">
         <div class="schedule-group-head">
@@ -158,4 +176,8 @@
             </div>
         }
     </section>
+}
+<partial name="_AiModal" model="Model" />
+@section Scripts {
+    <script src="~/js/pages/gantt.js" asp-append-version="true"></script>
 }

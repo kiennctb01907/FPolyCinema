@@ -100,6 +100,14 @@
     { "screen": "A3", "role": "manager", "variant": "thue-tron-suat", "path": "/admin/corporate/create?type=PRIVATE_SCREENING", "area": "admin", "phase": 6, "note": "Thuê trọn suất" },
     { "screen": "A3", "role": "manager", "variant": "loat-voucher", "path": "/admin/corporate/create?type=VOUCHER_BATCH", "area": "admin", "phase": 6, "note": "Phát hành loạt voucher FREE_TICKET" },
     { "screen": "A6", "role": "manager", "variant": "huy-hang", "path": "/admin/reports?tab=wastage", "area": "admin", "phase": 6, "note": "Báo cáo hủy hàng" },
-    { "screen": "C4", "role": "khach", "resolveFrom": "/account", "resolveLink": "a[href^='/tickets/']", "area": "customer", "phase": 6, "note": "Vé điện tử: trạng thái vào cửa trực tiếp, nút Tôi đã tới rạp" }
+    { "screen": "C4", "role": "khach", "resolveFrom": "/account", "resolveLink": "a[href^='/tickets/']", "area": "customer", "phase": 6, "note": "Vé điện tử: trạng thái vào cửa trực tiếp, nút Tôi đã tới rạp" },
+    { "screen": "C1", "role": "guest", "variant": "tro-ly", "path": "/", "area": "customer", "phase": 7, "note": "Trang chủ có nút trợ lý AI nổi góc phải dưới, tròn 56px" },
+    { "screen": "C7", "role": "guest", "path": "/#tro-ly", "area": "customer", "phase": 7, "note": "Trợ lý đặt vé mở: tiêu đề, nút đóng, lời chào, chip gợi ý, ô nhập" },
+    { "screen": "C7", "role": "khach", "variant": "the-dat-ve", "path": "/#tro-ly?q=%C4%90%E1%BA%B7t%202%20v%C3%A9%20su%E1%BA%A5t%20g%E1%BA%A7n%20nh%E1%BA%A5t%2C%20gh%E1%BA%BF%20%C4%91%E1%BA%B9p%20nh%E1%BA%A5t%20k%C3%A8m%201%20combo%20b%E1%BA%AFp%20ph%C3%B4%20mai", "area": "customer", "phase": 7, "note": "Thẻ đặt vé trong khung chat" },
+    { "screen": "C7", "role": "guest", "variant": "danh-sach-suat", "path": "/#tro-ly?q=Cu%E1%BB%91i%20tu%E1%BA%A7n%20n%C3%A0y%20c%C3%B3%20su%E1%BA%A5t%20b%E1%BA%A3n%20g%E1%BB%91c%20kh%C3%B4ng", "area": "customer", "phase": 7, "note": "Câu hỏi chỉ tìm suất: danh sách suất để chọn" },
+    { "screen": "A5", "role": "manager", "variant": "gantt", "path": "/scheduler?view=gantt", "area": "admin", "phase": 7, "note": "Chế độ Gantt: trục 08:00–02:00, khối suất, khóa, chân trang tỷ lệ phim Việt ngày và tuần" },
+    { "screen": "A5", "role": "manager", "variant": "gantt-ngay-mai", "resolveFrom": "/scheduler?view=gantt", "resolveLink": "a[aria-label='Ngày sau']", "area": "admin", "phase": 7, "note": "Gantt ngày mai" },
+    { "screen": "A5", "role": "manager", "variant": "ai-xep-lich", "path": "/scheduler?view=gantt#ai-xep-lich", "area": "admin", "phase": 7, "note": "Hộp AI tự động xếp lịch" },
+    { "screen": "A5", "role": "manager", "variant": "bang", "path": "/scheduler", "area": "admin", "phase": 7, "note": "Chế độ Bảng có nút chuyển Bảng/Gantt và AI tự động xếp lịch" }
   ]
 }

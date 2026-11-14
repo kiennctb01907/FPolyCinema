@@ -1,9 +1,17 @@
 # Tiến độ
 ## Trạng thái
 - [x] Phase 1  - [x] Phase 2  - [x] Phase 3  - [x] Phase 4
-- [x] Phase 5  - [x] Phase 6  - [ ] Phase 7  - [ ] Phase 8
+- [x] Phase 5  - [x] Phase 6  - [x] Phase 7  - [ ] Phase 8
 ## Phase đang làm
-Phase 6 – Vận hành thời gian thực: xong ngày 14/11/2026 (verify 6 --final ĐẠT, commit "Phase 6: …"; Phase 6 không có tag lab). Phase kế tiếp: Phase 7 – AI xếp lịch và trợ lý đặt vé.
+Phase 7 – AI xếp lịch và trợ lý đặt vé: xong ngày 14/11/2026 (verify 7 --final ĐẠT, commit "Phase 7: …"; Phase 7 không có tag lab). Phase kế tiếp: Phase 8 – Hoàn thiện.
+
+### Việc đã làm ở Phase 7
+- Domain/Rules (logic thuần, unit test): NlpParser (24 câu ở NlpParserTests), AiDemandScore, AiScheduler (TargetCounts, LanguageFor, Stagger, Generate) ở Phase7RulesTests.
+- Trợ lý đặt vé: BookingAgentService chọn LlmAgent (OpenAI Chat Completions có function calling, cấu hình Llm:BaseUrl, Llm:Model, Llm__ApiKey) hoặc LocalAgent; tự chuyển sang LocalAgent khi lỗi mạng, hết hạn mức; bộ công cụ chung BookingTools (search_showtimes, get_best_seats, find_combo, check_rules, build_preview); không có công cụ giữ ghế hay thanh toán. Widget C7 trên mọi trang web khách, nút tròn 56px; API /assistant/message, /state, /reset, /hold.
+- AI xếp lịch: AiSchedulerService tính và lưu AiDemandScore, lọc phim (giấy phép, khác C, KDM), chạy AiScheduler; Gantt A5 có kéo thả hít 5 phút, kiểm tra tức thì /scheduler/validate, bản nháp viền nét đứt với "Áp dụng" (IsAiGenerated = 1) và "Bỏ"; chân trang tỷ lệ phim Việt ngày và tuần.
+- Test: BookingAgentTests (LocalAgent, LlmAgent với HTTP giả, fallback), Phase7ServiceTests (công cụ trên CSDL mẫu, giữ ghế từ thẻ, xếp lịch và áp dụng); `check.mjs test --reset-db` ĐẠT.
+- Kiểm tra độc lập: 3 lô, 53 mã; lượt đầu 51 Đạt, 2 Thiếu (S4.3-02, UC35: hộp AI không lọc lại phim theo khoảng ngày); đã sửa và kiểm lại Đạt (docs/audit/phase-7.md).
+
 
 ### Việc đã làm ở Phase 6
 - Domain/Rules (logic thuần, mỗi lớp một file, unit test Phase6RulesTests): ShowtimeOpsRules, GateRules, CheckInRules, KdsRules, InventoryAlertRules, WastageRules, SeatSwapRules, IncidentRules, CorporateRules, ApprovalRules, HouseSeatRules.
@@ -148,6 +156,14 @@ Phase 3 – Phim, phòng chiếu, giá, suất chiếu: xong ngày 13/11/2026 (v
 73. 14/11/2026 – Suất của ngày vận hành đã qua mà chưa ai bấm "Đã dọn xong" được ShowtimeClockService coi như đã dọn cuối ngày (COMPLETED) để không chặn phòng hôm sau.
 74. 14/11/2026 – Báo cáo hủy hàng lấy các dòng của phiếu đã duyệt theo thời điểm duyệt; quản lý gắn rạp chỉ thấy rạp mình.
 75. 14/11/2026 – Nhân viên soát vé đăng nhập xong về /pos/gate-inspector; thanh trên của layout quầy ghi "Soát vé" và tên rạp thay cho thông tin ca.
+76. 14/11/2026 – AiDemandScore = 1 + 9 × (0,30 × độ mới + 0,35 × lấp đầy 7 ngày + 0,20 × bán trước + 0,15 × bom tấn); độ mới giảm tuyến tính về 0 sau 60 ngày; bán trước đủ 1 ở 100 vé; phim chưa có suất trong 7 ngày qua coi lấp đầy là 0,5 – SPEC 4.3-01 chỉ nêu các yếu tố.
+77. 14/11/2026 – Bộ xếp lịch: số suất ước lượng mỗi phòng = khung OperatingDayStart–LastShowStartLatest chia chu kỳ trung bình; "phòng lớn" là nửa số phòng có sức chứa cao nhất; "phim điểm cao" là phim có điểm từ trung vị trở lên; hôm nay chỉ xếp suất bắt đầu sau hiện tại 30 phút; tỷ lệ phim Việt tính trên mọi suất của các ngày đang xếp (gồm suất đã có).
+78. 14/11/2026 – Bản nháp AI giữ ở sessionStorage của trình duyệt quản lý (chưa lưu DB); "Áp dụng" gửi lại toàn bộ bản nháp, server kiểm lại từng suất trong một transaction; có lỗi chặn thì không lưu suất nào và đánh dấu suất lỗi trên Gantt.
+79. 14/11/2026 – Kéo thả trên Gantt: suất đã có kéo xong hiện thanh "Lưu thay đổi" (gọi /scheduler/save như form); POST /scheduler/validate nhận thêm danh sách suất chưa lưu (bản nháp, suất đã kéo) để kiểm chồng giờ; cảnh báo tỷ lệ phim Việt cả năm không tô viền từng khối (đã hiện ở thẻ KPI và chân trang).
+80. 14/11/2026 – Trợ lý đặt vé: phiên hội thoại gắn cookie fpc_agent, giữ trong IMemoryCache 30 phút trượt; câu có số người kèm tiêu chí tìm suất là yêu cầu mới (bỏ tiêu chí cũ), câu ngắn bổ sung thì gộp; câu hỏi lại gộp ngày và số người thành một câu "Bạn muốn xem ngày nào và đi mấy người?" khi thiếu cả hai.
+81. 14/11/2026 – "Đổi lựa chọn" trên thẻ đặt vé mở trang đặt vé của suất với persona và số vé đã chọn để khách tự chọn ghế; "Giữ ghế & thanh toán ngay" giữ ghế qua OnlineBookingService.Hold (SeatHoldService), thêm món, rồi mở /booking/{suất}?step=4. Khách chưa đăng nhập thì chuyển tới đăng nhập, thẻ vẫn còn trong phiên trợ lý.
+82. 14/11/2026 – NlpParser xét các từ trùng khi bỏ dấu trên chữ còn dấu ("sáng"/"sang", "tối"/"tôi", "mốt"/"một", "hài"/"hai"); tên phim ngắn một từ (ví dụ "Mai") chỉ nhận khi đứng sau chữ "phim"; "8 giờ" không ghi buổi hiểu là sáng, giờ nhỏ hơn 8 không ghi buổi hiểu là chiều tối; "thứ 2 tuần sau" là thứ Hai của tuần kế tiếp.
+83. 14/11/2026 – Liên kết mở thẳng: /#tro-ly (mở trợ lý), /#tro-ly?q=… (mở và gửi câu hỏi), /scheduler#ai-xep-lich (mở hộp AI); dùng cho banner và cho công cụ chụp giao diện.
 
 ## Thay đổi mô hình (ngày – bảng/cột/use case/màn hình – trước – sau)
 - 14/11/2026 – Ảnh mẫu (UI 7 phần Ảnh mẫu) – poster và ảnh món SVG tự vẽ – ảnh thật tải từ Unsplash (Unsplash License) lưu ở wwwroot/uploads/seed/photos/*.jpg, nguồn ở photos/CREDITS.md; DbSeeder.PosterPath và DrinkImagePath trỏ sang ảnh .jpg, SvgArtGenerator vẫn sinh SVG dự phòng. Người dùng yêu cầu. Đã sửa S8.1-15, U7.ART-03, chạy sync.
@@ -158,6 +174,9 @@ Phase 3 – Phim, phòng chiếu, giá, suất chiếu: xong ngày 13/11/2026 (v
 - 06/11/2026 – Ràng buộc thêm (không đổi cột): UNIQUE(CinemaId, Name) của RawMaterials; UNIQUE(AuditoriumId, Label) của Seats; index lọc UX_PosShifts_OpenTerminal, UX_PosShifts_OpenUser (một ca mở cho mỗi máy và mỗi thu ngân), UX_Tickets_ActiveSeat (một vé còn hiệu lực cho mỗi ghế của suất), UX_Payments_ProviderTxnId, UX_Users_MemberCode; CHECK CK_Vouchers_PercentValue (voucher PERCENT không quá 100).
 
 ## Lỗi biết trước và việc còn lại
+- Phase 7: khi chạy thử, một lần duy nhất yêu cầu đầu tiên tới /assistant/message mất hơn 40 giây (máy đang chạy song song một bản app khác trên cùng CSDL); không tái hiện được ở các lần sau (mỗi câu 50–300 ms), test tích hợp cùng câu chạy 0,3 giây.
+- Phase 7: chân trang Gantt và thẻ KPI chỉ tính suất đã lưu; tỷ lệ phim Việt của bản nháp hiện ở thanh bản nháp.
+- Phase 7: LlmAgent chỉ được kiểm bằng máy chủ giả trong test (không có khóa API thật trên máy này).
 - Phase 5: ảnh chụp lúc rạng sáng (ngày vận hành vẫn là hôm trước) có trang lịch chiếu và chi tiết phim "Hôm nay" rỗng vì mọi suất đã qua – đúng nghiệp vụ; routes.json chụp C3 bằng ngày thứ hai của dải ngày.
 - Phase 5: lời nhắc giờ chiếu cho trẻ em ở chip suất là tooltip trên icon mặt trăng (đã có trong aria-label của chip); trên điện thoại câu nhắc đầy đủ hiện ở trang đặt vé.
 - Phase 5: nút trợ lý AI (C1-06) làm ở Phase 7.
@@ -174,6 +193,7 @@ Phase 3 – Phim, phòng chiếu, giá, suất chiếu: xong ngày 13/11/2026 (v
 ## Đang bị chặn (câu hỏi cần người dùng trả lời)
 Không có. (07/11/2026: câu hỏi về SDK .NET 8 của S8.1-01 đã xong, người dùng cài SDK 8.0.427.)
 ## Kết quả kiểm tra giao diện (phase – màn hình – kích thước – đạt/chưa)
+- Phase 7 – 14/11/2026, `node tools/ui-snapshots/snap.mjs --phase 7 --base http://localhost:5083`: 8 đường dẫn (C1 nút trợ lý, C7 lời chào, thẻ đặt vé, danh sách suất; A5 Gantt, Gantt ngày mai, hộp AI, Bảng), 24 ảnh trong artifacts/ui/phase-7, 0 lỗi HTTP 5xx, 0 cuộn ngang, 0 ảnh vỡ, 0 lỗi JS. Mở từng ảnh đối chiếu UI mục 13 và sửa: sheet trợ lý trên điện thoại bị thanh demo che (BUG-058), khung chat cuộn qua mất câu trả lời (BUG-059), nhãn phòng lặp định dạng trong hộp AI (BUG-060), icon lỗi thừa trong hộp AI (BUG-057). Bản nháp AI và kéo thả kiểm bằng trình duyệt trong Claude Code (BUG-056). Chụp lại: đạt.
 - Phase 6 – 14/11/2026, `node tools/ui-snapshots/snap.mjs --phase 6`: 19 đường dẫn, 47 ảnh trong artifacts/ui/phase-6, 0 lỗi HTTP 5xx, 0 cuộn ngang, 0 ảnh vỡ, 0 lỗi JS. Mở từng ảnh đối chiếu UI mục 13 và sửa: P3 (thanh trên ở 390px – BUG-048), P4 (cột không giãn, ô đếm đỏ – BUG-047), P6 (chữ chạy, giải thích nhãn tuổi – BUG-049), form doanh nghiệp và hủy suất (BUG-046). Màn hình phụ, popup phê duyệt, đổi ghế, "Tôi đã tới rạp" thử tay trên trình duyệt (TC-P6-01..05). Kết quả cuối: P2, P5, P6 đạt ở 1920; P3 đạt ở 390, 768; P4 đạt ở 1280, 1920; A1, A2, A3, A6, A7 đạt ở 1440, 1280, dùng được ở 768; C4 đạt ở 390, 768, 1440.
 - Phase 5 – 14/11/2026, `node tools/ui-snapshots/snap.mjs --phase 5`: 13 đường dẫn, 39 ảnh trong artifacts/ui/phase-5, 0 lỗi HTTP 5xx, 0 cuộn ngang, 0 ảnh vỡ, 0 lỗi JS. Mở từng ảnh đối chiếu UI mục 13 và sửa: C1 (nhãn tuổi che chữ trên poster – BUG-031; hero – BUG-037), C5 (tab xuống 3 dòng ở 390px – BUG-032), C3 (nhãn tuổi trên điện thoại – BUG-036), C4 (thông tin suất trên cuống vé – BUG-038). Màn hình QR và trang mô phỏng thanh toán kiểm bằng tay trên trình duyệt (TC-P5-01). Kết quả cuối: C1–C5 đạt ở 390, 768, 1440.
 - Phase 4 – 13/11/2026, `node tools/ui-snapshots/snap.mjs --phase 4`: 16 đường dẫn, 42 ảnh trong artifacts/ui/phase-4, 0 lỗi HTTP 5xx, 0 cuộn ngang, 0 ảnh vỡ, 0 lỗi JS. Mở từng ảnh đối chiếu UI mục 13 và sửa: P1 (chữ nút thanh toán và tên món bị cắt ở 1366 – BUG-022), A1, A6 (biểu đồ không vẽ – BUG-023; KPI tràn chữ, lề bảng – BUG-026), P1 Hóa đơn của tôi (ô ngày trống – BUG-024). Kết quả cuối: P1, P7 đạt ở 1366 và 1920; A1, A6, A8 đạt ở 1440, 1280, dùng được ở 768.

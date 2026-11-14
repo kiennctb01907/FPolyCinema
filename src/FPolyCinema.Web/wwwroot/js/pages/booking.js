@@ -374,4 +374,6 @@
   renderOffers();
   renderSummary();
   suggest(false);
+  // Từ trợ lý đặt vé (SPEC 4.2-26): ghế đã giữ qua SeatHoldService, vào thẳng bước thanh toán
+  if (new URLSearchParams(location.search).get('step') === '4' && hasSeats()) go(4);
 })();

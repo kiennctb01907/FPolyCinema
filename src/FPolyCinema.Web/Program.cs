@@ -80,6 +80,15 @@ builder.Services.AddScoped<OpsManagementService>();
 builder.Services.AddScoped<SeatSwapService>();
 builder.Services.AddScoped<CustomerDisplayService>();
 builder.Services.AddScoped<FPolyCinema.Web.Controllers.OpsDashboardPages>();
+// Phase 7: trợ lý đặt vé (SPEC 4.2) và AI xếp lịch (SPEC 4.3)
+builder.Services.Configure<LlmOptions>(builder.Configuration.GetSection(LlmOptions.SectionName));
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<AgentSessionStore>();
+builder.Services.AddScoped<IBookingTools, BookingTools>();
+builder.Services.AddScoped<LocalAgent>();
+builder.Services.AddHttpClient<LlmAgent>(c => c.Timeout = TimeSpan.FromSeconds(20));
+builder.Services.AddScoped<BookingAgentService>();
+builder.Services.AddScoped<AiSchedulerService>();
 builder.Services.AddSignalR();
 builder.Services.AddHostedService<FPolyCinema.Web.Background.SeatHoldSweeper>();
 builder.Services.AddHostedService<FPolyCinema.Web.Background.ShowtimeClockService>();

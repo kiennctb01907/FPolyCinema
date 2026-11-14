@@ -1,0 +1,66 @@
+@model SchedulerVm
+@inject CinemaRules Rules
+@using System.Globalization
+@* A5. Lịch chiếu, chế độ Gantt (UI A5-05 → A5-08, SPEC 4.3-08 → 4.3-11):
+   - Trục thời gian 08:00–02:00, vạch mờ mỗi 30 phút, nhãn mỗi giờ; mỗi hàng là một phòng, cột trái 160px ghi tên phòng, định dạng, sức chứa.
+   - Khối suất do gantt.js vẽ từ #gantt-state: nền màu nhãn tuổi nhạt 20%, viền trái 4px màu nhãn tuổi, tên phim 1 dòng và "19:15–21:40 · Phụ đề";
+     phần quảng cáo đầu khối và dọn phòng cuối khối vẽ sọc nhạt; suất đã bán vé (LOCKED_HAS_TICKETS) có icon khóa và không kéo được.
+   - Kéo thả suất chưa khóa (hít theo bước 5 phút), mỗi lần thả gọi POST /scheduler/validate: lỗi chặn viền đỏ 2px kèm icon, cảnh báo viền vàng, tooltip ghi lý do.
+   - Bản nháp AI vẽ viền nét đứt, kèm thanh "Áp dụng" và "Bỏ"; chân trang hiện tỷ lệ phim Việt của ngày và của tuần. *@
+@{
+    var d = Model.Date;
+    var day = Model.Day;
+    var axisStart = d.Date + Rules.OperatingDayStart;
+    var axisEnd = d.Date.AddDays(1).AddHours(2);
+    var total = (axisEnd - axisStart).TotalMinutes;
+    string Pct(double minutes) => (minutes / total * 100).ToString("0.####", CultureInfo.InvariantCulture) + "%";
+    var hours = Enumerable.Range(0, (int)(total / 60)).Select(i => axisStart.AddHours(i)).ToList();
+    var weekStart = d.Date.AddDays(-(((int)d.DayOfWeek + 6) % 7));
+    string Share(int vn, int all) => all == 0 ? "–" : VietnameseFilmQuota.Percent(VietnameseFilmQuota.Share(vn, all));
+}
+<div class="gantt-bar" data-draft-bar hidden role="region" aria-label="Bản nháp AI">
+    <i class="bi bi-stars text-primary" aria-hidden="true"></i>
+    <div class="gantt-bar-text" data-draft-text aria-live="polite"></div>
+    <button type="button" class="btn btn-ghost" data-draft-discard>Bỏ</button>
+    <button type="button" class="btn btn-primary" data-draft-apply><i class="bi bi-check2-all" aria-hidden="true"></i>Áp dụng</button>
+</div>
+<div class="gantt-bar is-dirty-bar" data-dirty-bar hidden role="region" aria-label="Thay đổi chưa lưu">
+    <i class="bi bi-arrows-move" aria-hidden="true"></i>
+    <div class="gantt-bar-text" data-dirty-text aria-live="polite"></div>
+    <button type="button" class="btn btn-ghost" data-dirty-undo>Hoàn tác</button>
+    <button type="button" class="btn btn-primary" data-dirty-save><i class="bi bi-save" aria-hidden="true"></i>Lưu thay đổi</button>
+</div>
+<section class="gantt mb-4" data-gantt aria-label="Lịch chiếu dạng Gantt ngày @Fmt.Date(d)">
+    <div class="gantt-scroll">
+        <div class="gantt-inner">
+            <div class="gantt-axis" aria-hidden="true">
+                <div class="gantt-corner">Phòng</div>
+                <div class="gantt-hours">
+                    @foreach (var h in hours)
+                    {
+                        <span class="gantt-hour" style="--x: @Pct((h - axisStart).TotalMinutes)">@Fmt.Time(h)</span>
+                    }
+                </div>
+            </div>
+            @foreach (var g in day.Auditoriums.Where(g => g.Auditorium.Active))
+            {
+                <div class="gantt-row">
+                    <div class="gantt-room"><strong>@g.Auditorium.Name</strong><span>@g.Auditorium.Format · @Fmt.Number(g.Capacity) ghế</span></div>
+                    <div class="gantt-track" data-track="@g.Auditorium.Id" style="--half: @Pct(30)" role="list" aria-label="Các suất của @g.Auditorium.Name"></div>
+                </div>
+            }
+        </div>
+    </div>
+    <div class="gantt-foot">
+        <span>Phim Việt trong ngày: <strong>@Share(day.DayVietnamese, day.DayTotal)</strong> (@day.DayVietnamese/@day.DayTotal suất)</span>
+        <span>Phim Việt trong tuần @weekStart.ToString("dd/MM", CultureInfo.InvariantCulture)–@weekStart.AddDays(6).ToString("dd/MM", CultureInfo.InvariantCulture): <strong>@Share(day.WeekVietnamese, day.WeekTotal)</strong> (@day.WeekVietnamese/@day.WeekTotal suất)</span>
+        <span class="gantt-legend" aria-label="Chú thích">
+            <span><span class="sw stripe" aria-hidden="true"></span>Quảng cáo, dọn phòng</span>
+            <span><span class="sw err" aria-hidden="true"></span>Lỗi chặn</span>
+            <span><span class="sw warn" aria-hidden="true"></span>Cảnh báo</span>
+            <span><span class="sw draft" aria-hidden="true"></span>Bản nháp AI</span>
+            <span><i class="bi bi-lock-fill" aria-hidden="true"></i> Đã bán vé, không kéo được</span>
+        </span>
+    </div>
+</section>
+<script type="application/json" id="gantt-state">@Json.Serialize(Model.Ai7.Gantt)</script>

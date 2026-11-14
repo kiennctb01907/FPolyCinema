@@ -1,6 +1,6 @@
 # Controller, route và quyền (sinh từ Controllers/*.cs)
 
-28 controller, 209 route.
+29 controller, 217 route.
 
 | Route | HTTP | Controller.Action | Quyền | File |
 |---|---|---|---|---|
@@ -89,6 +89,10 @@
 | /admin/users/{}/set-active | POST | Users.SetActive | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/UsersController.cs:128 |
 | /admin/users/create | GET | Users.Create | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/UsersController.cs:59 |
 | /admin/users/create | POST | Users.Create | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/UsersController.cs:62 |
+| /assistant/hold | POST | Assistant.Hold | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/AssistantController.cs:69 |
+| /assistant/message | POST | Assistant.Message | AllowAnonymous | src/FPolyCinema.Web/Controllers/AssistantController.cs:55 |
+| /assistant/reset | POST | Assistant.Reset | AllowAnonymous | src/FPolyCinema.Web/Controllers/AssistantController.cs:61 |
+| /assistant/state | GET | Assistant.State | AllowAnonymous | src/FPolyCinema.Web/Controllers/AssistantController.cs:43 |
 | /booking/{} | GET | Booking.Index | AllowAnonymous | src/FPolyCinema.Web/Controllers/CustomerController.cs:101 |
 | /booking/{}/cancel | POST | Booking.Cancel | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/CustomerController.cs:190 |
 | /booking/{}/cart | GET | Booking.Cart | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/CustomerController.cs:158 |
@@ -202,13 +206,17 @@
 | /pos/wastage | GET | Kitchen.Wastage | Policy Policies.PosStaff | src/FPolyCinema.Web/Controllers/KitchenController.cs:69 |
 | /pos/wastage | POST | Kitchen.Wastage | Policy Policies.PosStaff | src/FPolyCinema.Web/Controllers/KitchenController.cs:78 |
 | /quick-buy | GET | Customer.QuickBuy | AllowAnonymous | src/FPolyCinema.Web/Controllers/CustomerController.cs:66 |
-| /scheduler | GET | Scheduler.Index | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:43 |
-| /scheduler/{}/delete | POST | Scheduler.Delete | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:126 |
-| /scheduler/{}/delete-check | GET | Scheduler.DeleteCheck | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:118 |
-| /scheduler/{}/edit | GET | Scheduler.Edit | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:61 |
-| /scheduler/check | POST | Scheduler.Check | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:102 |
-| /scheduler/create | GET | Scheduler.Create | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:51 |
-| /scheduler/save | POST | Scheduler.Save | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:107 |
+| /scheduler | GET | Scheduler.Index | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:49 |
+| /scheduler/{}/delete | POST | Scheduler.Delete | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:258 |
+| /scheduler/{}/delete-check | GET | Scheduler.DeleteCheck | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:250 |
+| /scheduler/{}/edit | GET | Scheduler.Edit | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:95 |
+| /scheduler/ai/apply | POST | Scheduler.AiApply | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:239 |
+| /scheduler/ai/choices | GET | Scheduler.AiChoices | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:224 |
+| /scheduler/ai/generate | POST | Scheduler.AiGenerate | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:193 |
+| /scheduler/check | POST | Scheduler.Check | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:136 |
+| /scheduler/create | GET | Scheduler.Create | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:85 |
+| /scheduler/save | POST | Scheduler.Save | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:141 |
+| /scheduler/validate | POST | Scheduler.Validate | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SchedulerController.cs:175 |
 | /showtimes | GET | Customer.Showtimes | AllowAnonymous | src/FPolyCinema.Web/Controllers/CustomerController.cs:54 |
 | /tickets/{} | GET | Tickets.Show | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/CustomerController.cs:282 |
 | /tickets/{}/cancel | POST | Tickets.Cancel | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/CustomerController.cs:301 |

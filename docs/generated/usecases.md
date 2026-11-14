@@ -14,7 +14,7 @@
 | UC10 | Xem vé điện tử, báo "Tôi đã tới rạp" | Khách hàng |  | C4 | 5, 6 | Xong | src/FPolyCinema.Web/Views/Tickets/Show.cshtml#data-im-here; src/FPolyCinema.Web/Controllers/CustomerController.cs#ImHere; test:Kds_ImHereWindow_StartAndAdvance; ui:C4 |
 | UC11 | Tự hủy vé | Khách hàng |  | C4, C5 | 5 | Xong | src/FPolyCinema.Web/Services/OnlineBookingService.cs#public async Task<long> SelfCancel; src/FPolyCinema.Web/Views/Tickets/Show.cshtml#data-self-cancel; test:SelfCancel_RefundsToWallet_ReleasesSeatsAndStock_RestoresPointsAndVoucher |
 | UC12 | Quản lý ví, điểm, voucher, thông báo | Khách hàng |  | C5 | 5 | Xong | src/FPolyCinema.Web/Views/Account/Index.cshtml#Ví và điểm; src/FPolyCinema.Web/Controllers/AccountController.cs#ReadAll; test:Customer_AccountTabs_ProfileRedirect_StaffCannotBook |
-| UC13 | Đặt vé bằng trợ lý AI | Khách hàng | extend UC07 | C7 | 7 | Chưa |  |
+| UC13 | Đặt vé bằng trợ lý AI | Khách hàng | extend UC07 | C7 | 7 | Xong | route:/assistant/message; route:/assistant/hold; src/FPolyCinema.Web/Controllers/AssistantController.cs; test:Agent_HoldCard_HoldsSeatsViaSeatHoldService_AddsItems_GoesToPayment |
 | UC14 | Mở ca, đóng ca mù | Thu ngân |  | P7 | 4 | Xong | src/FPolyCinema.Web/Controllers/PosController.cs#OpenShift; src/FPolyCinema.Web/Controllers/PosController.cs#CloseShift; test:CloseShift_BlockedByWaitingBill_ThenBlindCountComputesExpectedAndDiscrepancy |
 | UC15 | Bán vé và bắp nước tại quầy | Thu ngân | include UC08 | P1, P2 | 4 | Xong | src/FPolyCinema.Web/Controllers/PosController.cs#Checkout; src/FPolyCinema.Web/Views/Pos/Index.cshtml#Hóa đơn tạm tính; test:Checkout_Cash_CreatesTicketsBooksSeatsConsumesStockEarnsPoints_ThenVoidWithPin |
 | UC16 | In vé, nhận đơn online tại quầy | Thu ngân |  | P1 | 4, 6 | Xong | src/FPolyCinema.Web/Controllers/KitchenController.cs#Pickup; src/FPolyCinema.Web/Controllers/PosController.cs#Print; test:Kds_ImHereWindow_StartAndAdvance |
@@ -36,7 +36,7 @@
 | UC32 | Quản lý phòng chiếu và sơ đồ ghế | Quản lý rạp |  | A4 | 3 | Xong | src/FPolyCinema.Web/Controllers/AuditoriumsController.cs#public class AuditoriumsController; src/FPolyCinema.Web/Services/AuditoriumService.cs#public bool SaveLayout; route:/admin/auditoriums; test:Auditorium_LayoutRescoresAndLocksStructureWhenFutureShowtimeSold |
 | UC33 | Quản lý bảng giá, đối tượng ưu đãi, ngày lễ | Quản lý rạp |  | A2, A3 | 3 | Xong | src/FPolyCinema.Web/Controllers/PricingController.cs#public class PricingController; route:/admin/pricing; test:Pricing_SaveWritesAuditLog_DiscountBelowLegalMinimumRejected_TryPrice |
 | UC34 | Quản lý suất chiếu | Quản lý rạp |  | A5 | 3 | Xong | src/FPolyCinema.Web/Controllers/SchedulerController.cs#public class SchedulerController; route:/scheduler; test:Schedule_SaveCreatesShowtimeSeats_BlocksOverlapAndLockedChanges |
-| UC35 | Xếp lịch tự động bằng AI | Quản lý rạp | extend UC34 | A5 | 7 | Chưa |  |
+| UC35 | Xếp lịch tự động bằng AI | Quản lý rạp | extend UC34 | A5 | 7 | Xong | route:/scheduler/ai/generate; route:/scheduler/ai/apply; route:/scheduler/validate; src/FPolyCinema.Web/Controllers/SchedulerController.cs#AiGenerate; test:Scheduler_GenerateSavesDemandScores_ApplyInsertsAiShowtimes_ValidateUsesPending |
 | UC36 | Quản lý nhân viên | Quản lý rạp |  | A2, A3 | 2 | Xong | src/FPolyCinema.Web/Services/StaffService.cs#public class StaffService; src/FPolyCinema.Web/Controllers/UsersController.cs#public class UsersController; test:Staff_CreateEmailsPassword_SetActiveWritesAudit_DeleteRules; ui:A2 |
 | UC37 | Quản lý hóa đơn | Quản lý rạp |  | A8 | 4 | Xong | src/FPolyCinema.Web/Controllers/BillsController.cs#Details; src/FPolyCinema.Web/Views/Bills/Index.cshtml#Xuất CSV; test:Bills_SearchFiltersByStatusChannelStaffAndCode |
 | UC38 | Thống kê, báo cáo | Quản lý rạp |  | A1, A6 | 4 | Xong | src/FPolyCinema.Web/Controllers/StatisticsController.cs#Reports; src/FPolyCinema.Web/Views/Statistics/Dashboard.cshtml#Bảng điều khiển; test:Statistics_DashboardSharesOccupancyAndSeatsNeedingChange |
@@ -53,5 +53,5 @@
 | 4 | POS, hóa đơn, thống kê | 142/142 | 2 |
 | 5 | Web khách và đặt vé online | 86/86 | 3 |
 | 6 | Vận hành thời gian thực | 95/95 | 7 |
-| 7 | AI xếp lịch và trợ lý đặt vé | 0/53 | 1 |
+| 7 | AI xếp lịch và trợ lý đặt vé | 53/53 | 1 |
 | 8 | Hoàn thiện, demo, kiểm tra tổng thể | 0/15 | 0 |

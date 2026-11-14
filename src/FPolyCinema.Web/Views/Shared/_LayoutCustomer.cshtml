@@ -136,6 +136,10 @@
         <partial name="_DemoBar" />
     }
     <partial name="_Scripts" />
+    @if (chrome == null)
+    {
+        <partial name="_AssistantWidget" />
+    }
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

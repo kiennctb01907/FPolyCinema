@@ -1,0 +1,38 @@
+@using FPolyCinema.Web.Services
+@* C7. Trợ lý đặt vé (UI C7-01 → C7-04, UI C1-06, SPEC 4.2):
+   - Nút trợ lý AI nổi ở góc phải dưới, hình tròn 56px.
+   - Panel 380 × 600px trên desktop, sheet toàn màn hình trên điện thoại; đầu panel có tiêu đề "Trợ lý đặt vé" và nút đóng.
+   - Tin nhắn dạng bong bóng, chip câu hỏi gợi ý, ô nhập kèm nút gửi, skeleton "Đang tìm suất phù hợp…" khi đang xử lý.
+   - Thẻ đặt vé do assistant.js dựng: poster nhỏ, phim và nhãn tuổi, rạp, phòng, giờ, định dạng, sơ đồ thu nhỏ quanh cụm ghế (ghế chọn màu đỏ),
+     ghế kèm điểm, combo, tổng tiền, nút "Giữ ghế & thanh toán ngay" (primary) và "Đổi lựa chọn" (ghost). *@
+<div class="assistant" data-assistant data-customer="@(User.IsInRole(Roles.Customer) ? "1" : "0")" data-signed-in="@(User.Identity?.IsAuthenticated == true ? "1" : "0")">
+    <button type="button" class="assistant-fab" data-assistant-open aria-label="Mở trợ lý đặt vé" aria-expanded="false" aria-controls="assistant-panel" title="Trợ lý đặt vé AI">
+        <i class="bi bi-stars" aria-hidden="true"></i>
+    </button>
+    <section class="assistant-panel" id="assistant-panel" role="dialog" aria-labelledby="assistant-title" hidden>
+        <header class="assistant-head">
+            <span class="assistant-avatar" aria-hidden="true"><i class="bi bi-stars"></i></span>
+            <div class="min-w-0 flex-grow-1">
+                <h2 id="assistant-title">Trợ lý đặt vé</h2>
+                <span class="assistant-sub">Tìm suất và chọn ghế đẹp bằng AI</span>
+            </div>
+            <button type="button" class="btn btn-ghost btn-icon btn-sm" data-assistant-reset aria-label="Bắt đầu lại hội thoại" title="Bắt đầu lại"><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i></button>
+            <button type="button" class="btn btn-ghost btn-icon btn-sm" data-assistant-close aria-label="Đóng trợ lý"><i class="bi bi-x-lg" aria-hidden="true"></i></button>
+        </header>
+        <div class="assistant-log" data-assistant-log role="log" aria-live="polite" aria-label="Hội thoại với trợ lý">
+            <div class="bubble bubble-bot">Xin chào! Bạn muốn xem phim gì, vào lúc nào và đi mấy người? Mình sẽ tìm suất và chọn giúp cụm ghế đẹp nhất.</div>
+        </div>
+        <div class="assistant-chips" data-assistant-chips aria-label="Câu hỏi gợi ý">
+            @foreach (var c in LocalAgent.StartChips)
+            {
+                <button type="button" class="chip-btn" data-chip>@c</button>
+            }
+        </div>
+        <form class="assistant-input" data-assistant-form autocomplete="off">
+            <label for="assistant-text" class="visually-hidden">Câu hỏi cho trợ lý</label>
+            <input id="assistant-text" name="text" class="form-control" maxlength="@BookingAgentService.MaxMessageLength" placeholder="Ví dụ: Tối thứ 7 này 3 người xem phim hành động…" />
+            <button type="submit" class="btn btn-primary btn-icon" aria-label="Gửi câu hỏi"><i class="bi bi-send" aria-hidden="true"></i></button>
+        </form>
+    </section>
+</div>
+<script src="~/js/pages/assistant.js" asp-append-version="true"></script>

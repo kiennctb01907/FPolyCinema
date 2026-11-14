@@ -34,14 +34,16 @@ Thư mục wwwroot/lib: be-vietnam-pro, bootstrap, bootstrap-icons, chart.js, ht
 
 ## Kiểm thử
 
-295 test trong 27 file.
+349 test trong 31 file.
 
 - tests/FPolyCinema.Tests/ArchitectureTests.cs: 8
 - tests/FPolyCinema.Tests/BillStateMachineTests.cs: 14
+- tests/FPolyCinema.Tests/BookingAgentTests.cs: 13
 - tests/FPolyCinema.Tests/ConventionTests.cs: 4
 - tests/FPolyCinema.Tests/DatabaseTests.cs: 14
 - tests/FPolyCinema.Tests/FileUtilTests.cs: 7
 - tests/FPolyCinema.Tests/InfrastructureTests.cs: 12
+- tests/FPolyCinema.Tests/NlpParserTests.cs: 25
 - tests/FPolyCinema.Tests/Phase2RulesTests.cs: 19
 - tests/FPolyCinema.Tests/Phase2ServiceTests.cs: 9
 - tests/FPolyCinema.Tests/Phase2WebTests.cs: 10
@@ -56,6 +58,8 @@ Thư mục wwwroot/lib: be-vietnam-pro, bootstrap, bootstrap-icons, chart.js, ht
 - tests/FPolyCinema.Tests/Phase5WebTests.cs: 6
 - tests/FPolyCinema.Tests/Phase6RulesTests.cs: 23
 - tests/FPolyCinema.Tests/Phase6ServiceTests.cs: 5
+- tests/FPolyCinema.Tests/Phase7RulesTests.cs: 11
+- tests/FPolyCinema.Tests/Phase7ServiceTests.cs: 5
 - tests/FPolyCinema.Tests/PricingCalculatorTests.cs: 17
 - tests/FPolyCinema.Tests/SeatScoringTests.cs: 10
 - tests/FPolyCinema.Tests/SeedDataTests.cs: 13
@@ -74,9 +78,9 @@ src/
       SeatHoldSweeper.cs
       ShowtimeClockService.cs
     Controllers/
-      (26 file: .gitkeep, AccountController.cs, AppControllerBase.cs, AuditoriumsController.cs, BillsController.cs, CategoriesController.cs, …)
+      (27 file: .gitkeep, AccountController.cs, AppControllerBase.cs, AssistantController.cs, AuditoriumsController.cs, BillsController.cs, …)
     DAL/
-      (46 file: AccountDAL.Phase2.cs, AudienceDiscountDAL.cs, AuditLogDAL.cs, AuditoriumDAL.cs, BillDAL.cs, BillDetailDAL.cs, …)
+      (47 file: AccountDAL.Phase2.cs, AudienceDiscountDAL.cs, AuditLogDAL.cs, AuditoriumDAL.cs, BillDAL.cs, BillDetailDAL.cs, …)
     Database/
       01_schema.sql
       02_procedures.sql
@@ -92,7 +96,7 @@ src/
         PricingConstants.cs
         Roles.cs
       Rules/
-        (34 file: AgeRules.cs, ApprovalRules.cs, AuditoriumLayout.cs, BillStateMachine.cs, CashDropCalculator.cs, CheckInRules.cs, …)
+        (37 file: AgeRules.cs, AiDemandScore.cs, AiScheduler.cs, ApprovalRules.cs, AuditoriumLayout.cs, BillStateMachine.cs, …)
       BusinessRuleException.cs
       FieldErrors.cs
     Entities/
@@ -110,11 +114,11 @@ src/
         Flash.cs
         Middlewares.cs
         QueryUrl.cs
-      (14 file: AppOptions.cs, CinemaRules.cs, DbInitializer.cs, DbSeeder.cs, DbSeeder.Finalize.cs, DbSeeder.Sales.cs, …)
+      (15 file: AppOptions.cs, CinemaRules.cs, DbInitializer.cs, DbSeeder.cs, DbSeeder.Finalize.cs, DbSeeder.Sales.cs, …)
     Properties/
       launchSettings.json
     Services/
-      (29 file: ApprovalService.cs, AuditoriumService.cs, AuthService.cs, BillService.cs, BillStatusService.cs, CatalogServices.cs, …)
+      (34 file: AiSchedulerService.cs, ApprovalService.cs, AuditoriumService.cs, AuthService.cs, BillService.cs, BillStatusService.cs, …)
     Utils/
       DBUtil.cs
       FileUtil.cs
@@ -127,6 +131,7 @@ src/
       Phase3Vms.cs
       Phase4AdminVms.cs
       Phase6Vms.cs
+      Phase7Vms.cs
       PosVms.cs
       SharedVms.cs
       StyleGuideSamples.cs
@@ -240,10 +245,12 @@ src/
         Index.cshtml
         Try.cshtml
       Scheduler/
+        _AiModal.cshtml
+        _Gantt.cshtml
         Form.cshtml
         Index.cshtml
       Shared/
-        (35 file: _AdminSidebar.cshtml, _AgeBadge.cshtml, _ApprovalBell.cshtml, _ApprovalList.cshtml, _AuthArt.cshtml, _Chart.cshtml, …)
+        (36 file: _AdminSidebar.cshtml, _AgeBadge.cshtml, _ApprovalBell.cshtml, _ApprovalList.cshtml, _AssistantWidget.cshtml, _AuthArt.cshtml, …)
       Statistics/
         Dashboard.cshtml
         Reports.cshtml
@@ -282,7 +289,7 @@ src/
     Program.cs
 tests/
   FPolyCinema.Tests/
-    (29 file: ArchitectureTests.cs, BillStateMachineTests.cs, ConventionTests.cs, DatabaseTests.cs, FileUtilTests.cs, FPolyCinema.Tests.csproj, …)
+    (33 file: ArchitectureTests.cs, BillStateMachineTests.cs, BookingAgentTests.cs, ConventionTests.cs, DatabaseTests.cs, FileUtilTests.cs, …)
 tools/
   spec-check/
     check.mjs

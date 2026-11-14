@@ -364,3 +364,18 @@ Lớp chính:
 - Background: `ShowtimeClockService` (mỗi 30 giây: ShowtimeOpsService.Tick, ApprovalService.ExpireOverdue).
 - Services: `ShowtimeOpsService`, `GateService`, `KdsService`, `ApprovalService`, `OpsManagementService` (ghế nội bộ, hủy suất do sự cố, doanh nghiệp), `SeatSwapService` (giữ ghế mới qua `SeatHoldService.HoldForSwap`), `CustomerDisplayService`, `InventoryService` phần Phase 6 (nhập kho, phiếu hủy hàng, bắt đầu làm món online, PublishAlerts); test tích hợp Phase6ServiceTests.
 - Lớp giao diện: `Controllers/OpsDashboardPages`; controller `GateController`, `KitchenController`, `LobbyController`, `OpsController`, `MaterialsController`, `CorporateController`; JS `approvals.js` (popup A7 trong layout quản trị), `pages/gate.js`, `kds.js`, `lobby.js`, `customer-display.js`, `ops.js`, `swap-seat.js`, `stock-form.js`, `incident.js`.
+
+### Phase 7
+
+Route và quyền:
+- AllowAnonymous: `/assistant/message` (POST JSON: text, showtimeId), `/assistant/state` (GET), `/assistant/reset` (POST); widget C7 trên mọi trang của layout web khách; liên kết mở thẳng `/#tro-ly`, `/#tro-ly?q=…`.
+- CustomerOnly: POST `/assistant/hold` ("Giữ ghế & thanh toán ngay", trả `redirect` tới `/booking/{showtimeId}?step=4`).
+- ManagerOnly: `/scheduler?view=table|gantt` (UI A5), POST `/scheduler/validate` (id, auditoriumId, movieId, startTime, languageFormat, `pending` JSON [{id, auditoriumId, movieId, startTime, languageFormat}]), POST `/scheduler/ai/generate` (cinemaId, fromDate, days 1–7, movieIds[], auditoriumIds[]), POST `/scheduler/ai/apply` (cinemaId, `drafts` JSON); liên kết `/scheduler#ai-xep-lich`.
+
+Tên mới thêm vào hợp đồng: cookie `fpc_agent` (mã phiên hội thoại của trợ lý, HttpOnly); khóa sessionStorage `fpc-ai-draft-{cinemaId}` (bản nháp AI ở trình duyệt quản lý); cấu hình C7-07 đọc qua lớp `LlmOptions`. Không thêm bảng hay cột (dùng Movies.AiDemandScore, Showtimes.IsAiGenerated đã có).
+
+Lớp chính:
+- Domain/Rules (có unit test): `NlpParser` (NlpParserTests, 24 câu), `AiDemandScore`, `AiScheduler` (Phase7RulesTests).
+- Services: `BookingAgentService` (chọn LlmAgent hoặc LocalAgent, HoldCard), `LocalAgent`, `LlmAgent`, `IBookingTools`/`BookingTools`, `AgentSessionStore`, `AiSchedulerService`; `ScheduleService.ApplyAiDrafts`, `ScheduleService.Check(…, pending)`.
+- DAL: `MovieDAL.DemandStats`, `MovieDAL.UpdateDemandScore` (DAL/SchedulerDAL.Phase7.cs).
+- Giao diện: `Controllers/AssistantController`, partial `_AssistantWidget`, `Scheduler/_Gantt`, `Scheduler/_AiModal`; JS `pages/assistant.js`, `pages/gantt.js`.

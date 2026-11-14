@@ -218,6 +218,8 @@ public class SchedulerVm
     public DateTime Date { get; set; }
     public DateTime Today { get; set; }
     public ScheduleDay Day { get; set; } = new(0, DateTime.MinValue, new(), 0, 0, 0, 0, 0, 0);
+    /// <summary>Phase 7: chế độ Gantt và AI xếp lịch (UI A5-03 → A5-08).</summary>
+    public SchedulerPhase7Vm Ai7 { get; set; } = new();
 }
 
 /// <summary>Form suất chiếu: dữ liệu ô chọn và giá trị đang sửa.</summary>

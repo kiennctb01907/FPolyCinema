@@ -26,7 +26,7 @@ public sealed record AuditoriumSchedule(Auditorium Auditorium, int Capacity, Lis
 /// và lũy kế cả năm của rạp (SPEC 3.1 mục 6).
 /// </summary>
 public sealed record ScheduleDay(int CinemaId, DateTime Date, List<AuditoriumSchedule> Auditoriums, int DayVietnamese, int DayTotal,
-    int PriorityVietnamese, int PriorityTotal, int YearVietnamese, int YearTotal);
+    int PriorityVietnamese, int PriorityTotal, int YearVietnamese, int YearTotal, int WeekVietnamese = 0, int WeekTotal = 0);
 
 /// <summary>
 /// Quản lý suất chiếu (UC34, SPEC 3.3, UI A5): mọi kiểm tra đi qua ScheduleConstraintChecker và AgeRules (logic thuần);
@@ -75,8 +75,11 @@ public class ScheduleService
 
         var active = rows.Where(r => r.Showtime.OperationalStatus != OperationalStatus.Cancelled).ToList();
         var priority = active.Where(r => VietnameseFilmQuota.InPriorityWindow(r.Showtime.FeatureStartTime, _rules)).ToList();
+        // Tuần chứa ngày đang xem (thứ Hai đến Chủ nhật) cho chân trang Gantt (UI A5-08)
+        var weekStart = date.Date.AddDays(-(((int)date.DayOfWeek + 6) % 7));
+        var week = ShowtimeDAL.CountVietnameseShare(cinemaId, weekStart, weekStart.AddDays(6));
         return new ScheduleDay(cinemaId, date.Date, groups, active.Count(r => r.IsVietnameseFilm), active.Count,
-            priority.Count(r => r.IsVietnameseFilm), priority.Count, share.Vietnamese, share.Total);
+            priority.Count(r => r.IsVietnameseFilm), priority.Count, share.Vietnamese, share.Total, week.Vietnamese, week.Total);
     }
 
     public ShowtimeRow GetRow(int id, DateTime now) => ShowtimeDAL.GetRow(id, now) ?? throw CategoryService.NotFound();
@@ -99,7 +102,14 @@ public class ScheduleService
     /// <summary>Kiểm tra một suất chưa lưu (form gọi mỗi khi đổi phòng, phim, giờ hoặc ngôn ngữ). id là suất đang sửa.</summary>
     public ShowtimeCheck Check(int? id, ShowtimeInput input, DateTime now) => Check(id, input, now, null, null);
 
-    private ShowtimeCheck Check(int? id, ShowtimeInput input, DateTime now, Microsoft.Data.SqlClient.SqlConnection? conn, Microsoft.Data.SqlClient.SqlTransaction? tx)
+    /// <summary>
+    /// Kiểm tra một suất khi kéo thả trên Gantt (POST /scheduler/validate, SPEC 4.3-10): pending là các suất chưa lưu đang hiện trên Gantt
+    /// (bản nháp AI, suất đã kéo mà chưa lưu). Suất có Id trong pending thay cho vị trí đang lưu trong DB.
+    /// </summary>
+    public ShowtimeCheck Check(int? id, ShowtimeInput input, DateTime now, IReadOnlyList<ScheduleSlot> pending) => Check(id, input, now, null, null, pending);
+
+    private ShowtimeCheck Check(int? id, ShowtimeInput input, DateTime now, Microsoft.Data.SqlClient.SqlConnection? conn, Microsoft.Data.SqlClient.SqlTransaction? tx,
+        IReadOnlyList<ScheduleSlot>? pending = null)
     {
         var basic = new List<ScheduleIssue>();
         var aud = AuditoriumDAL.GetById(input.AuditoriumId, conn, tx);
@@ -124,6 +134,11 @@ public class ScheduleService
 
         var candidate = new ScheduleSlot(id, movie.Id, aud.Id, aud.Name, times.StartTime, times.FeatureStartTime, times.EndTime, times.CleaningEndTime, input.LanguageFormat ?? string.Empty);
         var neighbours = ShowtimeDAL.ActiveNear(aud.CinemaId, times.StartTime.AddHours(-12), times.CleaningEndTime.AddHours(12), now, conn, tx).Select(ToSlot).ToList();
+        if (pending is { Count: > 0 })
+        {
+            var pendingIds = pending.Where(p => p.Id != null).Select(p => p.Id).ToHashSet();
+            neighbours = neighbours.Where(n => !pendingIds.Contains(n.Id)).Concat(pending.Where(p => p.Id == null || p.Id != id)).ToList();
+        }
         var kdms = KdmLicenseDAL.GetByMovieCinema(movie.Id, aud.CinemaId, conn, tx).Select(k => new KdmWindow(k.ValidFrom, k.ValidUntil)).ToList();
         var upcoming = ShowtimeDAL.UpcomingForMovie(movie.Id, aud.CinemaId, now, conn, tx).Select(ToSlot).ToList();
         var year = PricingCalculator.OperatingDate(times.StartTime).Year;
@@ -179,6 +194,50 @@ public class ScheduleService
                 ShowtimeSeatDAL.CreateForShowtime(current.Id, aud.Id, conn, tx);
             }
             return current.Id;
+        });
+    }
+
+    /// <summary>
+    /// "Áp dụng" bản nháp AI (SPEC 4.3-08): lưu mọi suất nháp trong một transaction với IsAiGenerated = 1 và sinh ShowtimeSeats.
+    /// Mỗi suất được kiểm lại bằng ScheduleConstraintChecker sau khi khóa phòng; có lỗi chặn ở suất nào thì hủy cả lượt và báo suất đó.
+    /// Không sửa, không xóa suất đã có.
+    /// </summary>
+    public List<int> ApplyAiDrafts(IReadOnlyList<ShowtimeInput> drafts, int cinemaId, DateTime now)
+    {
+        if (drafts.Count == 0) throw FieldErrors.Of("drafts", "Không có suất nháp nào để áp dụng.");
+        foreach (var d in drafts)
+        {
+            var aud = AuditoriumDAL.GetById(d.AuditoriumId);
+            if (aud == null || aud.CinemaId != cinemaId) throw FieldErrors.Of("drafts", "Suất nháp có phòng không thuộc rạp đang xếp.");
+        }
+        return DBUtil.InTransaction((conn, tx) =>
+        {
+            var ids = new List<int>();
+            for (int i = 0; i < drafts.Count; i++)
+            {
+                var input = drafts[i];
+                var first = Check(null, input, now, conn, tx);
+                if (first.Times == null) ThrowIfErrors(first.Result);
+                ShowtimeDAL.LockAuditoriumRange(input.AuditoriumId, first.Times!.StartTime, first.Times.CleaningEndTime, conn, tx);
+                var check = Check(null, input, now, conn, tx);
+                if (check.Result.HasErrors)
+                {
+                    var e = check.Result.Errors.First();
+                    throw new BusinessRuleException(e.Code, $"Suất nháp {Fmt.Time(check.Times!.StartTime)} {check.Auditorium?.Name} ({check.Movie?.Title}): {e.Message}",
+                        new { index = i, issues = IssuesJson(check.Result) });
+                }
+                var t = check.Times!;
+                var s = new Showtime
+                {
+                    MovieId = input.MovieId, AuditoriumId = input.AuditoriumId, StartTime = t.StartTime, FeatureStartTime = t.FeatureStartTime, EndTime = t.EndTime,
+                    CleaningEndTime = t.CleaningEndTime, LanguageFormat = input.LanguageFormat!, OperationalStatus = OperationalStatus.Scheduled,
+                    IsAiGenerated = true, CreatedAt = now,
+                };
+                ShowtimeDAL.Insert(s, conn, tx);
+                ShowtimeSeatDAL.CreateForShowtime(s.Id, input.AuditoriumId, conn, tx);
+                ids.Add(s.Id);
+            }
+            return ids;
         });
     }
 
