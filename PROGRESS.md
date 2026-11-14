@@ -150,6 +150,7 @@ Phase 3 – Phim, phòng chiếu, giá, suất chiếu: xong ngày 13/11/2026 (v
 75. 14/11/2026 – Nhân viên soát vé đăng nhập xong về /pos/gate-inspector; thanh trên của layout quầy ghi "Soát vé" và tên rạp thay cho thông tin ca.
 
 ## Thay đổi mô hình (ngày – bảng/cột/use case/màn hình – trước – sau)
+- 14/11/2026 – Ảnh mẫu (UI 7 phần Ảnh mẫu) – poster và ảnh món SVG tự vẽ – ảnh thật tải từ Unsplash (Unsplash License) lưu ở wwwroot/uploads/seed/photos/*.jpg, nguồn ở photos/CREDITS.md; DbSeeder.PosterPath và DrinkImagePath trỏ sang ảnh .jpg, SvgArtGenerator vẫn sinh SVG dự phòng. Người dùng yêu cầu. Đã sửa S8.1-15, U7.ART-03, chạy sync.
 - 13/11/2026 – Bills thêm cột HoldExtended BIT NOT NULL DEFAULT 0 (thu ngân đã gia hạn giữ ghế một lần, SPEC 3.5); ShowtimeSeats thêm HoldAudienceType VARCHAR(20) NULL (đối tượng vé đã chọn cho ghế đang giữ, vé thật tạo khi thanh toán). Đã sửa S6-19, S6-23 trong docs/spec/s05-07-realtime-csdl-kiem-thu.md, chạy sync. CONTRACTS C3-39 thêm AuditAction VOID_BILL, ORPHAN_SEAT_OVERRIDE; C8-07 mã lỗi Phase 4 khai báo trong ErrorCodes.
 - 13/11/2026 – CONTRACTS C3-39 – thêm AuditAction PRICING_UPDATED (sửa bảng giá và mức giảm đối tượng, SPEC 2.7) theo quy tắc "mỗi phase thêm hành động của mình". Không đổi bảng, cột, use case hay màn hình.
 - 11/11/2026 – CONTRACTS – thêm C3-39 AuditAction (USER_LOCKED, USER_UNLOCKED) và C8-09 mã lỗi chung (AUTH_REQUIRED, ACCESS_DENIED, NOT_FOUND, SERVER_ERROR) theo quy tắc "cần tên mới thì thêm vào CONTRACTS trước". Không đổi bảng, cột, use case hay màn hình.

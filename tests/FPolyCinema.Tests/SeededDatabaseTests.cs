@@ -123,8 +123,8 @@ public class SeededDatabaseTests
             Assert.True(m.MinimumTicketPrice > 0);
             Assert.Equal(new[] { 1, 2, 3 }, rules.Where(r => r.MovieId == m.Id).Select(r => r.WeekNumber).OrderBy(x => x));
             Assert.Equal(2, kdms.Count(k => k.MovieId == m.Id));
-            Assert.StartsWith("/uploads/seed/poster-", m.PosterUrl);
-            Assert.True(File.Exists(Path.Combine(_f.WebRoot, "uploads", "seed", m.PosterUrl!.Split('/').Last())));
+            Assert.StartsWith("/uploads/seed/photos/poster-", m.PosterUrl);
+            Assert.True(File.Exists(Path.Combine(RepoPaths.Web, "wwwroot", "uploads", "seed", "photos", m.PosterUrl!.Split('/').Last())));
         }
         var expiring = kdms.Where(k => k.ValidUntil > _f.Clock.Now && k.ValidUntil <= _f.Clock.Now.AddHours(24)).ToList();
         Assert.Single(expiring);
@@ -137,7 +137,7 @@ public class SeededDatabaseTests
         var drinks = DrinkDAL.GetAll();
         Assert.Equal(14, drinks.Count(d => !d.IsCombo));
         Assert.Equal(4, drinks.Count(d => d.IsCombo));
-        Assert.All(drinks, d => Assert.True(File.Exists(Path.Combine(_f.WebRoot, "uploads", "seed", d.Image!.Split('/').Last()))));
+        Assert.All(drinks, d => Assert.True(File.Exists(Path.Combine(RepoPaths.Web, "wwwroot", "uploads", "seed", "photos", d.Image!.Split('/').Last()))));
         var materials = RawMaterialDAL.GetAll();
         Assert.Equal(24, materials.Count);
         Assert.All(materials.GroupBy(m => m.CinemaId), g => Assert.Equal(12, g.Count()));

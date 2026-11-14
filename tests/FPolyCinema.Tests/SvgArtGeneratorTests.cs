@@ -112,11 +112,15 @@ public class SvgArtGeneratorTests
             var dir = Path.Combine(root, "uploads", "seed");
             var names = Directory.GetFiles(dir).Select(f => Path.GetFileName(f)).ToHashSet(StringComparer.Ordinal);
             Assert.Equal(FPolyCinema.Web.Infrastructure.Seed.SeedCatalog.Movies.Length + FPolyCinema.Web.Infrastructure.Seed.SeedCatalog.Drinks.Length, names.Count);
-            for (int i = 0; i < FPolyCinema.Web.Infrastructure.Seed.SeedCatalog.Movies.Length; i++)
-                Assert.Contains(DbSeeder.PosterPath(i).Split('/').Last(), names);
-            for (int i = 0; i < FPolyCinema.Web.Infrastructure.Seed.SeedCatalog.Drinks.Length; i++)
-                Assert.Contains(DbSeeder.DrinkImagePath(i).Split('/').Last(), names);
             Assert.All(names, n => Assert.Equal(n.ToLowerInvariant(), n));
+            // Đường dẫn ảnh lưu trong DB trỏ tới ảnh thật có sẵn trong repo, khớp đúng chữ hoa chữ thường
+            var photoDir = Path.Combine(RepoPaths.Web, "wwwroot", "uploads", "seed", "photos");
+            var photos = Directory.GetFiles(photoDir).Select(f => Path.GetFileName(f)).ToHashSet(StringComparer.Ordinal);
+            for (int i = 0; i < FPolyCinema.Web.Infrastructure.Seed.SeedCatalog.Movies.Length; i++)
+                Assert.Contains(DbSeeder.PosterPath(i).Split('/').Last(), photos);
+            for (int i = 0; i < FPolyCinema.Web.Infrastructure.Seed.SeedCatalog.Drinks.Length; i++)
+                Assert.Contains(DbSeeder.DrinkImagePath(i).Split('/').Last(), photos);
+            Assert.All(photos.Where(n => n.EndsWith(".jpg", StringComparison.Ordinal)), n =>Assert.Equal(n.ToLowerInvariant(), n));
             // Thư mục script CSDL đúng chữ hoa chữ thường như trong Program.cs
             Assert.Contains("Database", Directory.GetDirectories(RepoPaths.Web).Select(Path.GetFileName));
         }

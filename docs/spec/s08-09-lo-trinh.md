@@ -38,7 +38,7 @@ Danh sách yêu cầu chính xác của từng phase do lệnh `node tools/spec-
      - [S8.1-12 P1] 3 phim Việt; đủ các nhãn P, K, T13, T16, T18, và 1 phim C chỉ lưu hồ sơ.
      - [S8.1-13 P1] 2 phim hoạt hình có bản lồng tiếng; 1 phim có tên dài khoảng 40 ký tự để thử bố cục.
      - [S8.1-14 P1] Mỗi phim có số giấy phép, cảnh báo nội dung, quy tắc chia doanh thu 3 tuần, giá sàn và KDM. Có 1 phim với KDM hết hạn trong 24 giờ để thử cảnh báo.
-   - [S8.1-15 P1] Poster và ảnh món sinh bằng SvgArtGenerator (UI mục 7, phần Ảnh mẫu), lưu ở wwwroot/uploads/seed/.
+   - [S8.1-15 P1] Poster và ảnh món là ảnh thật (Unsplash License) lưu sẵn trong repo ở wwwroot/uploads/seed/photos/ (nguồn ghi ở CREDITS.md); SvgArtGenerator vẫn sinh bản SVG dự phòng ở wwwroot/uploads/seed/.
    - [S8.1-16 P1] Bắp nước: 4 danh mục, khoảng 14 món và 4 combo; khoảng 12 nguyên liệu và bao bì với định mức đầy đủ, trong đó 1 nguyên liệu gần ngưỡng tối thiểu.
    - [S8.1-17 P1] Bảng giá đủ 6 chiều cho mỗi rạp, AudienceDiscounts theo CONTRACTS mục 4, các ngày lễ năm 2026.
    - [S8.1-18 P1] Suất chiếu từ hôm nay đến 6 ngày sau, hợp lệ mọi ràng buộc; một số suất đã có vé (bị khóa).

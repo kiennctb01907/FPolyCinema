@@ -79,10 +79,11 @@ public sealed partial class DbSeeder
     }
 
     // ---------------------------------------------------------------- ảnh mẫu
-    public static string PosterPath(int movieIndex) => $"/uploads/seed/poster-{movieIndex + 1:D2}.svg";
-    public static string DrinkImagePath(int drinkIndex) => $"/uploads/seed/drink-{drinkIndex + 1:D2}.svg";
+    /// <summary>Ảnh thật (Unsplash License) lưu sẵn trong repo ở wwwroot/uploads/seed/photos; nguồn ghi ở photos/CREDITS.md.</summary>
+    public static string PosterPath(int movieIndex) => $"/uploads/seed/photos/poster-{movieIndex + 1:D2}.jpg";
+    public static string DrinkImagePath(int drinkIndex) => $"/uploads/seed/photos/drink-{drinkIndex + 1:D2}.jpg";
 
-    /// <summary>Sinh poster và ảnh món bằng SvgArtGenerator vào wwwroot/uploads/seed (không tải ảnh từ internet).</summary>
+    /// <summary>Sinh bản SVG dự phòng bằng SvgArtGenerator vào wwwroot/uploads/seed (lúc chạy không tải ảnh từ internet).</summary>
     public void WriteSeedArt()
     {
         var dir = Path.Combine(_webRootPath, "uploads", "seed");

@@ -145,7 +145,7 @@ Mục lục và cách đọc mã yêu cầu như [S3.6-04 P4]: docs/README.md. T
 ### Ảnh mẫu (SvgArtGenerator)
 - [U7.ART-01 P1] Poster 600 × 900: nền gradient hai màu theo thể loại, họa tiết hình học nhẹ, tên phim chữ lớn (đậm 600–700, tự xuống dòng), dòng phụ ghi thể loại và năm, nhãn tuổi ở góc trên.
 - [U7.ART-02 P1] Ảnh món 600 × 600: hình phẳng đơn giản (xô bắp, ly nước, combo) trên nền màu nhạt.
-- [U7.ART-03 P1] Không dùng ảnh tải từ internet.
+- [U7.ART-03 P1] Lúc chạy không tải ảnh từ internet: ảnh poster và món dùng trong dữ liệu mẫu là ảnh thật Unsplash đã lưu sẵn trong repo (wwwroot/uploads/seed/photos, nguồn ở CREDITS.md); SVG do SvgArtGenerator sinh là bản dự phòng.
 
 ### Trang hệ thống
 - [U7.D1-01 P2] D1. Style guide `/dev/style-guide` (chỉ khi Demo:EnableTools): mọi thành phần ở mục 5 trên cả hai theme; mỗi thành phần có tiêu đề và đủ các trạng thái (thường, hover, đang xử lý, lỗi, bị khóa).
