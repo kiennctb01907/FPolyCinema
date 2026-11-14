@@ -1,0 +1,62 @@
+@model GateVm
+@* Máy soát vé P3 /pos/gate-inspector (theme cinema, ưu tiên điện thoại, chạy được trên desktop; SPEC 3.8).
+   Phần trên: chọn phòng hoặc cửa; ô nhập mã luôn autofocus và tự lấy lại focus sau mỗi lần quét; nút bật camera.
+   Phần còn lại là thẻ kết quả nền đặc (xanh hợp lệ, vàng cần xác nhận, đỏ từ chối; UI U2-05): icon 64px, dòng chính 28–32px, dòng phụ suất và giờ;
+   danh sách ghế có checkbox 32px; nút "Cho vào tất cả" cao 56px; cảnh báo độ tuổi trong khung vàng. Sau 6 giây tự quay về chờ (có thanh đếm).
+   Khung "Phòng đang dọn" có nút "Đã dọn xong". Rung và âm báo ngắn nếu thiết bị hỗ trợ. *@
+@{
+    Layout = "_LayoutPos";
+    ViewData["Title"] = "Máy soát vé";
+    ViewData["Theme"] = "cinema";
+    ViewData["BodyClass"] = "pos-ui gate-ui";
+    ViewData["ConnState"] = "reconnecting";
+}
+<div class="gate" data-gate data-cinema-id="@Model.CinemaId" data-reset-seconds="@Model.ResetSeconds">
+    <div class="gate-top">
+        <div class="gate-controls">
+            <label class="visually-hidden" for="gate-room">Phòng hoặc cửa đang soát</label>
+            <select id="gate-room" class="form-select" data-gate-room>
+                <option value="">Mọi phòng – @Model.CinemaName</option>
+                @foreach (var a in Model.Auditoriums)
+                {
+                    <option value="@a.Id" selected="@(a.Id == Model.AuditoriumId)">@a.Name</option>
+                }
+            </select>
+            <form class="gate-scan" data-gate-scan autocomplete="off">
+                <label class="visually-hidden" for="gate-code">Mã hóa đơn hoặc mã vé</label>
+                <input id="gate-code" name="code" class="form-control form-control-lg" placeholder="Quét hoặc nhập mã HD… / TK…" autofocus data-gate-code inputmode="text" />
+                <button type="submit" class="btn btn-primary"><i class="bi bi-upc-scan" aria-hidden="true"></i>Kiểm tra</button>
+            </form>
+            <button type="button" class="btn btn-secondary" data-camera-toggle aria-pressed="false"><i class="bi bi-camera" aria-hidden="true"></i><span>Bật camera</span></button>
+        </div>
+        <div id="gate-camera" class="gate-camera" hidden></div>
+    </div>
+
+    <section class="gate-cleaning" aria-labelledby="gate-cleaning-title" data-cleaning-box hidden="@(Model.Cleaning.Count == 0)">
+        <h2 class="h6 mb-2" id="gate-cleaning-title"><i class="bi bi-stars" aria-hidden="true"></i>Phòng đang dọn</h2>
+        <ul class="gate-cleaning-list" data-cleaning-list>
+            @foreach (var c in Model.Cleaning)
+            {
+                <li>
+                    <span><strong>@c.AuditoriumName</strong> · @c.MovieTitle · kết thúc <span class="num">@Fmt.Time(c.EndTime)</span></span>
+                    <button type="button" class="btn btn-success" data-cleaned="@c.ShowtimeId"><i class="bi bi-check2-circle" aria-hidden="true"></i>Đã dọn xong</button>
+                </li>
+            }
+        </ul>
+    </section>
+
+    <section class="gate-result is-idle" data-gate-result aria-live="assertive" aria-atomic="true">
+        <div class="gate-idle">
+            <i class="bi bi-qr-code-scan gate-icon" aria-hidden="true"></i>
+            <p class="gate-main">Sẵn sàng quét</p>
+            <p class="gate-sub">Đưa mã QR hóa đơn hoặc QR vé vào máy quét, hoặc nhập mã rồi bấm Kiểm tra.</p>
+        </div>
+    </section>
+</div>
+
+@section Scripts {
+    <script src="~/lib/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
+    <script src="~/js/realtime.js" asp-append-version="true"></script>
+    <script src="~/lib/html5-qrcode/html5-qrcode.min.js" asp-append-version="true"></script>
+    <script src="~/js/pages/gate.js" asp-append-version="true"></script>
+}

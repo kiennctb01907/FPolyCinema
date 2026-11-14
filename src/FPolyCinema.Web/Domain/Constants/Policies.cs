@@ -49,4 +49,19 @@ public static class AuditAction
 
     /// <summary>Nhân viên quầy bỏ qua luật ghế mồ côi kèm lý do (SPEC 2.7, 3.5).</summary>
     public const string OrphanSeatOverride = "ORPHAN_SEAT_OVERRIDE";
+
+    /// <summary>Đổi hoặc nâng hạng ghế tại quầy (SPEC 2.7-07, 3.10).</summary>
+    public const string SeatSwapped = "SEAT_SWAPPED";
+
+    /// <summary>Giải phóng ghế nội bộ của một suất (SPEC 2.7-07, 3.2-07).</summary>
+    public const string HouseSeatReleased = "HOUSE_SEAT_RELEASED";
+
+    /// <summary>Hủy suất do sự cố (SPEC 2.7-07, 3.10).</summary>
+    public const string ShowtimeCancelled = "SHOWTIME_CANCELLED";
+
+    /// <summary>Duyệt phiếu hủy hàng hỏng (SPEC 2.7-07, 3.11-15).</summary>
+    public const string WastageApproved = "WASTAGE_APPROVED";
+
+    /// <summary>Từ chối phiếu hủy hàng hỏng.</summary>
+    public const string WastageRejected = "WASTAGE_REJECTED";
 }

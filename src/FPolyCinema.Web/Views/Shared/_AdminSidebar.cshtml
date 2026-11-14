@@ -8,12 +8,11 @@
     // (nhãn, icon, đường dẫn hoặc null nếu chưa có, chỉ quản lý rạp)
     var groups = new List<(string Title, List<(string Label, string Icon, string? Url, bool ManagerOnly)> Items)>
     {
-        ("Tổng quan", new() { ("Bảng điều khiển", "bi-speedometer2", "/admin", true) }),
-        ("Bán hàng", new() { ("Bán vé tại quầy", "bi-shop", "/pos/index", false), ("Hóa đơn", "bi-receipt", "/admin/bills", true) }),
+        ("Tổng quan", new() { ("Bảng điều khiển", "bi-speedometer2", "/admin", true), ("Vận hành ca", "bi-broadcast", "/ops", false) }),
+        ("Bán hàng", new() { ("Bán vé tại quầy", "bi-shop", "/pos/index", false), ("Máy soát vé", "bi-qr-code-scan", "/pos/gate-inspector", false), ("Bếp", "bi-fire", "/pos/fnb-kds", false), ("Hóa đơn", "bi-receipt", "/admin/bills", true), ("Doanh nghiệp", "bi-briefcase", "/admin/corporate", true) }),
         ("Phim và lịch chiếu", new() { ("Phim", "bi-film", "/admin/movies", false), ("Nhà phát hành", "bi-building", "/admin/distributors", true), ("Lịch chiếu", "bi-calendar3", "/scheduler", true) }),
         ("Rạp và phòng", new() { ("Phòng chiếu", "bi-grid-3x3-gap", "/admin/auditoriums", true), ("Bảng giá", "bi-tags", "/admin/pricing", true) }),
-        // TODO(Phase 6): Nguyên liệu và nhập kho
-        ("Kho bắp nước", new() { ("Loại đồ uống", "bi-collection", "/admin/categories", false), ("Đồ uống", "bi-cup-straw", "/admin/drinks", false), ("Nguyên liệu", "bi-box-seam", null, true) }),
+        ("Kho bắp nước", new() { ("Loại đồ uống", "bi-collection", "/admin/categories", false), ("Đồ uống", "bi-cup-straw", "/admin/drinks", false), ("Nguyên liệu", "bi-box-seam", "/admin/materials", true), ("Phiếu hủy hàng", "bi-trash3", "/ops/wastage", false) }),
         ("Nhân sự", new() { ("Nhân viên", "bi-people", "/admin/users", true) }),
         ("Báo cáo", new() { ("Thống kê", "bi-bar-chart", "/admin/reports", true), ("Đối soát nhà phát hành", "bi-file-earmark-spreadsheet", "/admin/reports/settlement", true) }),
         ("Cấu hình", new() { ("Cấu hình rạp", "bi-gear", null, true) }),
@@ -23,8 +22,16 @@
 {
     @foreach (var g in groups)
     {
-        // Soát vé (TicketInspector) không dùng màn hình bán hàng (PosStaff)
-        var items = g.Items.Where(i => (!i.ManagerOnly || isManager) && !(i.Url == "/pos/index" && Shell.User?.Role == Roles.TicketInspector)).ToList();
+        // Mỗi mục theo policy của màn hình: bán hàng, bếp (PosStaff); máy soát vé (GateStaff); vận hành ca, phiếu hủy hàng (SupervisorOrManager)
+        var role = Shell.User?.Role;
+        bool Allowed(string? url) => url switch
+        {
+            "/pos/index" or "/pos/fnb-kds" => role != Roles.TicketInspector,
+            "/pos/gate-inspector" => role != Roles.POSCashier,
+            "/ops" or "/ops/wastage" => Shell.IsSupervisor,
+            _ => true,
+        };
+        var items = g.Items.Where(i => (!i.ManagerOnly || isManager) && Allowed(i.Url)).ToList();
         if (items.Count == 0) { continue; }
         <div class="nav-group">
             <h2 class="nav-group-title">@g.Title</h2>
@@ -33,7 +40,8 @@
                 if (i.Url != null)
                 {
                     var active = i.Url == "/admin" ? path.TrimEnd('/').Equals("/admin", StringComparison.OrdinalIgnoreCase)
-                        : path.StartsWith(i.Url, StringComparison.OrdinalIgnoreCase) && !(i.Url == "/admin/reports" && path.StartsWith("/admin/reports/settlement", StringComparison.OrdinalIgnoreCase));
+                        : path.StartsWith(i.Url, StringComparison.OrdinalIgnoreCase) && !(i.Url == "/admin/reports" && path.StartsWith("/admin/reports/settlement", StringComparison.OrdinalIgnoreCase))
+                          && !(i.Url == "/ops" && path.StartsWith("/ops/wastage", StringComparison.OrdinalIgnoreCase));
                     <a class="side-link @(active ? "active" : null)" href="@i.Url" aria-current="@(active ? "page" : null)" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-trigger="hover" title="@i.Label">
                         <i class="bi @i.Icon" aria-hidden="true"></i><span class="label">@i.Label</span>
                     </a>

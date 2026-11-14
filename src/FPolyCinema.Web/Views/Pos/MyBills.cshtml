@@ -70,9 +70,11 @@
 </div>
 @if (Model.HasShift)
 {
-    <partial name="_VoidModal" model="@(new VoidModalVm { Supervisors = Model.Supervisors })" />
+    <partial name="_VoidModal" model="@(new VoidModalVm { Supervisors = Model.Supervisors, TerminalKey = Model.TerminalKey })" />
 }
 @section Scripts {
+    <script src="~/lib/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
+    <script src="~/js/realtime.js" asp-append-version="true"></script>
     <script src="~/js/pages/void-bill.js" asp-append-version="true"></script>
     <script src="~/js/pages/my-bills.js" asp-append-version="true"></script>
 }

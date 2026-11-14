@@ -75,7 +75,7 @@ Lưu trong DB đúng chuỗi ở đây. Trong C# khai báo ở Domain/Constants 
 - Cờ tính toán, không lưu DB:
   - [C3-37 P3] LOCKED_HAS_TICKETS: suất có ít nhất một ghế BOOKED hoặc HELD còn hạn.
   - [C3-38 P6] Hóa đơn "đã hoàn tất": Status finish, CheckInStatus là NONE hoặc FULLY_CHECKED_IN, FnbStatus là NONE hoặc FULFILLED.
-- [C3-39 P2 auto:enum] AuditAction: USER_LOCKED, USER_UNLOCKED, PRICING_UPDATED, VOID_BILL, ORPHAN_SEAT_OVERRIDE (hằng AuditAction ghi vào AuditLogs.Action; mỗi phase thêm hành động của mình theo SPEC 2.7)
+- [C3-39 P2 auto:enum] AuditAction: USER_LOCKED, USER_UNLOCKED, PRICING_UPDATED, VOID_BILL, ORPHAN_SEAT_OVERRIDE, SEAT_SWAPPED, HOUSE_SEAT_RELEASED, SHOWTIME_CANCELLED, WASTAGE_APPROVED, WASTAGE_REJECTED (hằng AuditAction ghi vào AuditLogs.Action; mỗi phase thêm hành động của mình theo SPEC 2.7)
 
 ## 4. Đối tượng vé (AudienceType)
 
@@ -343,3 +343,24 @@ Lớp chính:
 - Giao diện: views `Customer/*` (Movies, Movie, Showtimes, Menu, `_Schedule`, `_ScheduleFilter`), `Booking/*`, `Payment/Sim`, `Tickets/*`, `Account/*`; JS `pages/booking.js`, `pay.js`, `payment-sim.js`, `quick-buy.js`, `ticket.js`, `account.js`; menu web khách mở khóa Phim, Lịch chiếu, Bắp nước, Ưu đãi.
 
 Sự kiện SignalR: `PAYMENT_STATUS_CHANGED` gửi nhóm `bill_{id}` khi thanh toán thành công, thất bại hoặc đến muộn phải hoàn tiền (payload: billId, code, status, cancelReason, message, ticketUrl); màn hình QR nhận sự kiện rồi tự chuyển sang vé.
+
+### Phase 6
+
+Route và quyền (bảng đầy đủ ở docs/generated/routes.md):
+- AllowAnonymous: `/pos/customer-display?terminal=POS-01&cinemaId=` (UI P2; `/state`, `/seat-map`), `/lobby/pickup-board?cinemaId=` (UI P5; `/data`), `/lobby/digital-signage?cinemaId=` (UI P6; `/rows`).
+- GateStaff: `/pos/gate-inspector` (UI P3), POST `/scan`, `/admit`, `/cleaned`, GET `/cleaning`.
+- PosStaff: `/pos/fnb-kds` (UI P4), GET `/orders`, POST `/fnb-kds/{billId}/ready`, `/served`, `/fnb-kds/pickup` (quét QR đơn online); `/pos/wastage` (lập phiếu hủy hàng); `/pos/swap-seat` (GET màn hình, POST đổi ghế), POST `/swap-seat/find`, `/swap-seat/quote`, GET `/swap-seat/seat-map`; POST `/pos/request-void-remote`.
+- SupervisorOrManager: `/ops` (UI A7), `/ops/live` (khối vận hành của /admin), POST `/ops/approvals/{id}/approve|reject`, GET `/ops/approvals/pending`, POST `/ops/house-seats/{showtimeId}/release`, `/ops/wastage` (`?status=`), `/ops/wastage/{id}`, POST `/approve|reject`, `/ops/incident` (GET, POST).
+- ManagerOnly: `/admin/materials` (danh sách, `create`, `{id}/edit`, `{id}/set-active`, `import`), `/admin/corporate` (danh sách, `create?type=PRIVATE_SCREENING|VOUCHER_BATCH`, `{id}`, `{id}/vouchers.csv`), `/admin/reports?tab=wastage`.
+- CustomerOnly: POST `/tickets/{billCode}/im-here` ("Tôi đã tới rạp").
+- TicketInspector đăng nhập xong về `/pos/gate-inspector`; `/ops` thuộc khu vực quản trị.
+
+SignalR (CinemaHub): `JoinTerminal(code, isDisplay)` (khóa máy `{CinemaId}-{TerminalCode}`), `JoinAuditorium`, `JoinKds(cinemaId, isBoard)`, `JoinOps`, `JoinManagerAlerts`, `JoinCinema` cùng các hàm Leave tương ứng; sự kiện POS_SHOWTIME_SELECTED, POS_CART_UPDATED, POS_PAYMENT_QR, POS_PAYMENT_DONE, POS_RESET, APPROVAL_DECIDED, CHECKIN_UPDATED, FNB_STATUS_CHANGED, OCCUPANCY_UPDATED, KDS_ORDER_QUEUED, KDS_ORDER_UPDATED, SHOWTIME_OPS_CHANGED, APPROVAL_REQUESTED, STOCK_LOW, PRODUCT_SOLD_OUT, PRODUCT_AVAILABLE (đúng tên mục 6).
+
+Tên mới thêm vào hợp đồng: AuditAction SEAT_SWAPPED, HOUSE_SEAT_RELEASED, SHOWTIME_CANCELLED, WASTAGE_APPROVED, WASTAGE_REJECTED (C3-39). Không thêm bảng hay cột.
+
+Lớp chính:
+- Domain/Rules (có unit test Phase6RulesTests): `ShowtimeOpsRules`, `GateRules`, `CheckInRules`, `KdsRules`, `InventoryAlertRules`, `WastageRules`, `SeatSwapRules`, `IncidentRules`, `CorporateRules`, `ApprovalRules`, `HouseSeatRules`.
+- Background: `ShowtimeClockService` (mỗi 30 giây: ShowtimeOpsService.Tick, ApprovalService.ExpireOverdue).
+- Services: `ShowtimeOpsService`, `GateService`, `KdsService`, `ApprovalService`, `OpsManagementService` (ghế nội bộ, hủy suất do sự cố, doanh nghiệp), `SeatSwapService` (giữ ghế mới qua `SeatHoldService.HoldForSwap`), `CustomerDisplayService`, `InventoryService` phần Phase 6 (nhập kho, phiếu hủy hàng, bắt đầu làm món online, PublishAlerts); test tích hợp Phase6ServiceTests.
+- Lớp giao diện: `Controllers/OpsDashboardPages`; controller `GateController`, `KitchenController`, `LobbyController`, `OpsController`, `MaterialsController`, `CorporateController`; JS `approvals.js` (popup A7 trong layout quản trị), `pages/gate.js`, `kds.js`, `lobby.js`, `customer-display.js`, `ops.js`, `swap-seat.js`, `stock-form.js`, `incident.js`.

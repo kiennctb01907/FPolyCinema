@@ -4,6 +4,8 @@
     var theme = ViewData["Theme"] as string == "cinema" ? "cinema" : "ops";
     var shift = Shell.OpenShift;
     var bodyClass = (ViewData["BodyClass"] as string) ?? "pos-ui";
+    // Nhân viên soát vé không bán hàng nên không có ca: thanh trên ghi tên rạp thay cho thông tin ca
+    var gateOnly = Shell.User?.Role == FPolyCinema.Web.Domain.Constants.Roles.TicketInspector;
 }
 <!DOCTYPE html>
 <html lang="vi" data-theme="@theme" data-bs-theme="@(theme == "cinema" ? "dark" : "light")">
@@ -20,6 +22,11 @@
                 <span class="terminal" title="Mã quầy">@shift.TerminalCode</span>
                 <span class="shift-info">Ca mở lúc @Fmt.Time(shift.OpenedAt) · Tiền đầu ca <span class="money">@Fmt.Money(shift.OpeningCashFloat)</span></span>
             }
+            else if (gateOnly)
+            {
+                <span class="terminal">Soát vé</span>
+                <span class="shift-info">@(Shell.Cinema.Current?.Name)</span>
+            }
             else
             {
                 <span class="terminal">Chưa mở ca</span>
@@ -28,11 +35,11 @@
             <div class="pos-tools">
                 <time class="pos-clock" data-clock="seconds" data-server-now="@Shell.Now.ToString("yyyy-MM-ddTHH:mm:ss")" aria-label="Giờ hiện tại">@Fmt.Time(Shell.Now)</time>
                 <partial name="_ConnIndicator" />
-                @if (shift != null)
+                @if (!gateOnly && shift != null)
                 {
                     <a class="btn btn-secondary btn-sm" href="/pos/close-shift"><i class="bi bi-door-closed" aria-hidden="true"></i>Đóng ca</a>
                 }
-                else
+                else if (!gateOnly)
                 {
                     <span class="d-inline-block" tabindex="0" data-bs-toggle="tooltip" title="Bạn chưa mở ca nên chưa có ca để đóng.">
                         <button type="button" class="btn btn-secondary btn-sm" disabled><i class="bi bi-door-closed" aria-hidden="true"></i>Đóng ca</button>

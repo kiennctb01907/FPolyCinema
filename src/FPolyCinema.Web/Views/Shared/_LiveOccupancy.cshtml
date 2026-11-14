@@ -1,0 +1,42 @@
+@model List<FPolyCinema.Web.Entities.ReadModels.LiveOccupancyRow>
+@* Sĩ số trực tiếp các suất đang chạy (SPEC 3.8-12, UI A1-05): đã vào trên đã bán. ops.js tham gia nhóm auditorium_{id} (JoinAuditorium)
+   và cập nhật từng dòng khi nhận OCCUPANCY_UPDATED. *@
+@if (Model.Count == 0)
+{
+    <p class="text-muted mb-0">Hiện không có suất nào đang mở cửa hoặc đang chiếu.</p>
+}
+else
+{
+    <div class="table-wrap">
+        <table class="data-table" data-occupancy-table>
+            <caption class="visually-hidden">Sĩ số trực tiếp các suất đang chạy</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Suất</th>
+                    <th scope="col">Phòng</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col" class="num">Đã vào / đã bán</th>
+                    <th scope="col" class="col-opt">Lấp đầy</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model)
+                {
+                    var pct = r.Sold == 0 ? 0 : (int)Math.Round(r.CheckedIn * 100.0 / r.Sold);
+                    <tr data-occ-showtime="@r.ShowtimeId" data-auditorium-id="@r.AuditoriumId">
+                        <td class="cell-title">
+                            <span class="cell-main">@r.MovieTitle</span> <partial name="_AgeBadge" model="@(new AgeBadgeVm(r.AgeRating))" />
+                            <span class="cell-sub d-block"><span class="num">@Fmt.Time(r.StartTime)–@Fmt.Time(r.EndTime)</span>@(r.CinemaName.Length > 0 ? " · " + r.CinemaName : null)</span>
+                        </td>
+                        <td data-label="Phòng">@r.AuditoriumName</td>
+                        <td data-label="Trạng thái"><partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Showtime, r.OperationalStatus))" /></td>
+                        <td class="num" data-label="Đã vào / đã bán"><strong data-occ-in>@r.CheckedIn</strong> / <span data-occ-sold>@r.Sold</span></td>
+                        <td class="col-opt" data-label="Lấp đầy">
+                            <div class="occupancy-bar" role="img" aria-label="Đã vào @pct% số vé đã bán" data-occ-bar><span style="--pct: @pct"></span></div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

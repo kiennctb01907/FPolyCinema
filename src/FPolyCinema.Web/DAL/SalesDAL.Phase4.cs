@@ -205,11 +205,17 @@ public static partial class BillDAL
     public static int CountWaitingForShift(int shiftId, SqlConnection? conn = null, SqlTransaction? tx = null) =>
         Convert.ToInt32(DBUtil.ExecuteScalar("SELECT COUNT(*) FROM Bills WHERE PosShiftId = @1 AND Status = @2", new List<object> { shiftId, BillStatus.Waiting }, conn, tx));
 
-    /// <summary>Số gọi bắp nước lớn nhất đã cấp trong ngày vận hành của rạp (để cấp số tiếp theo).</summary>
+    /// <summary>
+    /// Số gọi bắp nước cấp gần nhất trong ngày vận hành của rạp (để cấp số tiếp theo). Thời điểm cấp số là lúc bắt đầu làm món (giao dịch CONSUME của hóa đơn);
+    /// đơn online trả tiền từ hôm trước nhưng bắt đầu làm hôm nay vẫn được tính vào hôm nay. Không có giao dịch CONSUME thì lấy PaidAt.
+    /// </summary>
     public static int? LastPickupNumber(int cinemaId, DateTime dayStart, DateTime dayEnd, SqlConnection conn, SqlTransaction tx)
     {
-        const string sql = "SELECT TOP 1 PickupNumber FROM Bills WITH (UPDLOCK, HOLDLOCK) WHERE CinemaId = @1 AND PickupNumber IS NOT NULL AND PaidAt >= @2 AND PaidAt < @3 ORDER BY PaidAt DESC, Id DESC";
-        var v = DBUtil.ExecuteScalar(sql, new List<object> { cinemaId, dayStart, dayEnd }, conn, tx);
+        const string sql = "SELECT TOP 1 b.PickupNumber FROM Bills b WITH (UPDLOCK, HOLDLOCK) " +
+                           "OUTER APPLY (SELECT MAX(it.CreatedAt) AS StartedAt FROM InventoryTransactions it WHERE it.BillId = b.Id AND it.Type = @4) c " +
+                           "WHERE b.CinemaId = @1 AND b.PickupNumber IS NOT NULL AND COALESCE(c.StartedAt, b.PaidAt) >= @2 AND COALESCE(c.StartedAt, b.PaidAt) < @3 " +
+                           "ORDER BY COALESCE(c.StartedAt, b.PaidAt) DESC, b.Id DESC";
+        var v = DBUtil.ExecuteScalar(sql, new List<object> { cinemaId, dayStart, dayEnd, InventoryTxnType.Consume }, conn, tx);
         return v == null || v == DBNull.Value ? null : Convert.ToInt32(v);
     }
 

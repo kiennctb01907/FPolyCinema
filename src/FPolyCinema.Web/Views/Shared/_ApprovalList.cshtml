@@ -1,0 +1,24 @@
+@model List<FPolyCinema.Web.Entities.ReadModels.ApprovalDetailRow>
+@* Danh sách yêu cầu phê duyệt đang chờ (UI A7-03, A1-05): hóa đơn, số tiền, lý do, người yêu cầu, hạn; hai nút Duyệt và Từ chối.
+   approvals.js xử lý nút (data-approval-decide) và cập nhật khi có APPROVAL_REQUESTED, APPROVAL_DECIDED. *@
+@if (Model.Count == 0)
+{
+    <p class="text-muted mb-0" data-approval-empty>Không có yêu cầu nào đang chờ duyệt.</p>
+}
+else
+{
+    <ul class="ops-list" data-approval-list>
+        @foreach (var a in Model)
+        {
+            <li data-approval-id="@a.Id">
+                <span class="ops-main">
+                    <strong>Hủy hóa đơn @a.BillCode</strong> · <span class="money">@Fmt.Money(a.Total)</span>
+                    <span class="ops-sub">@a.RequesterName · gửi lúc <span class="num">@Fmt.Time(a.CreatedAt)</span> · hết hạn <span class="num">@Fmt.Time(a.ExpiresAt)</span></span>
+                    <span class="ops-sub">Lý do: @a.Reason</span>
+                </span>
+                <button type="button" class="btn btn-success btn-sm" data-approval-decide="approve" data-id="@a.Id" data-code="@a.BillCode"><i class="bi bi-check2" aria-hidden="true"></i>Duyệt</button>
+                <button type="button" class="btn btn-ghost btn-sm" data-approval-decide="reject" data-id="@a.Id" data-code="@a.BillCode"><i class="bi bi-x" aria-hidden="true"></i>Từ chối</button>
+            </li>
+        }
+    </ul>
+}

@@ -1,0 +1,111 @@
+@model CorporateFormVm
+@* A3. Hợp đồng doanh nghiệp (UC40, SPEC 3.10-08, 3.10-09): thông tin doanh nghiệp; thuê trọn suất (chỉ suất chưa bán vé nào – ẩn khỏi web khách,
+   một hóa đơn CORPORATE cho toàn bộ ghế theo giá hợp đồng) hoặc phát hành loạt voucher FREE_TICKET (số lượng, hạn dùng; mỗi mã một vé ghế thường hoặc VIP,
+   không áp cho Sweetbox). *@
+@{
+    Layout = "_LayoutAdmin";
+    var i = Model.Input;
+    var isPrivate = i.Type != CorporateType.VoucherBatch;
+    var title = isPrivate ? "Thuê trọn suất" : "Phát hành loạt voucher";
+    ViewData["Title"] = title;
+    ViewData["Crumbs"] = new List<Crumb> { new("Bán hàng"), new("Doanh nghiệp", "/admin/corporate"), new(title) };
+    string? Err(string key) => ViewData.ModelState.TryGetValue(key, out var s) ? s.Errors.FirstOrDefault()?.ErrorMessage : null;
+    string Invalid(string key) => Err(key) != null ? "form-control is-invalid" : "form-control";
+}
+<div class="form-card">
+    <partial name="_PageHeader" model="@(new PageHeaderVm { Title = title, Description = "Các ô có dấu * là bắt buộc.", Crumbs = new() { new("Doanh nghiệp", "/admin/corporate"), new(title) } })" />
+    <nav class="page-tabs" aria-label="Loại hợp đồng">
+        <a href="/admin/corporate/create?type=@CorporateType.PrivateScreening" class="@(isPrivate ? "active" : null)" aria-current="@(isPrivate ? "page" : null)"><i class="bi bi-building" aria-hidden="true"></i>Thuê trọn suất</a>
+        <a href="/admin/corporate/create?type=@CorporateType.VoucherBatch" class="@(!isPrivate ? "active" : null)" aria-current="@(!isPrivate ? "page" : null)"><i class="bi bi-ticket-perforated" aria-hidden="true"></i>Loạt voucher</a>
+    </nav>
+    <form asp-antiforgery="true" method="post" action="/admin/corporate/create" class="card-ui" novalidate data-dirty-guard>
+        <input type="hidden" name="Type" value="@i.Type" />
+        @if (Err(string.Empty) is string top)
+        {
+            <div class="alert-ui tone-danger" role="alert"><i class="bi bi-exclamation-circle" aria-hidden="true"></i>@top</div>
+        }
+        <section class="card-section" aria-labelledby="sec-company">
+            <h2 class="card-section-title" id="sec-company">Doanh nghiệp</h2>
+            <div class="form-grid cols-2">
+                <div>
+                    <label class="form-label" for="c-company">Tên doanh nghiệp <span class="req" aria-hidden="true">*</span></label>
+                    <input id="c-company" name="CompanyName" class="@Invalid("CompanyName")" value="@i.CompanyName" maxlength="200" placeholder="Ví dụ: Công ty TNHH Sao Việt" autofocus />
+                    @if (Err("CompanyName") is string errCompanyName) { <span class="field-error">@errCompanyName</span> }
+                </div>
+                <div>
+                    <label class="form-label" for="c-contact">Người liên hệ <span class="req" aria-hidden="true">*</span></label>
+                    <input id="c-contact" name="ContactName" class="@Invalid("ContactName")" value="@i.ContactName" maxlength="100" placeholder="Ví dụ: Nguyễn Thu Hà" />
+                    @if (Err("ContactName") is string errContactName) { <span class="field-error">@errContactName</span> }
+                </div>
+                <div>
+                    <label class="form-label" for="c-phone">Số điện thoại</label>
+                    <input id="c-phone" name="Phone" type="tel" class="@Invalid("Phone")" value="@i.Phone" maxlength="20" placeholder="Ví dụ: 0912 345 678" />
+                    @if (Err("Phone") is string errPhone) { <span class="field-error">@errPhone</span> }
+                </div>
+                <div>
+                    <label class="form-label" for="c-email">Email</label>
+                    <input id="c-email" name="Email" type="email" class="@Invalid("Email")" value="@i.Email" maxlength="200" placeholder="lienhe@congty.vn" />
+                    @if (Err("Email") is string errEmail) { <span class="field-error">@errEmail</span> }
+                </div>
+            </div>
+        </section>
+        @if (isPrivate)
+        {
+            <section class="card-section" aria-labelledby="sec-show">
+                <h2 class="card-section-title" id="sec-show">Suất thuê trọn</h2>
+                <p class="card-section-desc">Chỉ hiện suất trong 14 ngày tới chưa bán vé nào. Suất được ẩn khỏi web khách; toàn bộ ghế (trừ ghế bảo trì) vào một hóa đơn doanh nghiệp.</p>
+                <div class="form-grid cols-2">
+                    <div class="span-2">
+                        <label class="form-label" for="c-show">Suất chiếu <span class="req" aria-hidden="true">*</span></label>
+                        <select id="c-show" name="ShowtimeId" class="form-select @(Err("ShowtimeId") != null ? "is-invalid" : null)">
+                            <option value="">Chọn suất</option>
+                            @foreach (var s in Model.Showtimes)
+                            {
+                                <option value="@s.ShowtimeId" selected="@(s.ShowtimeId == i.ShowtimeId)">@Fmt.WeekdayDate(s.StartTime) @Fmt.Time(s.StartTime) · @s.MovieTitle (@s.AgeRating) · @s.AuditoriumName · @s.Capacity ghế</option>
+                            }
+                        </select>
+                        @if (Err("ShowtimeId") is string errShowtimeId) { <span class="field-error">@errShowtimeId</span> }
+                        @if (Model.Showtimes.Count == 0)
+                        {
+                            <p class="form-text">Không có suất nào trong 14 ngày tới còn trống hoàn toàn.</p>
+                        }
+                    </div>
+                    <div>
+                        <label class="form-label" for="c-amount">Giá trị hợp đồng (₫) <span class="req" aria-hidden="true">*</span></label>
+                        <input id="c-amount" name="ContractAmount" type="number" min="0" step="1000" class="@Invalid("ContractAmount") num" value="@(i.ContractAmount > 0 ? i.ContractAmount : null)" placeholder="Ví dụ: 15000000" />
+                        <div class="form-text">Chia đều cho từng ghế trên vé; ghi nhận là chuyển khoản theo hợp đồng.</div>
+                        @if (Err("ContractAmount") is string errContractAmount) { <span class="field-error">@errContractAmount</span> }
+                    </div>
+                </div>
+            </section>
+        }
+        else
+        {
+            <section class="card-section" aria-labelledby="sec-voucher">
+                <h2 class="card-section-title" id="sec-voucher">Loạt voucher tặng vé</h2>
+                <p class="card-section-desc">Mỗi mã dùng một lần, trả cho một vé ghế thường hoặc VIP (không áp cho Sweetbox), dùng được ở quầy và web.</p>
+                <div class="form-grid cols-2">
+                    <div>
+                        <label class="form-label" for="c-count">Số lượng voucher <span class="req" aria-hidden="true">*</span></label>
+                        <input id="c-count" name="VoucherCount" type="number" min="1" max="@CorporateRules.MaxVoucherBatch" class="@Invalid("VoucherCount") num" value="@i.VoucherCount" />
+                        @if (Err("VoucherCount") is string errVoucherCount) { <span class="field-error">@errVoucherCount</span> }
+                    </div>
+                    <div>
+                        <label class="form-label" for="c-until">Hạn dùng <span class="req" aria-hidden="true">*</span></label>
+                        <div class="date-field"><input id="c-until" name="ValidUntil" type="datetime-local" class="@Invalid("ValidUntil")" value="@(i.ValidUntil?.ToString("yyyy-MM-ddTHH:mm"))" /><span class="date-display" aria-hidden="true"></span></div>
+                        @if (Err("ValidUntil") is string errValidUntil) { <span class="field-error">@errValidUntil</span> }
+                    </div>
+                    <div>
+                        <label class="form-label" for="c-amount2">Giá trị hợp đồng (₫)</label>
+                        <input id="c-amount2" name="ContractAmount" type="number" min="0" step="1000" class="@Invalid("ContractAmount") num" value="@i.ContractAmount" />
+                        @if (Err("ContractAmount") is string errContractAmount) { <span class="field-error">@errContractAmount</span> }
+                    </div>
+                </div>
+            </section>
+        }
+        <div class="form-actions-sticky">
+            <a class="btn btn-ghost" href="/admin/corporate">Hủy</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>@(isPrivate ? "Tạo hợp đồng thuê trọn suất" : "Phát hành voucher")</button>
+        </div>
+    </form>
+</div>

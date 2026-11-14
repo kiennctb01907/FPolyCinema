@@ -1,7 +1,8 @@
 @model VoidModalVm
 @* Hủy hóa đơn đã thanh toán (UI U7.P1-11, SPEC 3.6): thu ngân nhập lý do, chọn quản lý duyệt; quản lý nhập PIN ngay trên máy bằng bàn phím PIN (ui.pin).
-   Dùng chung ở POS (nhập mã hóa đơn) và Hóa đơn của tôi (mã có sẵn). Không đóng bằng Esc (UI U10-08). TODO(Phase 6): nút "Gửi quản lý duyệt từ xa". *@
-<div class="modal fade" id="void-bill" tabindex="-1" aria-labelledby="void-title" aria-modal="true" role="dialog" data-bs-backdrop="static" data-bs-keyboard="false">
+   Dùng chung ở POS (nhập mã hóa đơn) và Hóa đơn của tôi (mã có sẵn). Không đóng bằng Esc (UI U10-08).
+   Nút "Gửi quản lý duyệt từ xa" (UI P1-12, SPEC 3.6-21): gửi yêu cầu thay cho nhập PIN; kết quả APPROVAL_DECIDED hiện ngay trên máy POS. *@
+<div class="modal fade" id="void-bill" data-terminal-key="@Model.TerminalKey" tabindex="-1" aria-labelledby="void-title" aria-modal="true" role="dialog" data-bs-backdrop="static" data-bs-keyboard="false">
     <div class="modal-dialog modal-dialog-centered">
         <form class="modal-content" data-void-form autocomplete="off" novalidate>
             <div class="modal-header"><h2 class="modal-title" id="void-title">Hủy hóa đơn đã thanh toán</h2></div>
@@ -44,6 +45,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-ghost" data-bs-dismiss="modal">Không hủy</button>
+                <button type="button" class="btn btn-secondary" data-void-remote disabled="@(Model.TerminalKey == null)" title="@(Model.TerminalKey == null ? "Cần mở ca tại máy này để nhận kết quả duyệt" : null)"><i class="bi bi-send" aria-hidden="true"></i>Gửi quản lý duyệt từ xa</button>
                 <button type="submit" class="btn btn-danger" disabled="@(Model.Supervisors.Count == 0)"><i class="bi bi-shield-lock" aria-hidden="true"></i>Quản lý nhập PIN</button>
             </div>
         </form>

@@ -1,0 +1,69 @@
+@model CorporateDetailVm
+@* Chi tiết hợp đồng doanh nghiệp: thông tin liên hệ; thuê trọn suất kèm hóa đơn CORPORATE; loạt voucher kèm danh sách mã và nút "Xuất CSV". *@
+@{
+    Layout = "_LayoutAdmin";
+    var r = Model.Row;
+    var b = r.Booking;
+    var isPrivate = b.Type == CorporateType.PrivateScreening;
+    ViewData["Title"] = b.CompanyName;
+    ViewData["Crumbs"] = new List<Crumb> { new("Bán hàng"), new("Doanh nghiệp", "/admin/corporate"), new(b.CompanyName) };
+    var header = new PageHeaderVm
+    {
+        Title = b.CompanyName,
+        Description = (isPrivate ? "Thuê trọn suất" : "Loạt voucher tặng vé") + $" · tạo bởi {r.CreatorName} lúc {Fmt.DateTime(b.CreatedAt)}",
+        Crumbs = new() { new("Doanh nghiệp", "/admin/corporate"), new(b.CompanyName) },
+    };
+    if (!isPrivate)
+    {
+        header.Actions = @<a class="btn btn-secondary" href="/admin/corporate/@b.Id/vouchers.csv"><i class="bi bi-filetype-csv" aria-hidden="true"></i>Xuất CSV</a>;
+    }
+}
+<partial name="_PageHeader" model="header" />
+<div class="row g-4">
+    <div class="col-12 col-xl-4">
+        <section class="card-ui card-ui-body" aria-labelledby="cb-info">
+            <h2 class="card-ui-title" id="cb-info">Hợp đồng</h2>
+            <dl class="detail-list">
+                <dt>Người liên hệ</dt><dd>@b.ContactName</dd>
+                <dt>Điện thoại</dt><dd>@(b.Phone ?? "–")</dd>
+                <dt>Email</dt><dd>@(b.Email ?? "–")</dd>
+                <dt>Giá trị</dt><dd class="money fw-500">@Fmt.Money(b.ContractAmount)</dd>
+                @if (isPrivate)
+                {
+                    <dt>Suất</dt><dd>@r.MovieTitle<span class="d-block small text-muted num">@(r.StartTime is DateTime st ? Fmt.DateTime(st) : "") · @r.AuditoriumName</span></dd>
+                    <dt>Hóa đơn</dt><dd>@if (b.BillId is int bid) { <a href="/admin/bills/@bid">@r.BillCode</a> } else { <span>–</span> }</dd>
+                    <dt>Web khách</dt><dd>Suất đã ẩn khỏi lịch chiếu trên web.</dd>
+                }
+                else
+                {
+                    <dt>Số voucher</dt><dd class="num">@b.VoucherCount (đã dùng @r.VouchersUsed)</dd>
+                }
+            </dl>
+        </section>
+    </div>
+    @if (!isPrivate)
+    {
+        <div class="col-12 col-xl-8">
+            <section class="card-ui card-ui-body" aria-labelledby="cb-vouchers">
+                <h2 class="card-ui-title" id="cb-vouchers">Mã voucher</h2>
+                <p class="small text-muted">Mỗi mã tặng một vé ghế thường hoặc VIP, không áp cho Sweetbox; dùng một lần.</p>
+                <div class="table-wrap">
+                    <table class="data-table">
+                        <caption class="visually-hidden">Danh sách mã voucher</caption>
+                        <thead><tr><th scope="col">Mã</th><th scope="col">Hạn dùng</th><th scope="col">Trạng thái</th></tr></thead>
+                        <tbody>
+                            @foreach (var v in Model.Vouchers)
+                            {
+                                <tr>
+                                    <td class="qr-code">@v.Code</td>
+                                    <td class="num">@Fmt.DateTime(v.ValidUntil)</td>
+                                    <td>@if (v.UsedCount > 0) { <span class="status-badge tone-neutral">Đã dùng</span> } else { <span class="status-badge tone-success">Chưa dùng</span> }</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+        </div>
+    }
+</div>

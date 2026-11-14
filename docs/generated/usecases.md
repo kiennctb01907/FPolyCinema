@@ -5,33 +5,33 @@
 | UC01 | Đăng nhập, đăng xuất | Khách hàng, mọi nhân viên |  | C6 | 2 | Xong | src/FPolyCinema.Web/Controllers/LoginController.cs#public async Task<IActionResult> Login(LoginVm vm); src/FPolyCinema.Web/Controllers/LoginController.cs#public async Task<IActionResult> Logout(); test:Login_FormHasTokenAndRedirectsToRoleHome_LockedAccountRejected; ui:C6 |
 | UC02 | Quên mật khẩu (OTP, cấp mật khẩu mới qua email) | Khách hàng, mọi nhân viên; Dịch vụ email | extend UC01 | C6 | 2 | Xong | src/FPolyCinema.Web/Services/PasswordResetService.cs#public class PasswordResetService; test:ForgotPassword_OtpFlow_WrongThenRightSendsNewPasswordAndForcesChange; ui:C6 |
 | UC03 | Đổi mật khẩu | Khách hàng, mọi nhân viên | include UC01 | C5, A9 | 2, 5 | Xong | src/FPolyCinema.Web/Views/Account/Index.cshtml#/Login/ChangePassword; src/FPolyCinema.Web/Controllers/LoginController.cs#ChangePassword; test:Customer_AccountTabs_ProfileRedirect_StaffCannotBook |
-| UC04 | Cập nhật thông tin cá nhân | Khách hàng, mọi nhân viên | include UC01 | C5, A9 | 2, 5 | Xong | Cập; src/FPolyCinema.Web/Controllers/AccountController.cs#[HttpPost("/account/profile")]; src/FPolyCinema.Web/Views/Account/_ProfileForm.cshtml#action="/account/profile"; test:AccountProfile_InvalidShowsErrorsInProfileTab_ValidSavesAndRedirects |
+| UC04 | Cập nhật thông tin cá nhân | Khách hàng, mọi nhân viên | include UC01 | C5, A9 | 2, 5 | Xong | src/FPolyCinema.Web/Views/Account/Index.cshtml#<partial name="_ProfileForm"; src/FPolyCinema.Web/Views/Account/_ProfileForm.cshtml#action="/account/profile"; src/FPolyCinema.Web/Controllers/AccountController.cs#[HttpPost("/account/profile")]; src/FPolyCinema.Web/Controllers/LoginController.cs#/account?tab=profile; test:Customer_AccountTabs_ProfileRedirect_StaffCannotBook; test:AccountProfile_InvalidShowsErrorsInProfileTab_ValidSavesAndRedirects |
 | UC05 | Đăng ký tài khoản | Khách vãng lai |  | C6 | 2 | Xong | src/FPolyCinema.Web/Services/AuthService.cs#public User Register(RegisterInput input); test:Register_CreatesMemberCustomerAndRejectsDuplicateEmail; ui:C6 |
 | UC06 | Xem phim, lịch chiếu, thực đơn bắp nước | Khách vãng lai |  | C1, C2 | 5 | Xong | src/FPolyCinema.Web/Controllers/CustomerController.cs#public IActionResult Movies; src/FPolyCinema.Web/Controllers/CustomerController.cs#public IActionResult Showtimes; test:Guest_SeesHomeMoviesScheduleMenuAndSeatMap_ButCannotHoldSeats |
 | UC07 | Đặt vé online | Khách hàng | include UC08, UC09 | C3 | 5 | Xong | src/FPolyCinema.Web/Controllers/CustomerController.cs#class BookingController; src/FPolyCinema.Web/Services/OnlineBookingService.cs#class OnlineBookingService; test:Online_VietQrWebhook_SignatureIdempotencyFinish_ReservesStock_NotifiesBillGroup |
 | UC08 | Chọn ghế với gợi ý AI | Khách hàng, Thu ngân |  | C3, P1 | 4, 5 | Xong | src/FPolyCinema.Web/Services/OnlineBookingService.cs#class SeatSuggestService; src/FPolyCinema.Web/wwwroot/js/pages/booking.js#pickCluster; test:Suggest_ThreeClusters_PersonaScores_AndSwitchShowtimeWhenBelowThreshold |
 | UC09 | Thanh toán online | Khách hàng; Cổng thanh toán |  | C3 | 5 | Xong | src/FPolyCinema.Web/Services/OnlineBookingService.cs#HandleWebhook; src/FPolyCinema.Web/Views/Booking/Pay.cshtml#data-pay-screen; test:Online_VietQrWebhook_SignatureIdempotencyFinish_ReservesStock_NotifiesBillGroup |
-| UC10 | Xem vé điện tử, báo "Tôi đã tới rạp" | Khách hàng |  | C4 | 5, 6 | Chưa |  |
+| UC10 | Xem vé điện tử, báo "Tôi đã tới rạp" | Khách hàng |  | C4 | 5, 6 | Xong | src/FPolyCinema.Web/Views/Tickets/Show.cshtml#data-im-here; src/FPolyCinema.Web/Controllers/CustomerController.cs#ImHere; test:Kds_ImHereWindow_StartAndAdvance; ui:C4 |
 | UC11 | Tự hủy vé | Khách hàng |  | C4, C5 | 5 | Xong | src/FPolyCinema.Web/Services/OnlineBookingService.cs#public async Task<long> SelfCancel; src/FPolyCinema.Web/Views/Tickets/Show.cshtml#data-self-cancel; test:SelfCancel_RefundsToWallet_ReleasesSeatsAndStock_RestoresPointsAndVoucher |
 | UC12 | Quản lý ví, điểm, voucher, thông báo | Khách hàng |  | C5 | 5 | Xong | src/FPolyCinema.Web/Views/Account/Index.cshtml#Ví và điểm; src/FPolyCinema.Web/Controllers/AccountController.cs#ReadAll; test:Customer_AccountTabs_ProfileRedirect_StaffCannotBook |
 | UC13 | Đặt vé bằng trợ lý AI | Khách hàng | extend UC07 | C7 | 7 | Chưa |  |
 | UC14 | Mở ca, đóng ca mù | Thu ngân |  | P7 | 4 | Xong | src/FPolyCinema.Web/Controllers/PosController.cs#OpenShift; src/FPolyCinema.Web/Controllers/PosController.cs#CloseShift; test:CloseShift_BlockedByWaitingBill_ThenBlindCountComputesExpectedAndDiscrepancy |
 | UC15 | Bán vé và bắp nước tại quầy | Thu ngân | include UC08 | P1, P2 | 4 | Xong | src/FPolyCinema.Web/Controllers/PosController.cs#Checkout; src/FPolyCinema.Web/Views/Pos/Index.cshtml#Hóa đơn tạm tính; test:Checkout_Cash_CreatesTicketsBooksSeatsConsumesStockEarnsPoints_ThenVoidWithPin |
-| UC16 | In vé, nhận đơn online tại quầy | Thu ngân |  | P1 | 4, 6 | Chưa |  |
-| UC17 | Đổi, nâng hạng ghế | Thu ngân |  | P1 | 6 | Chưa |  |
-| UC18 | Yêu cầu hủy hóa đơn đã thanh toán | Thu ngân | include UC24 | P1 | 4, 6 | Chưa |  |
-| UC19 | Xử lý đơn bắp nước tại bếp, gọi số | Thu ngân |  | P4, P5 | 6 | Chưa |  |
-| UC20 | Lập phiếu hủy hàng hỏng | Thu ngân |  | P4 | 6 | Chưa |  |
+| UC16 | In vé, nhận đơn online tại quầy | Thu ngân |  | P1 | 4, 6 | Xong | src/FPolyCinema.Web/Controllers/KitchenController.cs#Pickup; src/FPolyCinema.Web/Controllers/PosController.cs#Print; test:Kds_ImHereWindow_StartAndAdvance |
+| UC17 | Đổi, nâng hạng ghế | Thu ngân |  | P1 | 6 | Xong | src/FPolyCinema.Web/Services/SeatSwapService.cs#Swap; src/FPolyCinema.Web/Views/Pos/SwapSeat.cshtml#data-swap; test:SeatSwap_QuoteChargesOnlyPositiveDifference |
+| UC18 | Yêu cầu hủy hóa đơn đã thanh toán | Thu ngân | include UC24 | P1 | 4, 6 | Xong | src/FPolyCinema.Web/Controllers/PosController.cs#RequestVoidRemote; src/FPolyCinema.Web/Controllers/PosController.cs#RequestVoid; test:RemoteApproval_RequestNotifiesManagers_RejectGoesBackToTerminal_AndExpires |
+| UC19 | Xử lý đơn bắp nước tại bếp, gọi số | Thu ngân |  | P4, P5 | 6 | Xong | src/FPolyCinema.Web/Services/KdsService.cs#Advance; src/FPolyCinema.Web/Views/Kitchen/Kds.cshtml#data-kds; src/FPolyCinema.Web/Views/Lobby/PickupBoard.cshtml#data-pickup-board; test:Kds_ImHereWindow_StartAndAdvance |
+| UC20 | Lập phiếu hủy hàng hỏng | Thu ngân |  | P4 | 6 | Xong | src/FPolyCinema.Web/Controllers/KitchenController.cs#Wastage; src/FPolyCinema.Web/Views/Kitchen/Wastage.cshtml#data-stock-form; test:Inventory_Import_AndWastageNeedsApprovalBeforeStockDrops |
 | UC21 | Xem hóa đơn của tôi | Thu ngân |  | P1 | 4 | Xong | src/FPolyCinema.Web/Controllers/PosController.cs#MyBills; src/FPolyCinema.Web/Views/Pos/MyBills.cshtml#Hóa đơn của tôi; test:Pages_RoleAccess_PosForPosStaff_AdminForManager |
-| UC22 | Soát vé, check-in từng phần | Nhân viên soát vé |  | P3 | 6 | Chưa |  |
-| UC23 | Xác nhận dọn phòng xong | Nhân viên soát vé |  | P3, P6 | 6 | Chưa |  |
-| UC24 | Duyệt hủy hóa đơn (PIN hoặc từ xa) | Quản lý ca |  | P1, A7 | 4, 6 | Chưa |  |
-| UC25 | Giải phóng ghế nội bộ | Quản lý ca |  | A7 | 6 | Chưa |  |
-| UC26 | Duyệt phiếu hủy hàng | Quản lý ca |  | A7 | 6 | Chưa |  |
-| UC27 | Hủy suất do sự cố | Quản lý ca |  | A5 | 6 | Chưa |  |
+| UC22 | Soát vé, check-in từng phần | Nhân viên soát vé |  | P3 | 6 | Xong | src/FPolyCinema.Web/Services/GateService.cs#Admit; src/FPolyCinema.Web/Views/Gate/Index.cshtml#data-gate; test:Clock_RoomNotReady_StaysScheduled_ThenCleanedJumpsAhead_AndGateAdmitsPartially |
+| UC23 | Xác nhận dọn phòng xong | Nhân viên soát vé |  | P3, P6 | 6 | Xong | src/FPolyCinema.Web/Services/ShowtimeOpsService.cs#MarkCleaned; src/FPolyCinema.Web/Views/Lobby/_SignageRows.cshtml#Mời vào rạp; test:Clock_RoomNotReady_StaysScheduled_ThenCleanedJumpsAhead_AndGateAdmitsPartially |
+| UC24 | Duyệt hủy hóa đơn (PIN hoặc từ xa) | Quản lý ca |  | P1, A7 | 4, 6 | Xong | src/FPolyCinema.Web/Services/ApprovalService.cs#Decide; src/FPolyCinema.Web/Services/SalesSupportServices.cs#ManagerPinService; src/FPolyCinema.Web/wwwroot/js/approvals.js#data-approval-decide; test:RemoteApproval_RequestNotifiesManagers_RejectGoesBackToTerminal_AndExpires |
+| UC25 | Giải phóng ghế nội bộ | Quản lý ca |  | A7 | 6 | Xong | src/FPolyCinema.Web/Services/OpsManagementService.cs#ReleaseHouseSeats; src/FPolyCinema.Web/Views/Ops/_OpsBody.cshtml#data-release-house; test:HouseSeats_ReleasedToAvailable_WithAuditLog |
+| UC26 | Duyệt phiếu hủy hàng | Quản lý ca |  | A7 | 6 | Xong | src/FPolyCinema.Web/Controllers/OpsController.cs#DecideWastage; src/FPolyCinema.Web/Views/Ops/WastageDetail.cshtml#data-wastage-decide; test:Inventory_Import_AndWastageNeedsApprovalBeforeStockDrops |
+| UC27 | Hủy suất do sự cố | Quản lý ca |  | A5 | 6 | Xong | src/FPolyCinema.Web/Controllers/OpsController.cs#Incident; src/FPolyCinema.Web/Services/OpsManagementService.cs#CancelShowtime; test:Incident_CancelsShowtime_RefundsAll_VoidsTickets_GivesVouchers_InOneTransaction |
 | UC28 | Quản lý loại đồ uống | Quản lý rạp |  | A2, A3 | 2 | Xong | src/FPolyCinema.Web/Services/CatalogServices.cs#public class CategoryService; src/FPolyCinema.Web/Controllers/CategoriesController.cs#public class CategoriesController; test:Category_DeleteBlockedWhenHasDrinks_AllowedWhenEmpty; ui:A2 |
 | UC29 | Quản lý đồ uống và định mức | Quản lý rạp |  | A2, A3 | 2 | Xong | src/FPolyCinema.Web/Services/CatalogServices.cs#public class DrinkService; src/FPolyCinema.Web/Controllers/DrinksController.cs#public class DrinksController; test:Drink_SaveWithRecipesPerCinema_DeleteOnlyWhenNeverSold; ui:A3 |
-| UC30 | Quản lý nguyên liệu, nhập kho | Quản lý rạp |  | A2, A3 | 6 | Chưa |  |
+| UC30 | Quản lý nguyên liệu, nhập kho | Quản lý rạp |  | A2, A3 | 6 | Xong | src/FPolyCinema.Web/Controllers/MaterialsController.cs#MaterialsController; src/FPolyCinema.Web/Views/Materials/Index.cshtml#Nguyên liệu; test:Inventory_Import_AndWastageNeedsApprovalBeforeStockDrops |
 | UC31 | Quản lý phim, nhà phát hành, KDM, chia doanh thu | Quản lý rạp |  | A2, A3 | 3 | Xong | src/FPolyCinema.Web/Controllers/MoviesController.cs#public class MoviesController; src/FPolyCinema.Web/Controllers/MoviesController.cs#public class DistributorsController; src/FPolyCinema.Web/Services/MovieService.cs#KdmLicenseDAL.Insert; route:/admin/movies; test:Movie_SaveWithRentalRulesAndKdm_DeleteBlockedWhenHasShowtimes |
 | UC32 | Quản lý phòng chiếu và sơ đồ ghế | Quản lý rạp |  | A4 | 3 | Xong | src/FPolyCinema.Web/Controllers/AuditoriumsController.cs#public class AuditoriumsController; src/FPolyCinema.Web/Services/AuditoriumService.cs#public bool SaveLayout; route:/admin/auditoriums; test:Auditorium_LayoutRescoresAndLocksStructureWhenFutureShowtimeSold |
 | UC33 | Quản lý bảng giá, đối tượng ưu đãi, ngày lễ | Quản lý rạp |  | A2, A3 | 3 | Xong | src/FPolyCinema.Web/Controllers/PricingController.cs#public class PricingController; route:/admin/pricing; test:Pricing_SaveWritesAuditLog_DiscountBelowLegalMinimumRejected_TryPrice |
@@ -41,7 +41,7 @@
 | UC37 | Quản lý hóa đơn | Quản lý rạp |  | A8 | 4 | Xong | src/FPolyCinema.Web/Controllers/BillsController.cs#Details; src/FPolyCinema.Web/Views/Bills/Index.cshtml#Xuất CSV; test:Bills_SearchFiltersByStatusChannelStaffAndCode |
 | UC38 | Thống kê, báo cáo | Quản lý rạp |  | A1, A6 | 4 | Xong | src/FPolyCinema.Web/Controllers/StatisticsController.cs#Reports; src/FPolyCinema.Web/Views/Statistics/Dashboard.cshtml#Bảng điều khiển; test:Statistics_DashboardSharesOccupancyAndSeatsNeedingChange |
 | UC39 | Đối soát nhà phát hành | Quản lý rạp |  | A6 | 4 | Xong | src/FPolyCinema.Web/Controllers/StatisticsController.cs#Settlement; src/FPolyCinema.Web/Views/Statistics/Settlement.cshtml#Phần rạp tự chịu do giá sàn; test:Statistics_SettlementCalculatorMatchesStoredProcedure |
-| UC40 | Bán vé doanh nghiệp | Quản lý rạp |  | A2, A3 | 6 | Chưa |  |
+| UC40 | Bán vé doanh nghiệp | Quản lý rạp |  | A2, A3 | 6 | Xong | src/FPolyCinema.Web/Controllers/CorporateController.cs#CorporateController; src/FPolyCinema.Web/Views/Corporate/Form.cshtml#Thuê trọn suất; test:Corporate_PrivateScreeningOnlyUnsoldFutureShowtime |
 
 ## Tiến độ yêu cầu theo phase
 
@@ -52,6 +52,6 @@
 | 3 | Phim, phòng chiếu, giá, suất chiếu | 53/53 | 1 |
 | 4 | POS, hóa đơn, thống kê | 142/142 | 2 |
 | 5 | Web khách và đặt vé online | 86/86 | 3 |
-| 6 | Vận hành thời gian thực | 0/95 | 7 |
+| 6 | Vận hành thời gian thực | 95/95 | 7 |
 | 7 | AI xếp lịch và trợ lý đặt vé | 0/53 | 1 |
 | 8 | Hoàn thiện, demo, kiểm tra tổng thể | 0/15 | 0 |

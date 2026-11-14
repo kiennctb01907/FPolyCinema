@@ -81,6 +81,25 @@
     { "screen": "C5", "role": "khach", "variant": "vi", "path": "/account?tab=wallet", "area": "customer", "phase": 5, "note": "Ví và điểm" },
     { "screen": "C5", "role": "khach", "variant": "voucher", "path": "/account?tab=voucher", "area": "customer", "phase": 5, "note": "Voucher" },
     { "screen": "C5", "role": "khach", "variant": "thong-bao", "path": "/account?tab=notifications", "area": "customer", "phase": 5, "note": "Thông báo" },
-    { "screen": "C5", "role": "khach", "variant": "thong-tin", "path": "/account?tab=profile", "area": "customer", "phase": 5, "note": "Thông tin cá nhân" }
+    { "screen": "C5", "role": "khach", "variant": "thong-tin", "path": "/account?tab=profile", "area": "customer", "phase": 5, "note": "Thông tin cá nhân" },
+    { "screen": "P2", "role": "guest", "path": "/pos/customer-display?terminal=POS-01&cinemaId=1", "area": "display", "phase": 6, "note": "Màn hình phụ của quầy lúc chờ: slideshow poster và logo" },
+    { "screen": "P3", "role": "gate", "path": "/pos/gate-inspector", "area": "gate", "phase": 6, "note": "Máy soát vé: chọn phòng, ô nhập mã, camera, phòng đang dọn, thẻ chờ quét" },
+    { "screen": "P4", "role": "cashier", "path": "/pos/fnb-kds", "area": "kitchen", "phase": 6, "note": "Bếp hai cột: đang chuẩn bị, sẵn sàng giao" },
+    { "screen": "P4", "role": "cashier", "variant": "phieu-huy-hang", "path": "/pos/wastage", "area": "pos", "phase": 6, "note": "Lập phiếu hủy hàng hỏng (UC20)" },
+    { "screen": "P5", "role": "guest", "path": "/lobby/pickup-board?cinemaId=1", "area": "display", "phase": 6, "note": "Bảng gọi số: đang chuẩn bị, mời nhận đồ, đồng hồ, logo" },
+    { "screen": "P6", "role": "guest", "path": "/lobby/digital-signage?cinemaId=1", "area": "display", "phase": 6, "note": "Bảng sảnh: suất sắp chiếu, trạng thái lớn, chữ chạy" },
+    { "screen": "P1", "role": "cashier", "variant": "doi-ghe", "path": "/pos/swap-seat", "area": "pos", "phase": 6, "note": "Đổi, nâng hạng ghế (UC17)" },
+    { "screen": "A1", "role": "manager", "path": "/admin", "area": "admin", "phase": 6, "note": "Dashboard: thêm yêu cầu phê duyệt đang chờ và sĩ số trực tiếp" },
+    { "screen": "A7", "role": "shift", "path": "/ops", "area": "admin", "phase": 6, "note": "Vận hành ca: phê duyệt, sĩ số, suất trễ, phòng đang dọn, ghế nội bộ, phiếu hủy hàng" },
+    { "screen": "A7", "role": "shift", "variant": "phieu-huy-hang", "path": "/ops/wastage", "area": "admin", "phase": 6, "note": "Danh sách phiếu hủy hàng (UC26)" },
+    { "screen": "A7", "role": "shift", "variant": "huy-suat", "path": "/ops/incident", "area": "admin", "phase": 6, "note": "Hủy suất do sự cố (UC27)" },
+    { "screen": "A2", "role": "manager", "variant": "nguyen-lieu", "path": "/admin/materials", "area": "admin", "phase": 6, "note": "Danh sách nguyên liệu (UC30)" },
+    { "screen": "A3", "role": "manager", "variant": "nhap-kho", "path": "/admin/materials/import", "area": "admin", "phase": 6, "note": "Phiếu nhập kho (UC30)" },
+    { "screen": "A3", "role": "manager", "variant": "nguyen-lieu", "resolveFrom": "/admin/materials", "resolveLink": "a.cell-main[href^='/admin/materials/']", "area": "admin", "phase": 6, "note": "Sửa nguyên liệu kèm lịch sử kho" },
+    { "screen": "A2", "role": "manager", "variant": "doanh-nghiep", "path": "/admin/corporate", "area": "admin", "phase": 6, "note": "Hợp đồng doanh nghiệp (UC40)" },
+    { "screen": "A3", "role": "manager", "variant": "thue-tron-suat", "path": "/admin/corporate/create?type=PRIVATE_SCREENING", "area": "admin", "phase": 6, "note": "Thuê trọn suất" },
+    { "screen": "A3", "role": "manager", "variant": "loat-voucher", "path": "/admin/corporate/create?type=VOUCHER_BATCH", "area": "admin", "phase": 6, "note": "Phát hành loạt voucher FREE_TICKET" },
+    { "screen": "A6", "role": "manager", "variant": "huy-hang", "path": "/admin/reports?tab=wastage", "area": "admin", "phase": 6, "note": "Báo cáo hủy hàng" },
+    { "screen": "C4", "role": "khach", "resolveFrom": "/account", "resolveLink": "a[href^='/tickets/']", "area": "customer", "phase": 6, "note": "Vé điện tử: trạng thái vào cửa trực tiếp, nút Tôi đã tới rạp" }
   ]
 }

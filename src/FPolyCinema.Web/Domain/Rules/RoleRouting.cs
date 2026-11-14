@@ -16,13 +16,13 @@ public static class UiArea
 /// </summary>
 public static class RoleRouting
 {
-    // TODO(Phase 6): TicketInspector về /pos/gate-inspector khi có máy soát vé.
-    /// <summary>Trang chính sau khi đăng nhập: Manager về dashboard /admin (UI A1, ManagerOnly); ShiftManager và POSCashier về màn hình bán /pos/index.</summary>
+    /// <summary>Trang chính sau khi đăng nhập: Manager về dashboard /admin (UI A1, ManagerOnly); ShiftManager và POSCashier về màn hình bán /pos/index;
+    /// TicketInspector về máy soát vé /pos/gate-inspector (UI P3).</summary>
     public static string HomePath(string? role) => role switch
     {
         Roles.Manager => "/admin",
         Roles.ShiftManager or Roles.POSCashier => "/pos/index",
-        Roles.TicketInspector => "/me",
+        Roles.TicketInspector => "/pos/gate-inspector",
         _ => "/",
     };
 
@@ -35,14 +35,14 @@ public static class RoleRouting
     };
 
     /// <summary>
-    /// Khu vực của một đường dẫn: /admin… và /scheduler là quản trị, /pos… là quầy; khách và người chưa đăng nhập
+    /// Khu vực của một đường dẫn: /admin…, /scheduler và /ops… là quản trị, /pos… là quầy; khách và người chưa đăng nhập
     /// luôn ở web khách. Đường dẫn không thuộc khu vực nào thì theo vai trò.
     /// </summary>
     public static string AreaOfPath(string? path, string? role)
     {
         if (string.IsNullOrEmpty(role) || role == Roles.Customer) return UiArea.Customer;
         var p = (path ?? string.Empty).Split('?')[0].ToLowerInvariant();
-        if (p.StartsWith("/admin") || p.StartsWith("/scheduler")) return UiArea.Admin;
+        if (p.StartsWith("/admin") || p.StartsWith("/scheduler") || p == "/ops" || p.StartsWith("/ops/")) return UiArea.Admin;
         if (p.StartsWith("/pos")) return UiArea.Pos;
         return AreaOfRole(role);
     }
@@ -56,7 +56,7 @@ public static class RoleRouting
         var p = (path ?? string.Empty).Split('?')[0].ToLowerInvariant();
         if (p is "/login/login" or "/login/register" or "/login/forgotpassword") return false;
         if (role == Roles.Customer || string.IsNullOrEmpty(role))
-            return !(p.StartsWith("/admin") || p.StartsWith("/pos") || p.StartsWith("/scheduler") || p == "/me" || p.StartsWith("/me/"));
+            return !(p.StartsWith("/admin") || p.StartsWith("/pos") || p.StartsWith("/scheduler") || p.StartsWith("/ops") || p == "/me" || p.StartsWith("/me/"));
         // Các trang chỉ quản lý rạp được vào (ManagerOnly)
         if (p.StartsWith("/admin/users") || p.EndsWith("/create") || p.EndsWith("/edit")) return role == Roles.Manager;
         return true;

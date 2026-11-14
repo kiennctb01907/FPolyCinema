@@ -167,6 +167,58 @@ public class SeatHoldService
         return new HoldResult(BillDAL.GetById(bill.Id, conn, tx)!, requested, changes, overridden);
     }
 
+    /// <summary>
+    /// Đổi ghế (SPEC 3.10-01): chọn ghế mới trong cùng suất cho hóa đơn đã thanh toán. Chạy trong transaction của SeatSwapService: khóa ghế của suất,
+    /// ghế mới phải trống (SEAT_TAKEN), đủ cặp ghế đôi (SWEETBOX_PAIR), xác nhận xe lăn, luật ghế mồ côi (coi các ghế cũ sắp trả là trống; PosStaff bỏ
+    /// qua được nếu có lý do), rồi giữ ghế mới cho hóa đơn (HELD) để SeatSwapService gắn vé mới. Trả trạng thái ghế của suất.
+    /// </summary>
+    public List<SeatStateRow> HoldForSwap(Microsoft.Data.SqlClient.SqlConnection conn, Microsoft.Data.SqlClient.SqlTransaction tx, Bill bill, int showtimeId,
+        IReadOnlyCollection<int> newSeatIds, IReadOnlyCollection<int> freedSeatIds, HoldOptions o, DateTime now)
+    {
+        var states = ShowtimeSeatDAL.LockForShowtime(showtimeId, conn, tx);
+        var byId = states.ToDictionary(s => s.SeatId);
+        if (newSeatIds.Any(id => !byId.ContainsKey(id))) throw FieldErrors.Of("seatIds", "Có ghế không thuộc suất này. Bạn tải lại sơ đồ ghế.");
+        var eff = states.ToDictionary(s => s.SeatId, s => SeatMapService.Effective(s, now));
+        var blocked = newSeatIds.Where(id => freedSeatIds.Contains(id) || !SeatHoldRules.CanHold(eff[id], byId[id].HoldBillId, bill.Id)).Select(id => byId[id]).ToList();
+        if (blocked.Count > 0)
+        {
+            if (blocked.Any(b => freedSeatIds.Contains(b.SeatId)))
+                throw FieldErrors.Of("seatIds", $"Ghế {string.Join(", ", blocked.Select(b => b.Label))} là ghế khách đang ngồi. Bạn chọn ghế khác.");
+            throw SeatTaken(blocked, eff);
+        }
+        var set = newSeatIds.ToHashSet();
+        var pairs = SweetboxRule.IncompletePairs(states.Where(s => s.SeatType == SeatType.Sweetbox).Select(s => new PairSeat(s.SeatId, s.Label, s.PairGroupId)), set);
+        if (pairs.Count > 0)
+            throw new BusinessRuleException(ErrorCodes.SweetboxPair, SweetboxRule.Message(pairs[0]), new { seats = pairs[0].Select(p => p.Label), seatIds = pairs[0].Select(p => p.SeatId) });
+        var wheel = newSeatIds.Where(id => byId[id].SeatType == SeatType.Wheelchair).Select(id => byId[id]).ToList();
+        if (wheel.Count > 0 && !o.WheelchairConfirmed)
+            throw new BusinessRuleException(ErrorCodes.WheelchairConfirmRequired,
+                $"Ghế {string.Join(", ", wheel.Select(s => s.Label))} là vị trí dành cho khách dùng xe lăn. Bạn xác nhận trước khi chọn.", new { seatIds = wheel.Select(s => s.SeatId) });
+        var slots = states.Select(s => new SeatSlot(s.SeatId, s.RowIndex, s.ColIndex, s.Label, s.SeatType,
+            !freedSeatIds.Contains(s.SeatId) && (eff[s.SeatId] is SeatDisplayStatus.Booked or SeatDisplayStatus.HouseHold or SeatDisplayStatus.Maintenance
+            || (eff[s.SeatId] == SeatDisplayStatus.Held && s.HoldBillId != bill.Id)))).ToList();
+        var orphan = OrphanSeatValidator.Validate(slots, set);
+        if (orphan != null)
+        {
+            if (o.OverrideOrphan && !string.IsNullOrWhiteSpace(o.OverrideReason) && Roles.PosStaff.Contains(o.ActorRole))
+                AuditLogDAL.Insert(new AuditLog
+                {
+                    UserId = o.UserId, Action = AuditAction.OrphanSeatOverride, EntityType = "Bill", EntityId = bill.Id.ToString(),
+                    Detail = Truncate($"Đổi ghế hóa đơn {bill.Code}: bỏ qua luật ghế mồ côi ({string.Join(", ", orphan.Orphans.Select(x => x.Label))}). Lý do: {o.OverrideReason!.Trim()}"),
+                    CreatedAt = now,
+                }, conn, tx);
+            else
+                throw new BusinessRuleException(ErrorCodes.OrphanSeat, orphan.Message, new
+                {
+                    orphans = orphan.Orphans.Select(x => x.Label), orphanSeatIds = orphan.Orphans.Select(x => x.SeatId),
+                    suggestion = orphan.Suggestion.Select(x => x.Label), suggestionSeatIds = orphan.Suggestion.Select(x => x.SeatId), canOverride = Roles.PosStaff.Contains(o.ActorRole),
+                });
+        }
+        if (ShowtimeSeatDAL.Hold(showtimeId, bill.Id, now.AddMinutes(_rules.SeatHoldMinutes), now, newSeatIds, conn, tx) != newSeatIds.Count)
+            throw SeatTaken(newSeatIds.Select(id => byId[id]).ToList(), eff);
+        return states;
+    }
+
     private static BusinessRuleException SeatTaken(List<SeatStateRow> seats, IReadOnlyDictionary<int, string> eff)
     {
         var labels = string.Join(", ", seats.Select(s => s.Label));

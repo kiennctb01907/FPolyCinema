@@ -382,6 +382,7 @@ public class BillService
     {
         if (method is not (PaymentMethod.Cash or PaymentMethod.VietQrSim or PaymentMethod.Wallet)) throw FieldErrors.Of("method", "Bạn chọn phương thức thanh toán.");
         var bill = await Current(ctx) ?? throw FieldErrors.Of("bill", "Hóa đơn trống. Bạn chọn ghế hoặc món trước.");
+        var stockBefore = InventoryService.Snapshot(ctx.CinemaId);
         var now = _clock.Now;
         var (result, changes) = DBUtil.InTransaction((conn, tx) =>
         {
@@ -468,6 +469,7 @@ public class BillService
             return (res, b.ShowtimeId is int s2 ? new Dictionary<int, List<SeatChange>> { [s2] = booked } : new Dictionary<int, List<SeatChange>>());
         });
         await _notifier.SeatMapUpdated(changes);
+        await InventoryService.PublishAlerts(_notifier, stockBefore);
         return result;
     }
 
@@ -478,12 +480,14 @@ public class BillService
     /// finish sang cancel luôn cần quản lý duyệt). Không cho hủy khi đã có vé vào cửa. Khi được duyệt: hoàn tiền theo phương thức gốc (tiền mặt trừ vào
     /// két của ca hiện tại), vé VOIDED, ghế AVAILABLE, bắp nước chưa làm thì giải phóng kho, thu hồi điểm, ghi SupervisorApprovals và AuditLog.
     /// </summary>
-    public async Task<string> VoidPaid(int billId, string? reason, User approver, int requestedBy, int cinemaId, int? currentShiftId)
+    public async Task<string> VoidPaid(int billId, string? reason, User approver, int requestedBy, int cinemaId, int? currentShiftId, int? remoteApprovalId = null)
     {
         if (string.IsNullOrWhiteSpace(reason) || reason.Trim().Length < 5) throw FieldErrors.Of("reason", "Bạn ghi lý do hủy (ít nhất 5 ký tự).");
         if (!Roles.SupervisorOrManager.Contains(approver.Role))
             throw new BusinessRuleException(ErrorCodes.ApprovalRequired, "Hủy hóa đơn đã thanh toán cần quản lý ca hoặc quản lý rạp duyệt.");
         var now = _clock.Now;
+        var fnbBefore = BillDAL.GetById(billId);
+        var stockBefore = fnbBefore?.FnbStatus == FnbStatus.PendingPickup ? InventoryService.Snapshot(fnbBefore.CinemaId) : null;
         var (code, changes) = DBUtil.InTransaction((conn, tx) =>
         {
             var b = BillDAL.GetForUpdate(billId, conn, tx) ?? throw CategoryService.NotFound("Không tìm thấy hóa đơn.");
@@ -493,11 +497,20 @@ public class BillService
             if (TicketDAL.CountCheckedIn(b.Id, conn, tx) > 0)
                 throw new BusinessRuleException(ErrorCodes.InvalidTransition, "Hóa đơn đã có vé vào cửa nên không hủy được.");
 
-            SupervisorApprovalDAL.Insert(new SupervisorApproval
+            if (remoteApprovalId is int aid)
             {
-                Type = ApprovalType.VoidBill, BillId = b.Id, RequestedBy = requestedBy, Reason = reason.Trim(), Status = ApprovalStatus.Approved,
-                Method = ApprovalMethod.Pin, DecidedBy = approver.Id, DecidedAt = now, ExpiresAt = now.AddMinutes(_rules.ApprovalRequestExpireMinutes), CreatedAt = now,
-            }, conn, tx);
+                // Duyệt từ xa (SPEC 3.6-22): yêu cầu PENDING còn hạn chuyển APPROVED
+                if (SupervisorApprovalDAL.Decide(aid, ApprovalStatus.Approved, approver.Id, now, conn, tx) != 1)
+                    throw new BusinessRuleException(ErrorCodes.InvalidTransition, "Yêu cầu đã được xử lý hoặc đã hết hạn.");
+            }
+            else
+            {
+                SupervisorApprovalDAL.Insert(new SupervisorApproval
+                {
+                    Type = ApprovalType.VoidBill, BillId = b.Id, RequestedBy = requestedBy, Reason = reason.Trim(), Status = ApprovalStatus.Approved,
+                    Method = ApprovalMethod.Pin, DecidedBy = approver.Id, DecidedAt = now, ExpiresAt = now.AddMinutes(_rules.ApprovalRequestExpireMinutes), CreatedAt = now,
+                }, conn, tx);
+            }
             var seats = ShowtimeSeatDAL.SeatsOfBillTickets(b.Id, conn, tx);
             _status.ChangeStatus(b.Id, BillStatus.Cancel, CancelReason.VoidedByPos, approver.Role, now, conn, tx);
             ShowtimeSeatDAL.ReleaseForBill(b.Id, conn, tx);
@@ -532,12 +545,17 @@ public class BillService
             AuditLogDAL.Insert(new AuditLog
             {
                 UserId = approver.Id, Action = AuditAction.VoidBill, EntityType = "Bill", EntityId = b.Id.ToString(),
-                Detail = $"Hủy hóa đơn {b.Code} đã thanh toán ({Fmt.Money(b.Total)}), duyệt bằng PIN. Người yêu cầu #{requestedBy}. Lý do: {reason.Trim()}", CreatedAt = now,
+                Detail = $"Hủy hóa đơn {b.Code} đã thanh toán ({Fmt.Money(b.Total)}), duyệt {(remoteApprovalId != null ? "từ xa" : "bằng PIN")}. Người yêu cầu #{requestedBy}. Lý do: {reason.Trim()}", CreatedAt = now,
             }, conn, tx);
             var ch = seats.GroupBy(s => s.ShowtimeId).ToDictionary(g => g.Key, g => g.Select(s => new SeatChange(s.SeatId, SeatDisplayStatus.Available, null, null)).ToList());
             return (b.Code, ch);
         });
         await _notifier.SeatMapUpdated(changes);
+        if (fnbBefore != null && fnbBefore.FnbStatus is FnbStatus.Preparing or FnbStatus.ReadyForPickup)
+            await _notifier.KdsOrderUpdated(cinemaId, new { billId, code, fnbStatus = FnbStatus.Voided });
+        if (fnbBefore != null && fnbBefore.FnbStatus != FnbStatus.None)
+            await _notifier.FnbStatusChanged(billId, FnbStatus.Voided, fnbBefore.PickupNumber, StatusDisplay.Of(StatusDisplay.Fnb, FnbStatus.Voided).Label);
+        if (stockBefore != null) await InventoryService.PublishAlerts(_notifier, stockBefore);
         return code;
     }
 

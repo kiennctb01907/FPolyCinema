@@ -2,7 +2,7 @@
 @* A1. Dashboard /admin (theme ops): hàng thẻ KPI (doanh thu hôm nay, vé bán, tỷ lệ lấp đầy, doanh thu bắp nước, tỷ lệ phim Việt từ đầu năm);
    hàng biểu đồ (doanh thu 30 ngày dạng đường 2 series vé và bắp nước rộng 8/12; top phim thanh ngang rộng 4/12);
    hàng dưới: khối tỷ lệ phim Việt theo rạp và toàn chuỗi có vạch 20% (kèm khung 18:00–22:00 để tham khảo), danh sách cảnh báo vận hành
-   (KDM sắp hết hạn, nguyên liệu dưới ngưỡng, ghế cần đổi). TODO(Phase 6): yêu cầu phê duyệt đang chờ và sĩ số trực tiếp. *@
+   (KDM sắp hết hạn, nguyên liệu dưới ngưỡng, ghế cần đổi); khối vận hành (UI A1-05): yêu cầu phê duyệt đang chờ và sĩ số trực tiếp các suất đang chạy. *@
 @{
     Layout = "_LayoutAdmin";
     ViewData["Title"] = "Bảng điều khiển";
@@ -76,7 +76,13 @@
         </section>
     </div>
 </section>
+<section class="mt-4" aria-label="Vận hành trực tiếp" data-region data-url="/ops/live" data-ops data-cinema-ids="@string.Join(",", Model.Ops.CinemaIds)" data-auditorium-ids="@string.Join(",", Model.Ops.AuditoriumIds)">
+    <div data-region-content>
+        <partial name="~/Views/Ops/_OpsLive.cshtml" model="Model.Ops" />
+    </div>
+</section>
 @section Scripts {
+    <script src="~/js/pages/ops.js" asp-append-version="true"></script>
     <script src="~/lib/chart.js/dist/chart.umd.js" asp-append-version="true"></script>
     <script src="~/js/charts.js" asp-append-version="true"></script>
 }

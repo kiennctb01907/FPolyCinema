@@ -65,7 +65,7 @@ public class SeatSuggestService
     {
         persona = SeatPersona.All.Contains(persona) ? persona! : SeatPersona.BestViewAudio;
         quantity = Math.Clamp(quantity, 1, 10);
-        var info = SeatMapService.Info(showtimeId) ?? throw CategoryService.NotFound("Không tìm thấy suất chiếu.");
+        var info = OnlineBookingService.OnlineInfo(showtimeId) ?? throw CategoryService.NotFound("Không tìm thấy suất chiếu.");
         var (seats, rows, cols, ratio) = Seats(info, billId);
         var scores = ClusterFinder.ScoreAll(seats, rows, cols, ratio, persona);
         var clusters = ClusterFinder.Find(seats, rows, cols, ratio, persona, quantity);
@@ -129,6 +129,9 @@ public sealed record WebhookResult(int Status, string Message);
 /// </summary>
 public class OnlineBookingService
 {
+    /// <summary>Suất bán được trên web khách: tồn tại và không phải suất thuê trọn của doanh nghiệp (IsPrivate, SPEC 3.10-08).</summary>
+    public static ShowtimeInfo? OnlineInfo(int showtimeId) => SeatMapService.Info(showtimeId) is { Showtime.IsPrivate: false } i ? i : null;
+
     private readonly IClock _clock;
     private readonly CinemaRules _rules;
     private readonly BillService _bills;
@@ -179,7 +182,7 @@ public class OnlineBookingService
     /// </summary>
     public async Task<Bill> Ensure(int userId, int showtimeId)
     {
-        var info = SeatMapService.Info(showtimeId) ?? throw CategoryService.NotFound("Không tìm thấy suất chiếu.");
+        var info = OnlineInfo(showtimeId) ?? throw CategoryService.NotFound("Không tìm thấy suất chiếu.");
         var customer = UserDAL.GetById(userId);
         if (customer == null || customer.Role != Roles.Customer)
             throw new BusinessRuleException(ErrorCodes.AccessDenied, "Đặt vé online dành cho tài khoản khách hàng. Bạn đăng nhập bằng tài khoản khách để đặt vé.");
@@ -229,7 +232,7 @@ public class OnlineBookingService
     /// <summary>Đặt lựa chọn ghế của khách trong suất (SPEC 3.5, kênh ONLINE). Tài khoản có ngày sinh mà chưa đủ tuổi thì chặn ngay (SPEC 3.1).</summary>
     public async Task<Cart> Hold(int userId, int showtimeId, IReadOnlyCollection<int> seatIds, bool wheelchairConfirmed = false)
     {
-        var info = SeatMapService.Info(showtimeId) ?? throw CategoryService.NotFound("Không tìm thấy suất chiếu.");
+        var info = OnlineInfo(showtimeId) ?? throw CategoryService.NotFound("Không tìm thấy suất chiếu.");
         var customer = UserDAL.GetById(userId);
         if (customer?.BirthDate is DateTime bd && seatIds.Count > 0 && !AgeRules.CanWatch(info.Movie.AgeRating, AgeRules.AgeOn(bd, _clock.Now)))
             throw new BusinessRuleException(ErrorCodes.AgeRestricted,
@@ -275,6 +278,7 @@ public class OnlineBookingService
     {
         if (method is not (PaymentMethod.VietQrSim or PaymentMethod.Wallet)) throw FieldErrors.Of("method", "Bạn chọn phương thức thanh toán.");
         var bill = await Require(userId, showtimeId);
+        var stockBefore = InventoryService.Snapshot(bill.CinemaId);
         var now = _clock.Now;
         var (result, changes) = DBUtil.InTransaction((conn, tx) =>
         {
@@ -312,6 +316,7 @@ public class OnlineBookingService
         if (changes != null)
         {
             await _notifier.SeatMapUpdated(changes);
+            await InventoryService.PublishAlerts(_notifier, stockBefore);
             await _notifier.PaymentStatusChanged(bill.Id, result.Code, BillStatus.Finish, null, "Thanh toán thành công", result.TicketUrl);
         }
         return result;
@@ -418,6 +423,7 @@ public class OnlineBookingService
 
         var now = _clock.Now;
         Dictionary<int, List<SeatChange>> seatChanges = new();
+        var stockBefore = BillDAL.GetById(p.BillId) is { } wb ? InventoryService.Snapshot(wb.CinemaId) : null;
         (int BillId, string Code, string Status, string? Reason, string Message, string? Url)? evt = null;
         try
         {
@@ -507,6 +513,7 @@ public class OnlineBookingService
             return new WebhookResult(ex.HttpStatus, ex.Message);
         }
         await _notifier.SeatMapUpdated(seatChanges);
+        if (stockBefore != null) await InventoryService.PublishAlerts(_notifier, stockBefore);
         if (evt is { } e) await _notifier.PaymentStatusChanged(e.BillId, e.Code, e.Status, e.Reason, e.Message, e.Url);
         return new WebhookResult(200, "OK");
     }
@@ -569,6 +576,7 @@ public class OnlineBookingService
     public async Task<long> SelfCancel(int userId, string? code)
     {
         var bill = OwnBill(userId, code) ?? throw CategoryService.NotFound("Không tìm thấy vé.");
+        var stockBefore = bill.FnbStatus == FnbStatus.PendingPickup ? InventoryService.Snapshot(bill.CinemaId) : null;
         var now = _clock.Now;
         var (refund, changes) = DBUtil.InTransaction((conn, tx) =>
         {
@@ -605,6 +613,7 @@ public class OnlineBookingService
             return (paid, ch);
         });
         await _notifier.SeatMapUpdated(changes);
+        if (stockBefore != null) await InventoryService.PublishAlerts(_notifier, stockBefore);
         return refund;
     }
 }

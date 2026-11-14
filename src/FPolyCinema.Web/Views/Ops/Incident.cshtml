@@ -1,0 +1,75 @@
+@model IncidentVm
+@* Hủy suất do sự cố (UC27, SPEC 3.10-05..07; SupervisorOrManager): chọn suất, nhập lý do, gõ lại mã suất để xác nhận. Trong một transaction: suất CANCELLED,
+   hóa đơn đã thanh toán chuyển INCIDENT_COMPENSATED và hoàn toàn bộ theo phương thức gốc, vé VOIDED, bắp nước chưa làm trả kho, voucher bồi thường kèm
+   thông báo cho hóa đơn có tài khoản, hóa đơn đang chờ chuyển EXPIRED, giải phóng ghế. Cuối cùng hiện tổng kết số hóa đơn, số vé, tổng tiền đã hoàn. *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Hủy suất do sự cố";
+    ViewData["Crumbs"] = new List<Crumb> { new("Tổng quan"), new("Vận hành ca", "/ops"), new("Hủy suất do sự cố") };
+    string? Err(string key) => Model.Errors.TryGetValue(key, out var v) ? v : null;
+    var selected = Model.Showtimes.FirstOrDefault(s => s.ShowtimeId == Model.ShowtimeId);
+}
+<div class="form-card">
+    <partial name="_PageHeader" model="@(new PageHeaderVm { Title = "Hủy suất do sự cố", Description = "Dùng khi máy chiếu hỏng, mất điện hoặc sự cố khác khiến suất không chiếu được.", Crumbs = new() { new("Vận hành ca", "/ops"), new("Hủy suất do sự cố") } })" />
+    @if (Model.Summary is { } sum)
+    {
+        <section class="card-ui card-ui-body mb-4" aria-labelledby="inc-done" role="status">
+            <h2 class="card-ui-title" id="inc-done"><i class="bi bi-check-circle-fill text-success" aria-hidden="true"></i> Đã hủy suất@(Model.Cancelled != null ? $" {Model.Cancelled.MovieTitle} {Fmt.Time(Model.Cancelled.StartTime)} · {Model.Cancelled.AuditoriumName}" : null)</h2>
+            <section class="kpi-row" aria-label="Tổng kết">
+                <partial name="_KpiCard" model="@(new KpiCardVm("bi-receipt", "Hóa đơn đã hoàn", Fmt.Number(sum.Bills), null, "info"))" />
+                <partial name="_KpiCard" model="@(new KpiCardVm("bi-ticket-perforated", "Vé bị hủy", Fmt.Number(sum.Tickets), null, "warning"))" />
+                <partial name="_KpiCard" model="@(new KpiCardVm("bi-cash-stack", "Tổng tiền đã hoàn", Fmt.Money(sum.Refunded), null, "success"))" />
+                <partial name="_KpiCard" model="@(new KpiCardVm("bi-gift", "Voucher bồi thường", Fmt.Number(sum.Vouchers), null, "info"))" />
+            </section>
+            <p class="small text-muted mt-3 mb-0">@sum.ExpiredWaiting hóa đơn đang chờ thanh toán đã chuyển hết hạn. Tiền mặt hoàn ghi vào ca đang mở của bạn (nếu có); chuyển khoản và ví hoàn theo phương thức gốc.</p>
+            <a class="btn btn-secondary mt-3" href="/ops"><i class="bi bi-arrow-left" aria-hidden="true"></i>Về trang Vận hành ca</a>
+        </section>
+    }
+    <form asp-antiforgery="true" method="post" action="/ops/incident" class="card-ui" novalidate data-incident-form>
+        @if (Err(string.Empty) is string top)
+        {
+            <div class="alert-ui tone-danger" role="alert"><i class="bi bi-exclamation-circle" aria-hidden="true"></i>@top</div>
+        }
+        <section class="card-section" aria-labelledby="inc-show">
+            <h2 class="card-section-title" id="inc-show">Suất cần hủy</h2>
+            <ul class="consequences">
+                <li>Mọi hóa đơn đã thanh toán của suất được hoàn toàn bộ theo phương thức gốc; vé bị hủy.</li>
+                <li>Khách có tài khoản nhận voucher bồi thường và thông báo.</li>
+                <li>Bắp nước chưa làm được trả lại kho; ghế được giải phóng. Không hoàn tác được.</li>
+            </ul>
+            <div class="form-grid cols-2">
+                <div class="span-2">
+                    <label class="form-label" for="inc-showtime">Suất chiếu <span class="req" aria-hidden="true">*</span></label>
+                    <select id="inc-showtime" name="showtimeId" class="form-select @(Err("showtimeId") != null ? "is-invalid" : null)" data-incident-show>
+                        <option value="">Chọn suất</option>
+                        @foreach (var s in Model.Showtimes.Where(s => s.OperationalStatus != OperationalStatus.Cancelled))
+                        {
+                            <option value="@s.ShowtimeId" data-code="@IncidentRules.ConfirmCode(s.ShowtimeId)" selected="@(s.ShowtimeId == Model.ShowtimeId)">
+                                @Fmt.WeekdayDate(s.StartTime) @Fmt.Time(s.StartTime) · @s.MovieTitle · @s.AuditoriumName · đã bán @s.Sold vé (mã @IncidentRules.ConfirmCode(s.ShowtimeId))
+                            </option>
+                        }
+                    </select>
+                    @if (Err("showtimeId") is string errshowtimeId) { <span class="field-error">@errshowtimeId</span> }
+                </div>
+                <div class="span-2">
+                    <label class="form-label" for="inc-reason">Lý do <span class="req" aria-hidden="true">*</span></label>
+                    <textarea id="inc-reason" name="reason" rows="2" maxlength="500" class="form-control @(Err("reason") != null ? "is-invalid" : null)" placeholder="Ví dụ: máy chiếu phòng 3 hỏng, không khắc phục kịp">@Model.Reason</textarea>
+                    @if (Err("reason") is string errreason) { <span class="field-error">@errreason</span> }
+                </div>
+                <div>
+                    <label class="form-label" for="inc-code">Gõ lại mã suất để xác nhận <span class="req" aria-hidden="true">*</span></label>
+                    <input id="inc-code" name="confirmCode" class="form-control @(Err("confirmCode") != null ? "is-invalid" : null)" autocomplete="off" placeholder="@(selected != null ? IncidentRules.ConfirmCode(selected.ShowtimeId) : "Ví dụ: S1024")" />
+                    <div class="form-text" data-incident-hint>@(selected != null ? $"Mã của suất đã chọn: {IncidentRules.ConfirmCode(selected.ShowtimeId)}" : "Mã suất hiện sau khi chọn suất.")</div>
+                    @if (Err("confirmCode") is string errconfirmCode) { <span class="field-error">@errconfirmCode</span> }
+                </div>
+            </div>
+        </section>
+        <div class="form-actions-sticky">
+            <a class="btn btn-ghost" href="/ops">Quay lại</a>
+            <button type="submit" class="btn btn-danger"><i class="bi bi-exclamation-octagon" aria-hidden="true"></i>Hủy suất và hoàn tiền</button>
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <script src="~/js/pages/incident.js" asp-append-version="true"></script>
+}

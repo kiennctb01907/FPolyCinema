@@ -1,9 +1,19 @@
 # Tiến độ
 ## Trạng thái
 - [x] Phase 1  - [x] Phase 2  - [x] Phase 3  - [x] Phase 4
-- [x] Phase 5  - [ ] Phase 6  - [ ] Phase 7  - [ ] Phase 8
+- [x] Phase 5  - [x] Phase 6  - [ ] Phase 7  - [ ] Phase 8
 ## Phase đang làm
-Phase 5 – Web khách và đặt vé online: xong ngày 14/11/2026 (verify 5 --final ĐẠT, commit "Phase 5: …"; Phase 5 không có tag lab). Phase kế tiếp: Phase 6 – Vận hành thời gian thực.
+Phase 6 – Vận hành thời gian thực: xong ngày 14/11/2026 (verify 6 --final ĐẠT, commit "Phase 6: …"; Phase 6 không có tag lab). Phase kế tiếp: Phase 7 – AI xếp lịch và trợ lý đặt vé.
+
+### Việc đã làm ở Phase 6
+- Domain/Rules (logic thuần, mỗi lớp một file, unit test Phase6RulesTests): ShowtimeOpsRules, GateRules, CheckInRules, KdsRules, InventoryAlertRules, WastageRules, SeatSwapRules, IncidentRules, CorporateRules, ApprovalRules, HouseSeatRules.
+- ShowtimeClockService (30 giây): vòng đời vận hành suất chiếu, suất trễ báo đỏ, hết hạn yêu cầu duyệt từ xa; nút "Đã dọn xong" ở máy soát vé.
+- Máy soát vé P3 (nền đặc xanh, vàng, đỏ; cảnh báo độ tuổi, giờ trẻ em, giấy tờ; cho vào từng ghế; tự về chờ sau 6 giây; camera), bếp P4, bảng gọi số P5, bảng sảnh P6, màn hình phụ của quầy P2 (kênh 2).
+- Vé điện tử: trạng thái vào cửa trực tiếp kèm dấu xác nhận động, nút "Tôi đã tới rạp", số gọi lớn khi món sẵn sàng.
+- Kho hai tầng: nhập kho, phiếu hủy hàng (PosStaff lập, quản lý ca duyệt), báo hết món, STOCK_LOW, báo cáo hủy hàng; trang nguyên liệu A2, A3.
+- Duyệt hủy từ xa (popup A7 góc phải trong layout quản trị, kết quả về máy POS), /ops vận hành ca, khối vận hành ở /admin, giải phóng ghế nội bộ, hủy suất do sự cố, đổi và nâng hạng ghế, bán vé doanh nghiệp.
+- Test tích hợp Phase6ServiceTests (đồng hồ suất, soát vé, hủy suất, kho, duyệt từ xa, ghế nội bộ).
+- Kiểm tra độc lập: 5 nhóm, 95 mã; lượt đầu 88 Đạt, 7 Thiếu; đã sửa và kiểm lại (docs/audit/phase-6.md).
 
 ### Việc đã làm ở Phase 5
 - Domain/Rules (logic thuần, có unit test, mỗi lớp một file): ClusterFinder (điểm ghế theo persona, cụm ghế liền nhau, bỏ cụm vi phạm ghế mồ côi và ghế đôi, tối đa 3 cụm), SelfCancelRules, OnlineAgeRules (câu xác nhận độ tuổi, người giám hộ phim K, nhắc giờ chiếu cho trẻ em), WebhookSignature (HMAC-SHA256), TierProgressCalculator.
@@ -128,6 +138,17 @@ Phase 3 – Phim, phòng chiếu, giá, suất chiếu: xong ngày 13/11/2026 (v
 64. 14/11/2026 – Mỗi lớp quy tắc thuần một file: ClusterFinder, SelfCancelRules, OnlineAgeRules, WebhookSignature, TierProgressCalculator (trước đây chung ClusterFinder.cs).
 65. 14/11/2026 – Hộp xác nhận có nút chính là một hành động hủy thì nút đóng không ghi "Hủy" (dễ nhầm): hủy vé dùng "Giữ vé", hủy hóa đơn dùng "Không hủy".
 
+66. 14/11/2026 – Drinks dùng chung mọi rạp nên cờ IsSoldOut chung đặt 1 khi mọi rạp có định mức của món đều không làm được một phần; PRODUCT_SOLD_OUT, PRODUCT_AVAILABLE phát theo từng rạp (nhóm cinema_{id}) ngay khi rạp đó hết hoặc có lại; POS và web tính số phần còn bán theo kho của rạp – SPEC 3.11-09, 3.11-10.
+67. 14/11/2026 – Số gọi bắp nước tăng dần trong ngày vận hành theo thời điểm bắt đầu làm món (giao dịch CONSUME của hóa đơn, không có thì PaidAt); hết 999 quay về 001.
+68. 14/11/2026 – Kênh 2 dùng khóa máy {CinemaId}-{TerminalCode} vì mã POS-01 lặp ở mỗi rạp; màn hình phụ mở bằng /pos/customer-display?terminal=POS-01&cinemaId=1 (không có cinemaId thì rạp đầu tiên).
+69. 14/11/2026 – Máy soát vé: mọi thẻ kết quả tự quay về chờ sau 6 giây; chạm vào thẻ (tích ghế, tích xác nhận cảnh báo) thì dừng đếm cho tới khi cho vào hoặc quét mã khác.
+70. 14/11/2026 – Thuê trọn suất: giá hợp đồng chia đều cho từng ghế (dư dồn vào ghế cuối), vé đối tượng người lớn, ghi một khoản VIETQR_SIM "chuyển khoản theo hợp đồng"; suất IsPrivate bị lọc khỏi mọi truy vấn của web khách và không mở được trang đặt vé.
+71. 14/11/2026 – Đổi nhiều vé cùng lúc: chênh lệch tính trên tổng; số thu thêm chia cho các vé mới theo phần tăng giá của từng vé (SeatSwapRules.AllocateCharge) để tổng giá vé khớp tổng hóa đơn; vé hạ hạng giữ giá đã trả.
+72. 14/11/2026 – Hủy suất do sự cố: tiền mặt hoàn ghi vào ca đang mở của người hủy nếu cùng rạp, không có ca thì ghi không gắn ca; hóa đơn có tài khoản nhận voucher AMOUNT CompensationVoucherAmount, hạn CompensationVoucherValidDays.
+73. 14/11/2026 – Suất của ngày vận hành đã qua mà chưa ai bấm "Đã dọn xong" được ShowtimeClockService coi như đã dọn cuối ngày (COMPLETED) để không chặn phòng hôm sau.
+74. 14/11/2026 – Báo cáo hủy hàng lấy các dòng của phiếu đã duyệt theo thời điểm duyệt; quản lý gắn rạp chỉ thấy rạp mình.
+75. 14/11/2026 – Nhân viên soát vé đăng nhập xong về /pos/gate-inspector; thanh trên của layout quầy ghi "Soát vé" và tên rạp thay cho thông tin ca.
+
 ## Thay đổi mô hình (ngày – bảng/cột/use case/màn hình – trước – sau)
 - 13/11/2026 – Bills thêm cột HoldExtended BIT NOT NULL DEFAULT 0 (thu ngân đã gia hạn giữ ghế một lần, SPEC 3.5); ShowtimeSeats thêm HoldAudienceType VARCHAR(20) NULL (đối tượng vé đã chọn cho ghế đang giữ, vé thật tạo khi thanh toán). Đã sửa S6-19, S6-23 trong docs/spec/s05-07-realtime-csdl-kiem-thu.md, chạy sync. CONTRACTS C3-39 thêm AuditAction VOID_BILL, ORPHAN_SEAT_OVERRIDE; C8-07 mã lỗi Phase 4 khai báo trong ErrorCodes.
 - 13/11/2026 – CONTRACTS C3-39 – thêm AuditAction PRICING_UPDATED (sửa bảng giá và mức giảm đối tượng, SPEC 2.7) theo quy tắc "mỗi phase thêm hành động của mình". Không đổi bảng, cột, use case hay màn hình.
@@ -138,12 +159,13 @@ Phase 3 – Phim, phòng chiếu, giá, suất chiếu: xong ngày 13/11/2026 (v
 ## Lỗi biết trước và việc còn lại
 - Phase 5: ảnh chụp lúc rạng sáng (ngày vận hành vẫn là hôm trước) có trang lịch chiếu và chi tiết phim "Hôm nay" rỗng vì mọi suất đã qua – đúng nghiệp vụ; routes.json chụp C3 bằng ngày thứ hai của dải ngày.
 - Phase 5: lời nhắc giờ chiếu cho trẻ em ở chip suất là tooltip trên icon mặt trăng (đã có trong aria-label của chip); trên điện thoại câu nhắc đầy đủ hiện ở trang đặt vé.
-- Phase 5: nút "Tôi đã tới rạp", trạng thái vào cửa trực tiếp trên vé (UI C4-03, C4-05) làm ở Phase 6; nút trợ lý AI (C1-06) ở Phase 7.
+- Phase 5: nút trợ lý AI (C1-06) làm ở Phase 7.
+- Phase 6: dữ liệu mẫu tạo theo giờ lúc chạy --reset-db; các suất kết thúc sau đó đứng ở "Đang dọn phòng" cho tới khi nhân viên soát vé bấm "Đã dọn xong", nên suất kế tiếp trong phòng báo trễ ở /ops – đúng nghiệp vụ (SPEC 3.3-21). Khi demo, bấm "Đã dọn xong" ở máy soát vé trước.
 - Phase 2: DeveloperExceptionPage của .NET vẫn tự bật trong Development nhưng chỉ hiện khi chính trang lỗi /Home/Error hỏng; mọi lỗi thường đi qua UseExceptionHandler, không hiện stack trace.
 - Phase 2: _SeatMap mới hiển thị trạng thái; chọn ghế, bàn phím, tooltip giá, thời gian thực làm ở Phase 4. Nút Đặt vé trên thẻ phim khóa đến Phase 5.
 - Phase 2: chỉ báo kết nối ở POS phản ánh mạng của trình duyệt cho tới khi có realtime.js (Phase 4).
 - Phase 1 không có màn hình; thư mục Controllers, Views, ViewModels, Hubs, Background, wwwroot/css, wwwroot/js đã tạo (chứa .gitkeep), nội dung làm từ Phase 2.
-- OperationalStatus của suất trong dữ liệu mẫu chỉ là COMPLETED (đã dọn xong) hoặc SCHEDULED; ShowtimeClockService cập nhật theo giờ ở Phase 6.
+- OperationalStatus của suất trong dữ liệu mẫu chỉ là COMPLETED (đã dọn xong) hoặc SCHEDULED; ShowtimeClockService cập nhật theo giờ từ lúc app chạy.
 - QR vé dạng SVG (QRCoder) làm ở Phase 4.
 - Gợi ý của kiểm tra độc lập chưa làm: tách phép kiểm khóa CinemaRules.PointEarnPercent (đang nằm trong test PricingRuleKey_RejectsKeysOfAnotherRuleType) thành test riêng ở lần sửa test tới.
 - Kiểm tra độc lập: lượt đầu 165/173 Đạt; sau khi sửa và kiểm lại 173/173 Đạt (docs/audit/phase-1.md).
@@ -151,6 +173,7 @@ Phase 3 – Phim, phòng chiếu, giá, suất chiếu: xong ngày 13/11/2026 (v
 ## Đang bị chặn (câu hỏi cần người dùng trả lời)
 Không có. (07/11/2026: câu hỏi về SDK .NET 8 của S8.1-01 đã xong, người dùng cài SDK 8.0.427.)
 ## Kết quả kiểm tra giao diện (phase – màn hình – kích thước – đạt/chưa)
+- Phase 6 – 14/11/2026, `node tools/ui-snapshots/snap.mjs --phase 6`: 19 đường dẫn, 47 ảnh trong artifacts/ui/phase-6, 0 lỗi HTTP 5xx, 0 cuộn ngang, 0 ảnh vỡ, 0 lỗi JS. Mở từng ảnh đối chiếu UI mục 13 và sửa: P3 (thanh trên ở 390px – BUG-048), P4 (cột không giãn, ô đếm đỏ – BUG-047), P6 (chữ chạy, giải thích nhãn tuổi – BUG-049), form doanh nghiệp và hủy suất (BUG-046). Màn hình phụ, popup phê duyệt, đổi ghế, "Tôi đã tới rạp" thử tay trên trình duyệt (TC-P6-01..05). Kết quả cuối: P2, P5, P6 đạt ở 1920; P3 đạt ở 390, 768; P4 đạt ở 1280, 1920; A1, A2, A3, A6, A7 đạt ở 1440, 1280, dùng được ở 768; C4 đạt ở 390, 768, 1440.
 - Phase 5 – 14/11/2026, `node tools/ui-snapshots/snap.mjs --phase 5`: 13 đường dẫn, 39 ảnh trong artifacts/ui/phase-5, 0 lỗi HTTP 5xx, 0 cuộn ngang, 0 ảnh vỡ, 0 lỗi JS. Mở từng ảnh đối chiếu UI mục 13 và sửa: C1 (nhãn tuổi che chữ trên poster – BUG-031; hero – BUG-037), C5 (tab xuống 3 dòng ở 390px – BUG-032), C3 (nhãn tuổi trên điện thoại – BUG-036), C4 (thông tin suất trên cuống vé – BUG-038). Màn hình QR và trang mô phỏng thanh toán kiểm bằng tay trên trình duyệt (TC-P5-01). Kết quả cuối: C1–C5 đạt ở 390, 768, 1440.
 - Phase 4 – 13/11/2026, `node tools/ui-snapshots/snap.mjs --phase 4`: 16 đường dẫn, 42 ảnh trong artifacts/ui/phase-4, 0 lỗi HTTP 5xx, 0 cuộn ngang, 0 ảnh vỡ, 0 lỗi JS. Mở từng ảnh đối chiếu UI mục 13 và sửa: P1 (chữ nút thanh toán và tên món bị cắt ở 1366 – BUG-022), A1, A6 (biểu đồ không vẽ – BUG-023; KPI tràn chữ, lề bảng – BUG-026), P1 Hóa đơn của tôi (ô ngày trống – BUG-024). Kết quả cuối: P1, P7 đạt ở 1366 và 1920; A1, A6, A8 đạt ở 1440, 1280, dùng được ở 768.
 - Phase 3 – 13/11/2026, `node tools/ui-snapshots/snap.mjs --phase 3`: 17 đường dẫn, 51 ảnh trong artifacts/ui/phase-3, 0 lỗi HTTP 5xx, 0 cuộn ngang, 0 ảnh vỡ, 0 lỗi JS. Mở từng ảnh đối chiếu UI mục 13 và sửa: A4 (ô mẫu và chú thích heatmap mất màu – BUG-015; lưới bị cắt – BUG-019), A3 phim (ô ngày giờ kiểu Mỹ – BUG-016; ô rạp KDM bị cắt – BUG-017), A5 (nhóm phòng cuộn dọc riêng – BUG-018), A2 bảng giá (số tiền không dấu phân cách – BUG-020), A3 đối tượng (dải trống đầu thẻ). Kết quả cuối: A2, A3, A4, A5 đạt ở 1440, 1280; ở 768 dùng được, bảng lịch chiếu và lưới thiết kế chỉ cuộn ngang trong vùng của chúng.

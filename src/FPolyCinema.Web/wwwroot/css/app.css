@@ -1273,3 +1273,204 @@ fieldset.check-fieldset legend { font-size: var(--fs-sm); font-weight: 500; marg
 .history-list li { display: flex; justify-content: space-between; align-items: center; gap: var(--sp-3); padding: var(--sp-3) var(--sp-4); }
 .history-list li + li { border-top: 1px solid var(--border); }
 .history-list li.is-unread { background: color-mix(in srgb, var(--info) 10%, var(--surface)); }
+
+/* ================================================================ 40. Phase 6 – máy soát vé (UI P3, nền đặc theo U2-05) */
+.gate { display: flex; flex-direction: column; gap: var(--sp-4); max-width: 960px; margin: 0 auto; padding: var(--sp-4); min-height: 100%; }
+.gate-controls { display: grid; gap: var(--sp-3); grid-template-columns: 1fr; }
+.gate-scan { display: flex; gap: var(--sp-2); }
+.gate-scan .form-control { flex: 1; min-width: 0; font-size: var(--fs-xl); }
+@media (min-width: 768px) { .gate-controls { grid-template-columns: 220px 1fr auto; align-items: center; } }
+.gate-camera { max-width: 360px; margin: var(--sp-3) auto 0; border-radius: var(--radius-md); overflow: hidden; }
+.gate-cleaning { background: var(--warning-bg); color: var(--text); border: 1px solid var(--warning); border-radius: var(--radius-md); padding: var(--sp-3) var(--sp-4); }
+.gate-cleaning h2 .bi { margin-right: var(--sp-2); color: var(--warning-fg); }
+.gate-cleaning-list { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-2); }
+.gate-cleaning-list li { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sp-2); }
+.gate-result { flex: 1; display: flex; flex-direction: column; border-radius: var(--radius-lg); padding: var(--sp-5); min-height: 360px; transition: background-color var(--dur-base) var(--ease); }
+.gate-result.is-idle { background: var(--surface); border: 2px dashed var(--border); color: var(--text-muted); align-items: center; justify-content: center; text-align: center; }
+.gate-result.is-ok, .gate-result.is-warn, .gate-result.is-reject { color: var(--white); }
+.gate-result.is-ok { background: var(--gate-ok); }
+.gate-result.is-warn { background: var(--gate-warn); }
+.gate-result.is-reject { background: var(--gate-reject); }
+.gate-idle .gate-icon { color: var(--text-muted); }
+.gate-icon { font-size: var(--fs-64); line-height: 1; flex: none; }
+.gate-main { font-size: var(--fs-32); font-weight: 700; line-height: var(--lh-tight); margin: 0 0 var(--sp-1); }
+.gate-sub { font-size: var(--fs-lg); margin: 0; }
+.gate-card { display: flex; flex-direction: column; gap: var(--sp-4); flex: 1; }
+.gate-card-head { display: flex; align-items: center; gap: var(--sp-4); }
+.gate-card .age-badge { vertical-align: middle; }
+.gate-note { margin: 0; font-size: var(--fs-lg); font-weight: 600; }
+.gate-note .bi, .gate-warnings .bi { margin-right: var(--sp-2); }
+/* Cảnh báo độ tuổi: khung vàng nổi bật (UI P3-06) */
+.gate-warnings { background: var(--brand-gold); color: var(--ink); border: 3px solid var(--white); border-radius: var(--radius-md); padding: var(--sp-3) var(--sp-4); font-size: var(--fs-lg); }
+.gate-warnings ul { margin: 0 0 var(--sp-2); padding-left: var(--sp-5); }
+.gate-check { display: flex; align-items: center; gap: var(--sp-3); min-height: 48px; cursor: pointer; font-size: var(--fs-lg); }
+.gate-check input { width: 32px; height: 32px; flex: none; accent-color: var(--ink); }
+.gate-check.is-off { opacity: .6; cursor: not-allowed; }
+.gate-seats { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-1); grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
+.gate-seats .gate-check { background: var(--scrim-soft); border-radius: var(--radius-sm); padding: var(--sp-1) var(--sp-3); }
+.gate-seat-state { margin-left: auto; font-size: var(--fs-sm); }
+.gate-actions { display: flex; flex-wrap: wrap; gap: var(--sp-3); }
+.gate-actions .btn-xl { flex: 1 1 260px; }
+.gate-result .btn-ghost { color: var(--white); border-color: var(--white); }
+.gate-countdown { height: 8px; border-radius: var(--radius-pill); background: var(--scrim-soft); overflow: hidden; margin-top: auto; }
+.gate-countdown span { display: block; height: 100%; width: 100%; background: var(--white); transform-origin: left; }
+.gate-countdown.is-running span { animation: gate-countdown var(--gate-reset, 6000ms) linear forwards; }
+.gate-countdown.is-paused span { animation-play-state: paused; }
+@keyframes gate-countdown { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
+/* ================================================================ 41. Phase 6 – bếp (UI P4) */
+.kds { display: flex; flex-direction: column; gap: var(--sp-4); height: 100%; padding: var(--sp-4); }
+.kds-bar { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-3); }
+.kds-pickup { display: flex; gap: var(--sp-2); flex: 1 1 360px; max-width: 560px; }
+.kds-pickup .form-control { flex: 1; min-width: 0; }
+.kds-columns { flex: 1; min-height: 0; display: grid; gap: var(--sp-4); grid-template-columns: 1fr; }
+@media (min-width: 992px) { .kds-columns { grid-template-columns: 3fr 2fr; } }
+.kds-col { min-height: 0; display: flex; flex-direction: column; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--sp-4); }
+.kds-col-title { display: flex; align-items: center; gap: var(--sp-2); font-size: var(--fs-xl); font-weight: 600; margin-bottom: var(--sp-3); }
+.kds-list { flex: 1; overflow-y: auto; display: grid; gap: var(--sp-3); grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); align-content: start; }
+.kds-empty { color: var(--text-muted); margin: 0; }
+.kds-card { display: flex; flex-direction: column; gap: var(--sp-3); background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--sp-4); }
+.kds-card.is-new { animation: kds-slide-in 400ms var(--ease); }
+@keyframes kds-slide-in { from { opacity: 0; transform: translateX(-24px); } to { opacity: 1; transform: none; } }
+.kds-card-head { display: flex; align-items: center; gap: var(--sp-2); }
+.kds-number { font-size: var(--fs-40); font-weight: 700; line-height: 1; margin-right: auto; }
+.kds-wait { display: inline-flex; align-items: center; gap: var(--sp-1); font-weight: 600; border-radius: var(--radius-pill); padding: var(--sp-half) var(--sp-2); }
+.kds-wait.is-ok { background: var(--success-bg); color: var(--success-fg); }
+.kds-wait.is-warn { background: var(--warning-bg); color: var(--warning-fg); }
+.kds-wait.is-late { background: var(--danger-bg); color: var(--danger-fg); }
+.kds-items { list-style: none; margin: 0; padding: 0; font-size: var(--fs-lg); display: grid; gap: var(--sp-1); }
+.kds-items .num { font-weight: 700; }
+.kds-code { margin: 0; color: var(--text-muted); font-size: var(--fs-sm); }
+
+/* ================================================================ 42. Phase 6 – bảng gọi số, bảng sảnh (UI P5, P6; 1920 × 1080) */
+.lobby { display: flex; flex-direction: column; gap: var(--sp-5); height: 100vh; padding: var(--sp-6) var(--sp-7); }
+.lobby-head { display: flex; align-items: center; gap: var(--sp-6); }
+.lobby-title { font-size: var(--fs-3xl); font-weight: 700; margin: 0; flex: 1; min-width: 0; }
+.lobby-clock { font-size: var(--fs-display); font-weight: 700; line-height: 1; }
+.lobby-foot { margin: 0; color: var(--text-muted); font-size: var(--fs-xl); text-align: center; }
+.pickup-cols { flex: 1; min-height: 0; display: grid; grid-template-columns: 2fr 3fr; gap: var(--sp-6); }
+.pickup-col { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--sp-5) var(--sp-6); overflow: hidden; }
+.pickup-col.is-ready { border-color: var(--brand-gold); }
+.pickup-col-title { font-size: var(--fs-4xl); font-weight: 700; margin-bottom: var(--sp-5); }
+.pickup-col.is-ready .pickup-col-title { color: var(--brand-gold); }
+.pickup-numbers { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: var(--sp-4) var(--sp-6); align-content: flex-start; }
+.pickup-numbers.is-preparing li { font-size: var(--fs-64); font-weight: 600; color: var(--text-muted); line-height: 1.1; }
+.pickup-numbers.is-ready li { font-size: var(--fs-96); font-weight: 800; color: var(--brand-gold); line-height: 1.1; }
+.pickup-numbers.is-ready li.is-new { animation: pickup-blink 700ms ease-in-out 3; }
+@keyframes pickup-blink { 50% { opacity: .2; } }
+
+.signage-head, .signage-row { display: grid; grid-template-columns: 180px minmax(0, 1fr) 280px 320px; gap: var(--sp-5); align-items: center; }
+.signage-head { font-size: var(--fs-xl); color: var(--text-muted); font-weight: 600; padding: 0 var(--sp-5); }
+.signage-viewport { flex: 1; min-height: 0; overflow: hidden; }
+.signage-rows { display: grid; gap: var(--sp-3); }
+.signage-row { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: var(--sp-4) var(--sp-5); }
+.signage-time { font-size: var(--fs-display); font-weight: 700; line-height: 1; }
+.signage-movie { display: flex; flex-direction: column; gap: var(--sp-1); min-width: 0; }
+.signage-title { font-size: var(--fs-3xl); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.signage-meta { font-size: var(--fs-xl); color: var(--text-muted); display: flex; align-items: center; gap: var(--sp-2); }
+.signage-room { font-size: var(--fs-2xl); font-weight: 600; }
+.signage-pill { display: inline-block; font-size: var(--fs-2xl); font-weight: 700; border-radius: var(--radius-pill); padding: var(--sp-2) var(--sp-5); background: var(--neutral-bg); color: var(--neutral-fg); }
+.signage-row.is-boarding { border-color: var(--success); }
+.signage-row.is-boarding .signage-pill { background: var(--success); color: var(--white); animation: signage-pulse 2.4s ease-in-out infinite; }
+.signage-row.is-playing .signage-pill { background: var(--info-bg); color: var(--info-fg); }
+.signage-row.is-cleaning .signage-pill { background: var(--warning-bg); color: var(--warning-fg); }
+@keyframes signage-pulse { 50% { opacity: .45; } }
+.signage-empty { font-size: var(--fs-3xl); color: var(--text-muted); text-align: center; margin-top: var(--sp-8); }
+.signage-ticker { overflow: hidden; white-space: nowrap; background: var(--surface-2); border-radius: var(--radius-md); padding: var(--sp-3) 0; }
+.signage-ticker-text { display: inline-block; margin: 0; padding-left: var(--sp-5); font-size: var(--fs-2xl); animation: signage-ticker 45s linear infinite; }
+@keyframes signage-ticker { from { transform: translateX(0); } to { transform: translateX(-100%); } }
+.signage-age { font-size: var(--fs-lg); color: var(--text-muted); }
+.gate-age { font-size: var(--fs-md); margin: 0; opacity: .9; }
+
+/* ================================================================ 43. Phase 6 – màn hình phụ của quầy (UI P2, 1920 × 1080) */
+.cdisplay { height: 100vh; }
+.cd-view { height: 100%; }
+.cd-view[hidden] { display: none !important; }
+.cd-idle { position: relative; display: grid; grid-template-columns: 3fr 2fr; align-items: center; gap: var(--sp-7); padding: var(--sp-7); }
+.cd-slides { position: relative; height: 100%; }
+.cd-slide { position: absolute; inset: 0; margin: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-4); opacity: 0; transition: opacity 800ms var(--ease); }
+.cd-slide.is-active { opacity: 1; }
+.cd-slide img { max-height: calc(100% - 80px); max-width: 100%; aspect-ratio: 2 / 3; object-fit: cover; border-radius: var(--radius-lg); box-shadow: var(--shadow-md); }
+.cd-slide figcaption { font-size: var(--fs-3xl); font-weight: 700; display: flex; align-items: center; gap: var(--sp-3); }
+.cd-idle-brand { display: flex; flex-direction: column; gap: var(--sp-4); }
+.cd-welcome { font-size: var(--fs-4xl); font-weight: 700; margin: 0; }
+.cd-terminal { font-size: var(--fs-2xl); color: var(--text-muted); margin: 0; }
+.cd-cart { display: grid; grid-template-columns: 3fr 2fr; gap: var(--sp-6); padding: var(--sp-6); }
+.cd-left { min-height: 0; display: flex; flex-direction: column; gap: var(--sp-4); }
+.cd-movie { font-size: var(--fs-4xl); font-weight: 700; margin: 0; }
+.cd-show-meta { font-size: var(--fs-2xl); margin: 0; }
+.cd-show-age { color: var(--text-muted); font-size: var(--fs-lg); margin: 0; }
+.cd-seatmap { flex: 1; min-height: 0; overflow: hidden; display: flex; align-items: center; justify-content: center; }
+.display-seatmap { --seat-size: 40px; --seat-gap: 8px; }
+.cd-right { display: flex; flex-direction: column; gap: var(--sp-4); background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: var(--sp-6); min-height: 0; }
+.cd-right-title { font-size: var(--fs-28); font-weight: 700; margin: 0; }
+.cd-member { font-size: var(--fs-2xl); color: var(--brand-gold); margin: 0; }
+.cd-lines { list-style: none; margin: 0; padding: 0; flex: 1; overflow: hidden; display: grid; gap: var(--sp-3); align-content: start; font-size: var(--fs-2xl); }
+.cd-lines li { display: flex; justify-content: space-between; gap: var(--sp-4); border-bottom: 1px solid var(--border); padding-bottom: var(--sp-2); }
+.cd-lines .cd-empty { color: var(--text-muted); border: 0; }
+.cd-score { color: var(--brand-gold); font-size: var(--fs-xl); }
+.cd-discount { font-size: var(--fs-2xl); color: var(--success-fg); margin: 0; }
+.cd-total { display: flex; justify-content: space-between; align-items: baseline; border-top: 2px solid var(--border); padding-top: var(--sp-4); font-size: var(--fs-28); }
+.cd-total strong { font-size: var(--fs-56); font-weight: 800; }
+.cd-qr, .cd-done { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: var(--sp-4); text-align: center; }
+.cd-qr-title, .cd-done-title { font-size: var(--fs-display); font-weight: 700; margin: 0; }
+.cd-qr-box { background: var(--white); padding: var(--sp-4); border-radius: var(--radius-lg); }
+.cd-qr-box img { display: block; width: 360px; height: 360px; }
+.cd-qr-small img { width: 240px; height: 240px; }
+.cd-amount { font-size: var(--fs-56); font-weight: 800; margin: 0; }
+.cd-countdown { font-size: var(--fs-2xl); margin: 0; }
+.cd-qr-code { color: var(--text-muted); font-size: var(--fs-xl); margin: 0; }
+.cd-done-icon { font-size: var(--fs-96); color: var(--success); line-height: 1; }
+.cd-done-body { display: flex; align-items: center; gap: var(--sp-7); text-align: left; }
+.cd-done-code { font-size: var(--fs-28); margin: 0 0 var(--sp-2); }
+.cd-done-seats, .cd-done-pickup { font-size: var(--fs-2xl); margin: 0 0 var(--sp-2); }
+.cd-done-note { color: var(--text-muted); font-size: var(--fs-xl); margin: 0; }
+
+/* ================================================================ 44. Phase 6 – vé điện tử: vào cửa trực tiếp, "Tôi đã tới rạp" (UI C4-03, C4-05) */
+.ticket-live { display: flex; align-items: center; gap: var(--sp-2); margin-top: var(--sp-2); padding: var(--sp-1) var(--sp-3); border-radius: var(--radius-sm); color: var(--white); font-weight: 600;
+  background: linear-gradient(110deg, var(--success), var(--info), var(--success)); background-size: 300% 100%; animation: ticket-live 3s linear infinite; }
+.ticket-live .num { font-size: var(--fs-lg); letter-spacing: .04em; }
+@keyframes ticket-live { from { background-position: 0% 50%; } to { background-position: 300% 50%; } }
+.pickup-big { text-align: center; padding: var(--sp-4); border-radius: var(--radius-md); background: var(--warning-bg); color: var(--warning-fg); }
+.pickup-big strong { display: block; font-size: var(--fs-64); line-height: 1.1; }
+
+/* ================================================================ 45. Phase 6 – vận hành của quản lý ca (UI A7, A1-05) */
+.ops-grid { display: grid; gap: var(--sp-5); grid-template-columns: 1fr; }
+@media (min-width: 1200px) { .ops-grid { grid-template-columns: 3fr 2fr; } }
+.ops-stack { display: flex; flex-direction: column; gap: var(--sp-5); min-width: 0; }
+.ops-list { list-style: none; margin: 0; padding: 0; }
+.ops-list > li { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2) var(--sp-3); padding: var(--sp-3) 0; border-top: 1px solid var(--border); }
+.ops-list > li:first-child { border-top: 0; padding-top: 0; }
+.ops-list .ops-main { flex: 1 1 220px; min-width: 0; }
+.ops-list .ops-sub { display: block; font-size: var(--fs-sm); color: var(--text-muted); }
+.ops-late { background: var(--danger-bg); color: var(--danger-fg); border-radius: var(--radius-md); padding: var(--sp-3) var(--sp-4); }
+.occupancy-bar { height: 8px; border-radius: var(--radius-pill); background: var(--surface-2); overflow: hidden; min-width: 80px; }
+.occupancy-bar span { display: block; height: 100%; background: var(--success); width: calc(var(--pct, 0) * 1%); transition: width var(--dur-base) var(--ease); }
+/* Popup phê duyệt thời gian thực ở góc phải, không chặn thao tác khác (UI A7-02) */
+.approval-stack { position: fixed; right: var(--sp-5); bottom: var(--sp-5); z-index: 1080; display: flex; flex-direction: column; gap: var(--sp-3); width: min(380px, calc(100vw - 2 * var(--sp-4))); pointer-events: none; }
+.approval-pop { pointer-events: auto; background: var(--surface); color: var(--text); border: 1px solid var(--border); border-left: 4px solid var(--warning); border-radius: var(--radius-md); box-shadow: var(--shadow-md); padding: var(--sp-4); animation: kds-slide-in 300ms var(--ease); }
+.approval-pop h2 { font-size: var(--fs-md); font-weight: 600; margin: 0 0 var(--sp-2); display: flex; gap: var(--sp-2); align-items: center; }
+.approval-pop dl { display: grid; grid-template-columns: auto 1fr; gap: var(--sp-1) var(--sp-3); margin: 0 0 var(--sp-3); font-size: var(--fs-sm); }
+.approval-pop dt { color: var(--text-muted); font-weight: 400; }
+.approval-pop dd { margin: 0; }
+.approval-pop .approval-actions { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-2); }
+.approval-pop .approval-actions .btn { min-height: 48px; font-weight: 600; }
+.approval-pop .approval-expire { font-size: var(--fs-xs); color: var(--text-muted); margin: var(--sp-2) 0 0; }
+.void-remote-status { display: flex; gap: var(--sp-2); align-items: center; margin-top: var(--sp-3); }
+
+/* ================================================================ 46. Phase 6 – đổi ghế, phiếu kho */
+.swap-grid { display: grid; gap: var(--sp-5); grid-template-columns: 1fr; }
+@media (min-width: 1200px) { .swap-grid { grid-template-columns: minmax(0, 1fr) 380px; } }
+.swap-tickets { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--sp-2); }
+.swap-tickets label { display: flex; gap: var(--sp-3); align-items: center; padding: var(--sp-2) var(--sp-3); border: 1px solid var(--border); border-radius: var(--radius-sm); cursor: pointer; }
+.swap-tickets label.is-off { opacity: .6; cursor: not-allowed; }
+.swap-tickets input { width: 24px; height: 24px; }
+.stock-lines .num-input { max-width: 140px; }
+.gate-result .btn-secondary { background: var(--white); color: var(--ink); border-color: var(--white); }
+.kds-col-title .count-pill { background: var(--surface-2); color: var(--text); min-width: 28px; height: 24px; font-size: var(--fs-sm); }
+.kds-col .kds-empty { order: -1; margin-bottom: var(--sp-3); }
+.kds-col .kds-col-title { order: -2; }
+body.has-demo-bar .approval-stack { bottom: calc(var(--sp-8) + var(--sp-4)); }
+@media (min-width: 768px) { .form-grid.cols-3 { grid-template-columns: 2fr 1fr 2fr; } }
+@media (max-width: 575.98px) { .pos-topbar { gap: var(--sp-2); padding: 0 var(--sp-3); } .pos-topbar .shift-info, .pos-topbar .pos-clock, .pos-topbar .conn-text, .pos-topbar .user-chip .user-meta { display: none; } }
+.pos-body > .kds, .pos-body > .gate { flex: 1; min-width: 0; overflow-y: auto; }

@@ -7,7 +7,7 @@
     ViewData["Title"] = "Bán vé tại quầy";
     var groups = Model.Showtimes.GroupBy(s => s.MovieId).ToList();
 }
-<div class="pos-grid" data-pos>
+<div class="pos-grid" data-pos data-terminal-key="@Model.TerminalKey" data-cinema-id="@Model.Context.CinemaId">
     <aside class="pos-col pos-showtimes" id="pos-showtimes" aria-labelledby="pos-st-title">
         <div class="pos-col-head">
             <h2 class="h6 mb-0" id="pos-st-title">Suất hôm nay</h2>
@@ -60,6 +60,9 @@
         </form>
         <div class="d-grid gap-2 mt-4">
             <a class="btn btn-ghost" href="/pos/my-bills"><i class="bi bi-receipt" aria-hidden="true"></i>Hóa đơn của tôi</a>
+            <a class="btn btn-ghost" href="/pos/swap-seat"><i class="bi bi-arrow-left-right" aria-hidden="true"></i>Đổi, nâng hạng ghế</a>
+            <a class="btn btn-ghost" href="/pos/fnb-kds"><i class="bi bi-fire" aria-hidden="true"></i>Màn hình bếp</a>
+            <a class="btn btn-ghost" href="/pos/customer-display?terminal=@Model.Context.Shift.TerminalCode&amp;cinemaId=@Model.Context.CinemaId" target="_blank" rel="noopener"><i class="bi bi-display" aria-hidden="true"></i>Mở màn hình phụ</a>
             <button type="button" class="btn btn-ghost" data-void-open><i class="bi bi-arrow-counterclockwise" aria-hidden="true"></i>Hủy hóa đơn đã thanh toán</button>
         </div>
     </aside>

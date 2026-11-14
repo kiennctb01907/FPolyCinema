@@ -1,0 +1,36 @@
+@model MaterialListVm
+@* A2. Danh sách nguyên liệu (UC30, SPEC 3.11): tìm theo tên, lọc trạng thái và "dưới ngưỡng"; bảng tồn thực tế, đã giữ cho đơn online, khả dụng, ngưỡng;
+   nút Nhập kho và Thêm nguyên liệu. Tồn kho chỉ đổi qua giao dịch kho. *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Nguyên liệu";
+    ViewData["Crumbs"] = new List<Crumb> { new("Kho bắp nước"), new("Nguyên liệu") };
+    var header = new PageHeaderVm
+    {
+        Title = "Nguyên liệu",
+        Description = $"{Model.ScopeName} · kho hai tầng: tồn thực tế và phần đã giữ cho đơn online chưa làm.",
+        Crumbs = new() { new("Kho bắp nước"), new("Nguyên liệu") },
+        Actions = @<text>
+            <a class="btn btn-secondary" href="/admin/materials/import"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i>Nhập kho</a>
+            <a class="btn btn-primary" href="/admin/materials/create"><i class="bi bi-plus-lg" aria-hidden="true"></i>Thêm nguyên liệu</a>
+        </text>,
+    };
+    var filter = new FilterBarVm
+    {
+        SearchValue = Model.Q, SearchLabel = "Tìm theo tên", SearchPlaceholder = "Ví dụ: bắp",
+        Selects = new()
+        {
+            new FilterSelect("status", "Trạng thái", new List<(string, string)> { ("active", "Đang dùng"), ("inactive", "Ngưng") }, Model.Status),
+            new FilterSelect("low", "Tồn kho", new List<(string, string)> { ("true", "Dưới ngưỡng tối thiểu") }, Model.LowOnly ? "true" : null, "Mọi mức tồn"),
+        },
+        HasFilter = !string.IsNullOrEmpty(Model.Q) || !string.IsNullOrEmpty(Model.Status) || Model.LowOnly, ClearUrl = "/admin/materials",
+    };
+}
+<partial name="_PageHeader" model="header" />
+<partial name="_FilterBar" model="filter" />
+<div data-region data-url="@QueryUrl.Current(Context.Request)">
+    <partial name="_TableSkeleton" model="@("material")" />
+    <div data-region-content>
+        <partial name="_Table" model="Model" />
+    </div>
+</div>

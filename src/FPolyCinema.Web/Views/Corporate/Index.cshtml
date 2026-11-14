@@ -1,0 +1,64 @@
+@model CorporateListVm
+@* A2. Hợp đồng doanh nghiệp (UC40, SPEC 3.10 mục 3; ManagerOnly): thuê trọn suất và loạt voucher FREE_TICKET đã tạo. *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Doanh nghiệp";
+    ViewData["Crumbs"] = new List<Crumb> { new("Bán hàng"), new("Doanh nghiệp") };
+    var header = new PageHeaderVm
+    {
+        Title = "Bán vé doanh nghiệp",
+        Description = "Thuê trọn một suất chưa bán vé, hoặc phát hành loạt voucher tặng vé cho doanh nghiệp.",
+        Crumbs = new() { new("Bán hàng"), new("Doanh nghiệp") },
+        Actions = @<text>
+            <a class="btn btn-secondary" href="/admin/corporate/create?type=@CorporateType.VoucherBatch"><i class="bi bi-ticket-perforated" aria-hidden="true"></i>Phát hành voucher</a>
+            <a class="btn btn-primary" href="/admin/corporate/create?type=@CorporateType.PrivateScreening"><i class="bi bi-building" aria-hidden="true"></i>Thuê trọn suất</a>
+        </text>,
+    };
+}
+<partial name="_PageHeader" model="header" />
+@if (Model.Rows.Count == 0)
+{
+    <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-building", Title = "Chưa có hợp đồng doanh nghiệp", Text = "Tạo hợp đồng thuê trọn suất hoặc phát hành loạt voucher tặng vé.", ActionLabel = "Thuê trọn suất", ActionUrl = "/admin/corporate/create" })" />
+}
+else
+{
+    <div class="table-wrap">
+        <table class="data-table">
+            <caption class="visually-hidden">Hợp đồng doanh nghiệp</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Doanh nghiệp</th>
+                    <th scope="col">Loại</th>
+                    <th scope="col">Nội dung</th>
+                    <th scope="col" class="num">Giá trị hợp đồng</th>
+                    <th scope="col" class="col-opt">Người tạo</th>
+                    <th scope="col" class="col-actions">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var r in Model.Rows)
+                {
+                    var b = r.Booking;
+                    var isPrivate = b.Type == CorporateType.PrivateScreening;
+                    <tr>
+                        <td class="cell-title"><a class="cell-main" href="/admin/corporate/@b.Id">@b.CompanyName</a><span class="cell-sub d-block">@b.ContactName@(b.Phone != null ? " · " + b.Phone : null)</span></td>
+                        <td data-label="Loại"><span class="status-badge tone-@(isPrivate ? "info" : "warning")">@(isPrivate ? "Thuê trọn suất" : "Loạt voucher")</span></td>
+                        <td data-label="Nội dung">
+                            @if (isPrivate)
+                            {
+                                @r.MovieTitle<span class="cell-sub d-block num">@(r.StartTime is DateTime st ? Fmt.DateTime(st) : "") · @r.AuditoriumName · @r.BillCode</span>
+                            }
+                            else
+                            {
+                                <span>@b.VoucherCount voucher</span><span class="cell-sub d-block">Đã dùng @r.VouchersUsed</span>
+                            }
+                        </td>
+                        <td class="num money" data-label="Giá trị">@Fmt.Money(b.ContractAmount)</td>
+                        <td class="col-opt" data-label="Người tạo">@r.CreatorName<span class="cell-sub d-block num">@Fmt.DateTime(b.CreatedAt)</span></td>
+                        <td class="col-actions"><a class="btn btn-ghost btn-sm" href="/admin/corporate/@b.Id">Xem</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

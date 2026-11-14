@@ -1,6 +1,7 @@
 @model TicketPageVm
 @* Vé điện tử C4 /tickets/{billCode}: thẻ vé có đường răng cưa như cuống vé; QR 240px trên nền trắng; mã vé; thông tin suất chiếu;
-   khối bắp nước theo trạng thái ở UI mục 6; nút "Hủy vé" kèm giải thích điều kiện, không đủ điều kiện thì nút bị khóa và ghi lý do (SPEC 3.9-08). *@
+   khối bắp nước theo trạng thái ở UI mục 6; trạng thái vào cửa từng ghế cập nhật trực tiếp, ghế đã vào có dấu xác nhận động (đồng hồ chạy, dải màu chuyển động – UI C4-03);
+   nút "Tôi đã tới rạp – làm bắp nước ngay" trong khung giờ cho phép, số gọi hiện lớn khi món sẵn sàng (UI C4-05); nút "Hủy vé" kèm giải thích điều kiện, không đủ điều kiện thì nút bị khóa và ghi lý do (SPEC 3.9-08). *@
 @{
     var b = Model.Bill;
     var info = Model.Info;
@@ -15,7 +16,12 @@
 {
     <div class="alert-ui tone-warning" role="status"><i class="bi bi-info-circle" aria-hidden="true"></i>Đơn này đã hủy: @StatusDisplay.Of(StatusDisplay.CancelReasons, b.CancelReason).Label.</div>
 }
-<div class="row g-4">
+else if (CheckInRules.IsCompleted(b.Status, b.CheckInStatus, b.FnbStatus) && b.CheckInStatus != BillCheckInStatus.None)
+{
+    @* Hóa đơn "đã hoàn tất" (CONTRACTS C3-38) *@
+    <div class="alert-ui tone-success" role="status"><i class="bi bi-check-circle" aria-hidden="true"></i>Đơn đã hoàn tất: mọi vé đã vào cửa@(b.FnbStatus == FnbStatus.Fulfilled ? " và bắp nước đã giao" : null). Chúc bạn xem phim vui vẻ!</div>
+}
+<div class="row g-4" data-ticket-live data-bill-id="@b.Id" data-code="@b.Code">
     <div class="col-12 col-lg-7">
         @if (info != null)
         {
@@ -32,7 +38,7 @@
         <div class="ticket-list">
             @foreach (var t in Model.Tickets)
             {
-                <article class="ticket-stub @(t.CheckInStatus != TicketCheckInStatus.NotCheckedIn ? "is-used" : null)" aria-label="Vé ghế @t.SeatLabel">
+                <article class="ticket-stub @(t.CheckInStatus != TicketCheckInStatus.NotCheckedIn ? "is-used" : null)" aria-label="Vé ghế @t.SeatLabel" data-ticket-id="@t.Id">
                     <div class="ticket-stub-main">
                         @if (info != null)
                         {
@@ -43,7 +49,11 @@
                         <p class="ticket-seat">Ghế <strong>@t.SeatLabel</strong></p>
                         <p class="small text-muted mb-1">@StatusDisplay.Of(StatusDisplay.Seat, t.SeatType).Label · @StatusDisplay.Of(StatusDisplay.Audience, t.AudienceType).Label</p>
                         <p class="small mb-1">Mã vé <span class="qr-code">@t.QrCode</span></p>
-                        <partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Ticket, t.CheckInStatus))" />
+                        <span data-ticket-status><partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Ticket, t.CheckInStatus))" /></span>
+                        @if (t.CheckInStatus == TicketCheckInStatus.CheckedIn)
+                        {
+                            <p class="ticket-live" data-live-mark><i class="bi bi-patch-check-fill" aria-hidden="true"></i>Đã vào cửa <span class="num" data-live-clock>@Fmt.Time(Model.Now)</span></p>
+                        }
                     </div>
                     <div class="ticket-stub-qr">
                         @if (t.CheckInStatus == TicketCheckInStatus.Voided)
@@ -68,11 +78,13 @@
             }
             else
             {
-                <p class="mb-2"><partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Fnb, b.FnbStatus))" />
-                    @if (b.PickupNumber is int pn)
-                    {
-                        <span class="ms-2">Số gọi <strong class="num">@CodeGenerator.FormatPickupNumber(pn)</strong></span>
-                    }
+                var pickupText = b.PickupNumber is int pn ? CodeGenerator.FormatPickupNumber(pn) : null;
+                <div class="pickup-big mb-3" data-pickup-big aria-live="assertive" hidden="@(b.FnbStatus != FnbStatus.ReadyForPickup)">
+                    Món của bạn đã sẵn sàng. Mời tới quầy nhận đồ
+                    <strong class="num" data-pickup-big-number>@pickupText</strong>
+                </div>
+                <p class="mb-2" aria-live="polite"><span data-fnb-status><partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Fnb, b.FnbStatus))" /></span>
+                    <span class="ms-2" data-pickup-line hidden="@(pickupText == null)">Số gọi <strong class="num" data-pickup-number>@pickupText</strong></span>
                 </p>
                 <ul class="plain-list">
                     @foreach (var l in Model.Lines)
@@ -82,7 +94,17 @@
                 </ul>
                 @if (b.FnbStatus == FnbStatus.PendingPickup)
                 {
-                    <p class="small text-muted mt-2 mb-0">Món được làm khi bạn tới rạp. Đưa mã vé cho nhân viên quầy bắp nước để nhận.</p>
+                    <div data-im-here-box>
+                        @if (Model.CanImHere)
+                        {
+                            <button type="button" class="btn btn-primary btn-xl w-100 mt-3" data-im-here><i class="bi bi-geo-alt-fill" aria-hidden="true"></i>Tôi đã tới rạp – làm bắp nước ngay</button>
+                            <p class="small text-muted mt-2 mb-0">Bếp bắt đầu làm món ngay khi bạn bấm; số gọi hiện ở đây và trên bảng gọi số tại quầy.</p>
+                        }
+                        else if (Model.Info != null)
+                        {
+                            <p class="small text-muted mt-2 mb-0">Món được làm khi bạn tới rạp. Nút "Tôi đã tới rạp" hiện từ <span class="num">@Fmt.Time(Model.Info.Showtime.StartTime.AddMinutes(-Model.ImHereWindowMinutes))</span> đến khi suất kết thúc; hoặc đưa mã vé cho nhân viên quầy bắp nước.</p>
+                        }
+                    </div>
                 }
             }
         </section>
@@ -117,5 +139,7 @@
 </div>
 
 @section Scripts {
+    <script src="~/lib/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
+    <script src="~/js/realtime.js" asp-append-version="true"></script>
     <script src="~/js/pages/ticket.js" asp-append-version="true"></script>
 }

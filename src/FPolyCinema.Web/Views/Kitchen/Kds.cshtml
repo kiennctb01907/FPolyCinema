@@ -1,0 +1,51 @@
+@model KdsVm
+@* Bếp P4 /pos/fnb-kds (theme cinema; SPEC 3.11): hai cột "Đang chuẩn bị" và "Sẵn sàng giao". Thẻ đơn: số gọi 40px; kênh (Quầy hoặc Online);
+   thời gian chờ đổi màu (xanh dưới 5 phút, vàng 5–10 phút, đỏ trên 10 phút); danh sách món chữ 18px; nút "Sẵn sàng giao" cao 56px; thẻ cột hai có nút "Đã giao".
+   Đơn mới trượt vào kèm âm báo nhẹ (KDS_ORDER_QUEUED). Ô quét QR đơn online ở quầy bắp nước để nhận bắp nước (SPEC 3.6-19). *@
+@{
+    Layout = "_LayoutPos";
+    ViewData["Title"] = "Bếp";
+    ViewData["Theme"] = "cinema";
+    ViewData["BodyClass"] = "pos-ui kds-ui";
+    ViewData["ConnState"] = "reconnecting";
+}
+<div class="kds" data-kds data-cinema-id="@Model.CinemaId" data-now="@Model.Now.ToString("yyyy-MM-ddTHH:mm:ss")">
+    <div class="kds-bar">
+        <h1 class="h5 mb-0">Bếp · @Model.CinemaName</h1>
+        <form class="kds-pickup" data-pickup-form autocomplete="off">
+            <label class="visually-hidden" for="kds-pickup-code">Quét QR đơn online để nhận bắp nước</label>
+            <input id="kds-pickup-code" name="code" class="form-control" placeholder="Quét QR đơn online (HD… / TK…)" />
+            <button type="submit" class="btn btn-primary"><i class="bi bi-upc-scan" aria-hidden="true"></i>Nhận đơn online</button>
+        </form>
+        <a class="btn btn-ghost" href="/pos/wastage"><i class="bi bi-trash3" aria-hidden="true"></i>Phiếu hủy hàng</a>
+        <a class="btn btn-ghost" href="/lobby/pickup-board?cinemaId=@Model.CinemaId" target="_blank" rel="noopener"><i class="bi bi-display" aria-hidden="true"></i>Bảng gọi số</a>
+    </div>
+    <div class="kds-columns">
+        <section class="kds-col" aria-labelledby="kds-prep-title">
+            <h2 class="kds-col-title" id="kds-prep-title">Đang chuẩn bị <span class="count-pill" data-count="PREPARING">@Model.Orders.Count(o => o.FnbStatus == FnbStatus.Preparing)</span></h2>
+            <div class="kds-list" data-col="PREPARING" aria-live="polite">
+                @foreach (var o in Model.Orders.Where(o => o.FnbStatus == FnbStatus.Preparing))
+                {
+                    <partial name="_KdsCard" model="o" />
+                }
+            </div>
+            <p class="kds-empty" data-empty="PREPARING" hidden="@Model.Orders.Any(o => o.FnbStatus == FnbStatus.Preparing)">Chưa có đơn nào cần làm.</p>
+        </section>
+        <section class="kds-col" aria-labelledby="kds-ready-title">
+            <h2 class="kds-col-title" id="kds-ready-title">Sẵn sàng giao <span class="count-pill" data-count="READY_FOR_PICKUP">@Model.Orders.Count(o => o.FnbStatus == FnbStatus.ReadyForPickup)</span></h2>
+            <div class="kds-list" data-col="READY_FOR_PICKUP" aria-live="polite">
+                @foreach (var o in Model.Orders.Where(o => o.FnbStatus == FnbStatus.ReadyForPickup))
+                {
+                    <partial name="_KdsCard" model="o" />
+                }
+            </div>
+            <p class="kds-empty" data-empty="READY_FOR_PICKUP" hidden="@Model.Orders.Any(o => o.FnbStatus == FnbStatus.ReadyForPickup)">Chưa có đơn nào chờ giao.</p>
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
+    <script src="~/js/realtime.js" asp-append-version="true"></script>
+    <script src="~/js/pages/kds.js" asp-append-version="true"></script>
+}

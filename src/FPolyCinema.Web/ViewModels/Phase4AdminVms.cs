@@ -37,6 +37,9 @@ public sealed record ChartVm(string Id, string Type, string Title, IReadOnlyList
 public sealed class DashboardVm
 {
     public DashboardData Data { get; init; } = null!;
+
+    /// <summary>Khối vận hành (UI A1-05): yêu cầu phê duyệt đang chờ, sĩ số trực tiếp.</summary>
+    public OpsDashboardVm Ops { get; init; } = null!;
     public ChartVm Revenue { get; init; } = null!;
     public ChartVm TopMovies { get; init; } = null!;
 }
@@ -55,6 +58,7 @@ public sealed class ReportVm
     public decimal MinShare { get; init; }
     public List<OccupancyRow> Occupancy { get; init; } = new();
     public List<ShiftRow> Shifts { get; init; } = new();
+    public List<WastageReportRow> Wastage { get; init; } = new();
     public string ExportUrl { get; init; } = string.Empty;
 }
 

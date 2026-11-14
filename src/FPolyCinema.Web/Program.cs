@@ -72,8 +72,17 @@ builder.Services.Configure<PaymentOptions>(builder.Configuration.GetSection(Paym
 builder.Services.AddScoped<SeatSuggestService>();
 builder.Services.AddScoped<OnlineBookingService>();
 builder.Services.AddScoped<CustomerCatalogPages>();
+builder.Services.AddScoped<ShowtimeOpsService>();
+builder.Services.AddScoped<GateService>();
+builder.Services.AddScoped<KdsService>();
+builder.Services.AddScoped<ApprovalService>();
+builder.Services.AddScoped<OpsManagementService>();
+builder.Services.AddScoped<SeatSwapService>();
+builder.Services.AddScoped<CustomerDisplayService>();
+builder.Services.AddScoped<FPolyCinema.Web.Controllers.OpsDashboardPages>();
 builder.Services.AddSignalR();
 builder.Services.AddHostedService<FPolyCinema.Web.Background.SeatHoldSweeper>();
+builder.Services.AddHostedService<FPolyCinema.Web.Background.ShowtimeClockService>();
 
 // ---------------------------------------------------------------- xác thực và phân quyền (SPEC 2.5, slide bài 4)
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

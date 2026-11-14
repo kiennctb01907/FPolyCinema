@@ -1,0 +1,53 @@
+@model StockFormVm
+@* Phiếu nhập kho đơn giản (UC30, SPEC 3.11-14; Manager): chọn rạp (quản lý toàn chuỗi), các dòng nguyên liệu và số lượng nhập; mỗi dòng cộng ActualStock
+   và ghi giao dịch IMPORT. Món khả dụng lại thì phát PRODUCT_AVAILABLE. *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Nhập kho";
+    ViewData["Crumbs"] = new List<Crumb> { new("Kho bắp nước"), new("Nguyên liệu", "/admin/materials"), new("Nhập kho") };
+}
+<div class="form-card">
+    <partial name="_PageHeader" model="@(new PageHeaderVm { Title = "Phiếu nhập kho", Description = $"{Model.CinemaName} · các ô có dấu * là bắt buộc.", Crumbs = new() { new("Nguyên liệu", "/admin/materials"), new("Nhập kho") } })" />
+    @if (Shell.Cinema.CanChoose && Shell.Cinema.BoundCinemaId == null)
+    {
+        <form class="filter-bar" method="get" action="/admin/materials/import">
+            <div class="filter-item">
+                <label class="form-label" for="imp-cinema">Rạp nhập kho</label>
+                <select id="imp-cinema" name="cinemaId" class="form-select">
+                    @foreach (var c in Shell.Cinema.Cinemas)
+                    {
+                        <option value="@c.Id" selected="@(c.Id == Model.CinemaId)">@c.Name</option>
+                    }
+                </select>
+            </div>
+            <div class="filter-item"><button type="submit" class="btn btn-secondary">Đổi rạp</button></div>
+        </form>
+    }
+    <form class="card-ui" method="post" action="/admin/materials/import" data-stock-form novalidate>
+        <input type="hidden" name="cinemaId" value="@Model.CinemaId" />
+        <section class="card-section" aria-labelledby="imp-lines">
+            <h2 class="card-section-title" id="imp-lines">Nguyên liệu nhập</h2>
+            <p class="card-section-desc">Số lượng theo đơn vị của nguyên liệu. Tồn kho cộng ngay khi lưu phiếu.</p>
+            @if (Model.Materials.Count == 0)
+            {
+                <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-box-seam", Title = "Rạp chưa có nguyên liệu", Text = "Thêm nguyên liệu trước khi nhập kho.", ActionLabel = "Thêm nguyên liệu", ActionUrl = "/admin/materials/create" })" />
+            }
+            else
+            {
+                <partial name="_StockLines" model="Model" />
+            }
+        </section>
+        <section class="card-section" aria-labelledby="imp-note">
+            <h2 class="card-section-title" id="imp-note">Ghi chú</h2>
+            <label class="visually-hidden" for="imp-note-text">Ghi chú phiếu nhập</label>
+            <textarea id="imp-note-text" name="note" class="form-control" rows="2" maxlength="500" placeholder="Ví dụ: nhập theo hóa đơn NCC số 0123"></textarea>
+        </section>
+        <div class="form-actions-sticky">
+            <a class="btn btn-ghost" href="/admin/materials">Hủy</a>
+            <button type="submit" class="btn btn-primary" disabled="@(Model.Materials.Count == 0)"><i class="bi bi-check2" aria-hidden="true"></i>Lưu phiếu nhập</button>
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <script src="~/js/pages/stock-form.js" asp-append-version="true"></script>
+}

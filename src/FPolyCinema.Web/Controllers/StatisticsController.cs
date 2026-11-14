@@ -17,7 +17,7 @@ namespace FPolyCinema.Web.Controllers;
 [Authorize(Policy = Policies.ManagerOnly)]
 public class StatisticsController : AppControllerBase
 {
-    public const string TabRevenue = "revenue", TabVietnamese = "vietnamese", TabOccupancy = "occupancy", TabShifts = "shifts";
+    public const string TabRevenue = "revenue", TabVietnamese = "vietnamese", TabOccupancy = "occupancy", TabShifts = "shifts", TabWastage = "wastage";
 
     private readonly StatisticsService _stats;
     private readonly CinemaContextService _cinema;
@@ -34,13 +34,13 @@ public class StatisticsController : AppControllerBase
 
     /// <summary>Dashboard quản lý (UI A1): thẻ KPI, doanh thu 30 ngày, top phim, tỷ lệ phim Việt có vạch 20%, cảnh báo vận hành.</summary>
     [HttpGet("admin")]
-    public IActionResult Dashboard()
+    public IActionResult Dashboard([FromServices] OpsDashboardPages ops)
     {
         var data = _stats.Dashboard(_cinema.CurrentCinemaId, Scope);
         var range = $"{Fmt.Date(data.Range30.From)}–{Fmt.Date(data.Range30.To)}";
         return View(new DashboardVm
         {
-            Data = data,
+            Data = data, Ops = ops.Build(),
             Revenue = new ChartVm("chart-revenue", "line", $"Doanh thu 30 ngày toàn chuỗi ({range})",
                 data.Revenue30.Select(r => r.RevenueDate.ToString("dd/MM")).ToList(),
                 new[] { new ChartSeries("Vé", data.Revenue30.Select(r => r.TicketRevenue).ToList(), "primary"), new ChartSeries("Bắp nước", data.Revenue30.Select(r => r.FnbRevenue).ToList(), "warning") }),
@@ -53,7 +53,7 @@ public class StatisticsController : AppControllerBase
     [HttpGet("admin/reports")]
     public IActionResult Reports(string? tab, string? preset, DateTime? from, DateTime? to)
     {
-        tab = tab is TabVietnamese or TabOccupancy or TabShifts ? tab : TabRevenue;
+        tab = tab is TabVietnamese or TabOccupancy or TabShifts or TabWastage ? tab : TabRevenue;
         var range = _stats.Range(preset, from, to, tab == TabVietnamese ? StatisticsService.ThisMonth : StatisticsService.Last30);
         if (tab == TabVietnamese && from == null && string.IsNullOrEmpty(preset)) range = new DateRange(new DateTime(range.To.Year, 1, 1), range.To, StatisticsService.Custom);
         var cinemaId = _cinema.CurrentCinemaId;
@@ -91,15 +91,18 @@ public class StatisticsController : AppControllerBase
             case TabShifts:
                 vm = With(vm, shifts: _stats.Shifts(range, cinemaId));
                 break;
+            case TabWastage:
+                vm = With(vm, wastage: WastageLogDAL.Report(cinemaId, range.From, range.To.AddDays(1)));
+                break;
         }
         return View(vm);
     }
 
     private static ReportVm With(ReportVm v, RevenueReport? revenue = null, List<ChartVm>? charts = null, List<Entities.ReadModels.VietnameseShareRow>? shares = null,
-        Entities.ReadModels.VietnameseShareRow? chain = null, List<Entities.ReadModels.OccupancyRow>? occupancy = null, List<Entities.ReadModels.ShiftRow>? shifts = null) => new()
+        Entities.ReadModels.VietnameseShareRow? chain = null, List<Entities.ReadModels.OccupancyRow>? occupancy = null, List<Entities.ReadModels.ShiftRow>? shifts = null, List<Entities.ReadModels.WastageReportRow>? wastage = null) => new()
     {
         Tab = v.Tab, Range = v.Range, CinemaId = v.CinemaId, ScopeName = v.ScopeName, MinShare = v.MinShare, ExportUrl = v.ExportUrl,
-        Revenue = revenue, Charts = charts ?? new(), Shares = shares ?? new(), ChainShare = chain, Occupancy = occupancy ?? new(), Shifts = shifts ?? new(),
+        Revenue = revenue, Charts = charts ?? new(), Shares = shares ?? new(), ChainShare = chain, Occupancy = occupancy ?? new(), Shifts = shifts ?? new(), Wastage = wastage ?? new(),
     };
 
     /// <summary>Xuất CSV của tab báo cáo đang xem.</summary>
@@ -130,6 +133,11 @@ public class StatisticsController : AppControllerBase
                     _stats.Shifts(range, cinemaId).Select(r => new object?[] { r.CinemaName, r.Shift.TerminalCode, r.UserName, r.Shift.OpenedAt, r.Shift.ClosedAt, r.Shift.OpeningCashFloat,
                         r.CashIn, r.CashRefund, r.Shift.ExpectedCash, r.Shift.ActualCashCounted, r.Shift.Discrepancy }));
                 name = "bien-ban-ca";
+                break;
+            case TabWastage:
+                csv = StatisticsService.Csv(new[] { "Ngày duyệt", "Phiếu", "Rạp", "Nguyên liệu", "Số lượng", "Đơn vị", "Lý do", "Người lập", "Người duyệt" },
+                    WastageLogDAL.Report(cinemaId, range.From, range.To.AddDays(1)).Select(r => new object?[] { r.DecidedAt, r.LogId, r.CinemaName, r.MaterialName, r.Quantity, r.Unit, r.Reason, r.CreatorName, r.DeciderName }));
+                name = "huy-hang";
                 break;
             default:
             {

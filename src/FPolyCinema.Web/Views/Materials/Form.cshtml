@@ -1,0 +1,112 @@
+@model MaterialFormVm
+@* A3. Form thêm, sửa nguyên liệu (UC30): tên, đơn vị, ngưỡng tối thiểu, rạp (chỉ khi thêm mới và là quản lý toàn chuỗi), trạng thái.
+   Tồn kho chỉ xem (đổi qua phiếu nhập, phiếu hủy, bán hàng); kèm 20 giao dịch kho gần nhất. *@
+@{
+    Layout = "_LayoutAdmin";
+    var isNew = Model.Id == null;
+    var title = isNew ? "Thêm nguyên liệu" : "Sửa nguyên liệu";
+    ViewData["Title"] = title;
+    ViewData["Crumbs"] = new List<Crumb> { new("Kho bắp nước"), new("Nguyên liệu", "/admin/materials"), new(isNew ? "Thêm mới" : Model.Name ?? "") };
+    string TxnLabel(string type) => type switch
+    {
+        InventoryTxnType.Import => "Nhập kho",
+        InventoryTxnType.Reserve => "Giữ cho đơn online",
+        InventoryTxnType.Release => "Trả phần đã giữ",
+        InventoryTxnType.Consume => "Làm món",
+        InventoryTxnType.Wastage => "Hủy hàng hỏng",
+        InventoryTxnType.Adjust => "Điều chỉnh",
+        _ => type,
+    };
+}
+<div class="form-card">
+    <partial name="_PageHeader" model="@(new PageHeaderVm { Title = title, Description = "Các ô có dấu * là bắt buộc.", Crumbs = new() { new("Nguyên liệu", "/admin/materials"), new(isNew ? "Thêm mới" : Model.Name ?? "") } })" />
+    <form asp-antiforgery="true" method="post" action="@(isNew ? "/admin/materials/create" : $"/admin/materials/{Model.Id}/edit")" class="card-ui" novalidate data-dirty-guard>
+        <partial name="~/Views/Login/_FormErrors.cshtml" />
+        <section class="card-section" aria-labelledby="sec-info">
+            <h2 class="card-section-title" id="sec-info">Thông tin nguyên liệu</h2>
+            <p class="card-section-desc">Dùng để khai báo định mức của món (BOM) và theo dõi tồn kho của từng rạp.</p>
+            <div class="form-grid cols-2">
+                <div>
+                    <label asp-for="Name" class="form-label">Tên nguyên liệu <span class="req" aria-hidden="true">*</span></label>
+                    <input asp-for="Name" class="form-control" placeholder="Ví dụ: Bắp rang" autofocus />
+                    <span asp-validation-for="Name"></span>
+                </div>
+                <div>
+                    <label asp-for="Unit" class="form-label">Đơn vị <span class="req" aria-hidden="true">*</span></label>
+                    <input asp-for="Unit" class="form-control" placeholder="Ví dụ: g, ml, cái" maxlength="20" />
+                    <span asp-validation-for="Unit"></span>
+                </div>
+                <div>
+                    <label asp-for="MinThreshold" class="form-label">Ngưỡng tối thiểu</label>
+                    <input asp-for="MinThreshold" type="number" min="0" step="0.001" class="form-control num" />
+                    <div class="form-text">Khả dụng xuống dưới ngưỡng thì quản lý ca nhận cảnh báo.</div>
+                    <span asp-validation-for="MinThreshold"></span>
+                </div>
+                <div>
+                    <label asp-for="CinemaId" class="form-label">Rạp</label>
+                    @if (Model.CanChooseCinema)
+                    {
+                        <select asp-for="CinemaId" class="form-select">
+                            @foreach (var c in Model.Cinemas)
+                            {
+                                <option value="@c.Id">@c.Name</option>
+                            }
+                        </select>
+                    }
+                    else
+                    {
+                        <input type="hidden" asp-for="CinemaId" />
+                        <p class="form-control-plaintext mb-0">@(Model.Cinemas.FirstOrDefault(c => c.Id == Model.CinemaId)?.Name)</p>
+                    }
+                    <span asp-validation-for="CinemaId"></span>
+                </div>
+                <div>
+                    <span class="form-label d-block">Trạng thái</span>
+                    <label class="form-check form-switch active-switch">
+                        <input asp-for="Active" class="form-check-input" type="checkbox" role="switch" />
+                        <span>Đang dùng</span>
+                    </label>
+                </div>
+            </div>
+        </section>
+        @if (!isNew)
+        {
+            <section class="card-section" aria-labelledby="sec-stock">
+                <h2 class="card-section-title" id="sec-stock">Tồn kho</h2>
+                <p class="card-section-desc">Chỉ đổi qua phiếu nhập kho, phiếu hủy hàng đã duyệt và bán hàng.</p>
+                <dl class="detail-list">
+                    <dt>Tồn thực tế</dt><dd class="num">@Fmt.Decimal(Model.ActualStock) @Model.Unit</dd>
+                    <dt>Đã giữ cho đơn online</dt><dd class="num">@Fmt.Decimal(Model.ReservedStock) @Model.Unit</dd>
+                    <dt>Khả dụng</dt><dd class="num fw-500">@Fmt.Decimal(Model.ActualStock - Model.ReservedStock) @Model.Unit</dd>
+                </dl>
+                @if (Model.History.Count > 0)
+                {
+                    <div class="table-wrap mt-3">
+                        <table class="data-table">
+                            <caption class="visually-hidden">Giao dịch kho gần nhất</caption>
+                            <thead><tr><th scope="col">Thời gian</th><th scope="col">Loại</th><th scope="col" class="num">Số lượng</th><th scope="col">Ghi chú</th></tr></thead>
+                            <tbody>
+                                @foreach (var t in Model.History)
+                                {
+                                    <tr>
+                                        <td class="num">@Fmt.DateTime(t.CreatedAt)</td>
+                                        <td>@TxnLabel(t.Type)</td>
+                                        <td class="num">@Fmt.Decimal(t.Quantity)</td>
+                                        <td>@(t.Note ?? "–")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            </section>
+        }
+        <div class="form-actions-sticky">
+            <a class="btn btn-ghost" href="/admin/materials">Hủy</a>
+            <button type="submit" class="btn btn-primary"><i class="bi bi-check2" aria-hidden="true"></i>Lưu</button>
+        </div>
+    </form>
+</div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

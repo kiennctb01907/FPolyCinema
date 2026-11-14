@@ -1,0 +1,36 @@
+@model StockFormVm
+@* Các dòng của phiếu kho dùng chung cho phiếu hủy hàng hỏng (PosStaff) và phiếu nhập kho (Manager): chọn nguyên liệu, số lượng, lý do (chỉ phiếu hủy).
+   stock-form.js thêm, bớt dòng và gửi form. *@
+<div class="stock-lines" data-stock-lines>
+    <template data-line-template>
+        <div class="form-grid cols-3 align-items-end mb-3" data-line>
+            <div>
+                <label class="form-label">Nguyên liệu <span class="req" aria-hidden="true">*</span></label>
+                <select class="form-select" name="materialIds" required>
+                    <option value="">Chọn nguyên liệu</option>
+                    @foreach (var m in Model.Materials.Where(m => m.Active))
+                    {
+                        <option value="@m.Id">@m.Name (@m.Unit) – còn @Fmt.Decimal(m.ActualStock - m.ReservedStock)</option>
+                    }
+                </select>
+            </div>
+            <div>
+                <label class="form-label">Số lượng <span class="req" aria-hidden="true">*</span></label>
+                <input class="form-control num-input" name="quantities" inputmode="decimal" placeholder="Ví dụ: 500" required />
+            </div>
+            <div class="d-flex gap-2 align-items-end">
+                @if (!Model.IsImport)
+                {
+                    <div class="flex-grow-1">
+                        <label class="form-label">Lý do <span class="req" aria-hidden="true">*</span></label>
+                        <input class="form-control" name="reasons" maxlength="200" placeholder="Ví dụ: bắp bị ẩm" />
+                    </div>
+                }
+                <button type="button" class="btn btn-ghost btn-icon ms-auto" data-line-remove aria-label="Xóa dòng này"><i class="bi bi-trash" aria-hidden="true"></i></button>
+            </div>
+        </div>
+    </template>
+    <div data-line-list></div>
+    <button type="button" class="btn btn-secondary btn-sm" data-line-add><i class="bi bi-plus-lg" aria-hidden="true"></i>Thêm nguyên liệu</button>
+    <p class="field-error mt-2 mb-0" data-lines-error hidden></p>
+</div>

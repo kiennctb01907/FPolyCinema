@@ -1,0 +1,24 @@
+@model LobbyVm
+@inject FPolyCinema.Web.Infrastructure.CinemaRules Rules
+@* Các dòng của bảng sảnh. Trạng thái hiển thị: BOARDING "Mời vào rạp" (xanh, nhấp nháy chậm); ADS_PLAYING, FEATURE_PLAYING, CREDITS_ROLLING "Đang chiếu";
+   CLEANING_IN_PROGRESS "Đang dọn"; SCHEDULED "Sắp chiếu" (phòng chưa sẵn sàng sau giờ mở cửa thì vẫn ghi "Đang dọn"). *@
+@if (Model.Showtimes.Count == 0)
+{
+    <p class="signage-empty">Hôm nay không còn suất chiếu nào. Hẹn gặp lại quý khách.</p>
+}
+@foreach (var s in Model.Showtimes)
+{
+    var state = ShowtimeOpsRules.SignageState(s.OperationalStatus, s.StartTime, Model.Now, Rules.BoardingLeadMinutes);
+    var label = state switch { "boarding" => "Mời vào rạp", "playing" => "Đang chiếu", "cleaning" => "Đang dọn", _ => "Sắp chiếu" };
+    var tone = "is-" + state;
+    <div class="signage-row @tone" data-showtime-id="@s.ShowtimeId">
+        <span class="signage-time num">@Fmt.Time(s.StartTime)</span>
+        <span class="signage-movie">
+            <span class="signage-title">@s.MovieTitle</span>
+            <span class="signage-meta"><partial name="_AgeBadge" model="@(new AgeBadgeVm(s.AgeRating, false, true))" /> @s.Format · @StatusDisplay.Of(StatusDisplay.Language, s.LanguageFormat).Label</span>
+            <span class="signage-age">@StatusDisplay.AgeExplanation(s.AgeRating)</span>
+        </span>
+        <span class="signage-room">@s.AuditoriumName</span>
+        <span class="signage-status"><span class="signage-pill">@label</span></span>
+    </div>
+}

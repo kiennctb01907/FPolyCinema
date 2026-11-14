@@ -65,6 +65,10 @@
   --scrim: rgba(11,15,25,.72);
   --scrim-soft: rgba(11,15,25,.35);
   --shadow-sm-dark: 0 1px 2px rgba(0,0,0,.35);
+  /* Nền đặc của thẻ kết quả soát vé (UI U2-05): hợp lệ, cảnh báo, từ chối; chữ trắng */
+  --gate-ok: #15803D; --gate-warn: #B45309; --gate-reject: #B91C1C;
+  /* Cỡ chữ màn hình vận hành ghi đích danh ở UI P4–P6: số gọi bếp 40px, số đang chuẩn bị 64px, số mời nhận đồ 96px */
+  --fs-40: 2.5rem; --fs-64: 4rem; --fs-96: 6rem;
 }
 [data-theme="cinema"] { --shadow-sm: var(--shadow-sm-dark); }
 [data-theme="ops"] { --glass: rgba(255,255,255,.85); }

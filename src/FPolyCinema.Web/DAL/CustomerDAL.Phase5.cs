@@ -12,7 +12,7 @@ namespace FPolyCinema.Web.DAL;
 public static partial class ShowtimeDAL
 {
     /// <summary>
-    /// Suất cho web khách: bắt đầu trong [from, to), chưa bị hủy, lọc tùy chọn theo rạp và phim; kèm rạp, số ghế trống hiệu lực (ghế bảo trì không tính).
+    /// Suất cho web khách: bắt đầu trong [from, to), chưa bị hủy, không phải suất thuê trọn (IsPrivate, SPEC 3.10-08), lọc tùy chọn theo rạp và phim; kèm rạp, số ghế trống hiệu lực (ghế bảo trì không tính).
     /// </summary>
     public static List<CustomerShowtimeRow> ForCustomer(int? cinemaId, int? movieId, DateTime from, DateTime to, DateTime now, SqlConnection? conn = null, SqlTransaction? tx = null)
     {
@@ -22,7 +22,7 @@ public static partial class ShowtimeDAL
                   " (SELECT COUNT(*) FROM ShowtimeSeats ss JOIN Seats s ON s.Id = ss.SeatId WHERE ss.ShowtimeId = t.Id AND s.IsMaintenance = 0" +
                   "   AND (ss.Status = @4 OR (ss.Status = @5 AND ss.HoldExpiresAt <= @3))) AS FreeSeats" +
                   " FROM Showtimes t JOIN Movies m ON m.Id = t.MovieId JOIN Auditoriums a ON a.Id = t.AuditoriumId JOIN Cinemas c ON c.Id = a.CinemaId" +
-                  " WHERE t.StartTime >= @1 AND t.StartTime < @2 AND t.OperationalStatus <> @6 AND m.Active = 1 AND c.Active = 1";
+                  " WHERE t.StartTime >= @1 AND t.StartTime < @2 AND t.OperationalStatus <> @6 AND t.IsPrivate = 0 AND m.Active = 1 AND c.Active = 1";
         if (cinemaId is int cid)
         {
             ps.Add(cid);
@@ -42,7 +42,7 @@ public static partial class ShowtimeDAL
     /// <summary>Phim đang có suất chưa bắt đầu trong [from, to) (đang chiếu) – Id phim theo số suất giảm dần.</summary>
     public static List<int> MoviesWithShowtimes(DateTime from, DateTime to, SqlConnection? conn = null, SqlTransaction? tx = null)
     {
-        const string sql = "SELECT t.MovieId FROM Showtimes t JOIN Movies m ON m.Id = t.MovieId WHERE t.StartTime >= @1 AND t.StartTime < @2 AND t.OperationalStatus <> @3 AND m.Active = 1" +
+        const string sql = "SELECT t.MovieId FROM Showtimes t JOIN Movies m ON m.Id = t.MovieId WHERE t.StartTime >= @1 AND t.StartTime < @2 AND t.OperationalStatus <> @3 AND t.IsPrivate = 0 AND m.Active = 1" +
                            " GROUP BY t.MovieId ORDER BY COUNT(*) DESC, t.MovieId";
         return DBUtil.QueryDataTable(sql, new List<object> { from, to, OperationalStatus.Cancelled }, conn, tx).Rows.Cast<DataRow>().Select(r => r.GetInt("MovieId")).ToList();
     }

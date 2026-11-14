@@ -16,6 +16,9 @@ public sealed class PosIndexVm
     public Cart Cart { get; init; } = new();
     public DateTime Now { get; init; }
     public int LowSeatThreshold { get; init; }
+
+    /// <summary>Khóa máy {CinemaId}-{TerminalCode} cho nhóm SignalR kênh 2 (màn hình phụ, kết quả duyệt từ xa).</summary>
+    public string TerminalKey { get; init; } = string.Empty;
 }
 
 /// <summary>Mở ca (UI P7).</summary>
@@ -69,6 +72,7 @@ public sealed class MyBillsVm
     public List<SupervisorRow> Supervisors { get; init; } = new();
     public bool HasShift { get; init; }
     public int? ShiftId { get; init; }
+    public string? TerminalKey { get; init; }
     public long Total => Bills.Where(b => b.Status == Domain.Constants.BillStatus.Finish).Sum(b => b.Total);
 }
 
@@ -85,4 +89,7 @@ public sealed class VoidModalVm
 {
     public List<SupervisorRow> Supervisors { get; init; } = new();
     public bool AskCode { get; init; }
+
+    /// <summary>Khóa máy POS để nhận kết quả duyệt từ xa (APPROVAL_DECIDED); null khi chưa mở ca.</summary>
+    public string? TerminalKey { get; init; }
 }

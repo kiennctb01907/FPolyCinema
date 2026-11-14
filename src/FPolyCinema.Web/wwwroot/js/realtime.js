@@ -4,7 +4,8 @@
    Cách dùng: realtime.join('JoinShowtime', 12); realtime.on('SEAT_MAP_UPDATED', (p) => …); realtime.onReload(() => …). */
 (function () {
   'use strict';
-  if (!window.signalR) return;
+  // Không có thư viện SignalR, hoặc trang đã nạp module này (layout quản trị nạp sẵn cho quản lý ca) thì không tạo kết nối thứ hai
+  if (!window.signalR || window.realtime) return;
 
   const groups = new Map(); // khóa → { join, leave, args }
   const reloaders = new Set();

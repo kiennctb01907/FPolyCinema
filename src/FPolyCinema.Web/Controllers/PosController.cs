@@ -30,10 +30,19 @@ public class PosController : AppControllerBase
     private readonly CinemaContextService _cinema;
     private readonly IClock _clock;
     private readonly CinemaRules _rules;
+    private readonly CustomerDisplayService _display;
+    private readonly ApprovalService _approvals;
+    private readonly KdsService _kds;
+    private readonly SeatSwapService _swap;
 
     public PosController(ShiftService shifts, BillService bills, SeatHoldService holds, SeatMapService seatMaps, InventoryService inventory,
-        ManagerPinService pins, BillQueryService query, CinemaContextService cinema, IClock clock, CinemaRules rules)
+        ManagerPinService pins, BillQueryService query, CinemaContextService cinema, IClock clock, CinemaRules rules,
+        CustomerDisplayService display, ApprovalService approvals, KdsService kds, SeatSwapService swap)
     {
+        _display = display;
+        _approvals = approvals;
+        _kds = kds;
+        _swap = swap;
         _shifts = shifts;
         _bills = bills;
         _holds = holds;
@@ -57,6 +66,15 @@ public class PosController : AppControllerBase
         new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Lax, Expires = _clock.Now.AddYears(1), IsEssential = true });
 
     private JsonResult CartJson(Cart cart) => ApiOk(new { cart });
+
+    private static string Key(PosContext ctx) => ShiftService.TerminalKey(ctx.CinemaId, ctx.Shift.TerminalCode);
+
+    /// <summary>Trả giỏ cho POS và phát POS_CART_UPDATED cho màn hình phụ của máy (UI P2).</summary>
+    private async Task<JsonResult> CartAndDisplay(PosContext ctx, Cart cart)
+    {
+        await _display.CartUpdated(Key(ctx), cart);
+        return CartJson(cart);
+    }
 
     // ------------------------------------------------------------------ màn hình chính
 
@@ -84,6 +102,7 @@ public class PosController : AppControllerBase
             Audiences = AudienceDiscountDAL.GetAll(),
             Cart = await _bills.Cart(ctx),
             LowSeatThreshold = 10,
+            TerminalKey = Key(ctx),
         };
         ViewData["ConnState"] = "reconnecting";
         return View(vm);
@@ -172,7 +191,7 @@ public class PosController : AppControllerBase
     {
         var ctx = Context();
         var bill = await _bills.Ensure(ctx);
-        return CartJson(_bills.BuildCart(bill, new List<string>()));
+        return await CartAndDisplay(ctx, _bills.BuildCart(bill, new List<string>()));
     }
 
     /// <summary>Tải lại hóa đơn tạm tính (sau khi kết nối lại).</summary>
@@ -194,7 +213,9 @@ public class PosController : AppControllerBase
             var info = SeatMapService.Info(sid);
             if (info == null || info.Auditorium.CinemaId != ctx.CinemaId) return ApiFail(ErrorCodes.NotFound, "Không tìm thấy suất chiếu ở rạp này.");
         }
-        return CartJson(await _bills.Cart(ctx));
+        var cart = await _bills.Cart(ctx);
+        await _display.ShowtimeSelected(Key(ctx), cart, showtimeId);
+        return CartJson(cart);
     }
 
     /// <summary>Sơ đồ ghế của suất (HTML của _SeatMap) – tải khi chọn suất và tải lại sau khi kết nối lại.</summary>
@@ -219,24 +240,24 @@ public class PosController : AppControllerBase
             new HoldOptions(BillChannel.Pos, ctx.Role, ctx.UserId, overrideOrphan, overrideReason, wheelchairConfirmed));
         var notices = new List<string>();
         if (result.OrphanOverridden) notices.Add("Đã bỏ qua luật ghế mồ côi và ghi nhật ký kèm lý do.");
-        return CartJson(_bills.BuildCart(result.Bill, notices));
+        return await CartAndDisplay(ctx, _bills.BuildCart(result.Bill, notices));
     }
 
     /// <summary>Gia hạn giữ ghế một lần (SeatHoldExtendMinutes).</summary>
     [HttpPost("extend-hold")]
-    public async Task<IActionResult> ExtendHold() => CartJson(await _bills.ExtendHold(Context()));
+    public async Task<IActionResult> ExtendHold() { var ctx = Context(); return await CartAndDisplay(ctx, await _bills.ExtendHold(ctx)); }
 
     /// <summary>Chọn đối tượng vé cho một ghế (seatId) hoặc mọi vé (seatId rỗng).</summary>
     [HttpPost("set-audience")]
-    public async Task<IActionResult> SetAudience(int? seatId, string? audienceType) => CartJson(await _bills.SetAudience(Context(), seatId, audienceType));
+    public async Task<IActionResult> SetAudience(int? seatId, string? audienceType) { var ctx = Context(); return await CartAndDisplay(ctx, await _bills.SetAudience(ctx, seatId, audienceType)); }
 
     /// <summary>Tích hoặc bỏ "Có người giám hộ đi cùng" (phim K).</summary>
     [HttpPost("set-guardian")]
-    public async Task<IActionResult> SetGuardian(bool confirmed) => CartJson(await _bills.SetGuardian(Context(), confirmed));
+    public async Task<IActionResult> SetGuardian(bool confirmed) { var ctx = Context(); return await CartAndDisplay(ctx, await _bills.SetGuardian(ctx, confirmed)); }
 
     /// <summary>Bắp nước theo slide: action là incr, decr hoặc delete.</summary>
     [HttpPost("update-quantity")]
-    public async Task<IActionResult> UpdateQuantity(int drinkId, string? action) => CartJson(await _bills.UpdateQuantity(Context(), drinkId, action));
+    public async Task<IActionResult> UpdateQuantity(int drinkId, string? action) { var ctx = Context(); return await CartAndDisplay(ctx, await _bills.UpdateQuantity(ctx, drinkId, action)); }
 
     /// <summary>Số phần còn bán được của từng món (cập nhật lưới "Tạm hết").</summary>
     [HttpGet("drink-stock")]
@@ -249,15 +270,15 @@ public class PosController : AppControllerBase
 
     /// <summary>Tra cứu thành viên (F1) theo mã thành viên, số điện thoại hoặc email; query rỗng là bỏ thành viên.</summary>
     [HttpPost("lookup-member")]
-    public async Task<IActionResult> LookupMember(string? query) => CartJson(await _bills.LookupMember(Context(), query));
+    public async Task<IActionResult> LookupMember(string? query) { var ctx = Context(); return await CartAndDisplay(ctx, await _bills.LookupMember(ctx, query)); }
 
     /// <summary>Áp hoặc gỡ voucher.</summary>
     [HttpPost("apply-voucher")]
-    public async Task<IActionResult> ApplyVoucher(string? code) => CartJson(await _bills.ApplyVoucher(Context(), code));
+    public async Task<IActionResult> ApplyVoucher(string? code) { var ctx = Context(); return await CartAndDisplay(ctx, await _bills.ApplyVoucher(ctx, code)); }
 
     /// <summary>Đổi điểm thành viên.</summary>
     [HttpPost("apply-points")]
-    public async Task<IActionResult> ApplyPoints(int points) => CartJson(await _bills.ApplyPoints(Context(), points));
+    public async Task<IActionResult> ApplyPoints(int points) { var ctx = Context(); return await CartAndDisplay(ctx, await _bills.ApplyPoints(ctx, points)); }
 
     /// <summary>QR chuyển khoản mô phỏng (VIETQR_SIM) cho số tiền của hóa đơn.</summary>
     [HttpGet("payment-qr")]
@@ -266,12 +287,23 @@ public class PosController : AppControllerBase
         var ctx = Context();
         var bill = await _bills.Current(ctx) ?? throw FieldErrors.Of("bill", "Hóa đơn trống. Bạn chọn ghế hoặc món trước.");
         var payload = $"VIETQR-SIM|FPOLYCINEMA|{bill.Code}|{bill.Total}";
-        return ApiOk(new { dataUri = QrSvg.DataUri(payload), code = bill.Code, amount = bill.Total, amountText = Fmt.Money(bill.Total) });
+        var dataUri = QrSvg.DataUri(payload);
+        // QR mô phỏng hiện thêm trên màn hình phụ của quầy (SPEC 3.6-11)
+        await _display.PaymentQr(Key(ctx), dataUri, bill.Code, bill.Total, bill.ShowtimeId != null ? bill.HoldExpiresAt : null);
+        return ApiOk(new { dataUri, code = bill.Code, amount = bill.Total, amountText = Fmt.Money(bill.Total) });
     }
 
     /// <summary>Thanh toán: method CASH (cashReceived là tiền khách đưa) hoặc VIETQR_SIM (sau khi thu ngân bấm "Đã nhận tiền").</summary>
     [HttpPost("checkout")]
-    public async Task<IActionResult> Checkout(string? method, long? cashReceived) => ApiOk(await _bills.Checkout(Context(), method, cashReceived));
+    public async Task<IActionResult> Checkout(string? method, long? cashReceived)
+    {
+        var ctx = Context();
+        var result = await _bills.Checkout(ctx, method, cashReceived);
+        // Màn hình phụ: "Cảm ơn quý khách" kèm mã và QR vé (SPEC 3.6-17); đơn bắp nước lên màn hình bếp ngay (SPEC 3.11-06)
+        await _display.PaymentDone(Key(ctx), result.BillId, result.Code);
+        await _kds.QueuePosOrder(result.BillId, ctx.CinemaId);
+        return ApiOk(result);
+    }
 
     /// <summary>Hủy hóa đơn chưa thanh toán (billId rỗng là hóa đơn tạm tính đang mở) và trả ghế.</summary>
     [HttpPost("cancel")]
@@ -292,6 +324,7 @@ public class PosController : AppControllerBase
             id = cur.Id;
         }
         var code = await _bills.CancelWaiting(id, ctx.Role, ctx.CinemaId);
+        await _display.Reset(Key(ctx));
         return ApiOk(new { cart = new Cart { Notices = new List<string> { $"Đã hủy hóa đơn {code}." } } });
     }
 
@@ -356,6 +389,89 @@ public class PosController : AppControllerBase
         {
             Date = day, Bills = _query.CreatedBy(CurrentUserId, day),
             Supervisors = ctx != null ? BillQueryService.Supervisors(ctx.CinemaId) : new(), HasShift = ctx != null, ShiftId = ctx?.Shift.Id,
+            TerminalKey = ctx != null ? Key(ctx) : null,
         });
+    }
+
+    // ------------------------------------------------------------------ duyệt hủy từ xa (SPEC 3.6-21, 3.6-22)
+
+    /// <summary>
+    /// Thu ngân gửi yêu cầu duyệt hủy từ xa thay cho nhập PIN: phát APPROVAL_REQUESTED tới manager_alerts_{cinemaId}; kết quả APPROVAL_DECIDED về máy này
+    /// (pos_terminal_{khóa máy}). Yêu cầu hết hạn sau ApprovalRequestExpireMinutes.
+    /// </summary>
+    [HttpPost("request-void-remote")]
+    public async Task<IActionResult> RequestVoidRemote(int? billId, string? billCode, string? reason)
+    {
+        var ctx = Context();
+        if (billId == null)
+        {
+            var found = _query.FindByScan(billCode);
+            if (found == null || found.CinemaId != ctx.CinemaId) throw FieldErrors.Of("billCode", "Không tìm thấy hóa đơn của rạp này với mã vừa nhập.");
+            billId = found.Id;
+        }
+        var a = await _approvals.Request(billId.Value, reason, ctx.UserId, ctx.CinemaId);
+        return ApiOk(new { approvalId = a.Id, billCode = a.BillCode, expiresAt = a.ExpiresAt.ToString("yyyy-MM-ddTHH:mm:ss"),
+            message = $"Đã gửi yêu cầu hủy hóa đơn {a.BillCode} tới quản lý. Kết quả sẽ hiện ngay trên máy này." });
+    }
+
+    // ------------------------------------------------------------------ đổi, nâng hạng ghế (SPEC 3.10 mục 1)
+
+    /// <summary>Màn hình đổi ghế: quét vé, chọn ghế mới trong cùng suất, xem chênh lệch, xác nhận.</summary>
+    [HttpGet("swap-seat")]
+    public IActionResult SwapSeat()
+    {
+        var ctx = TryContext();
+        if (ctx == null) return Redirect("/pos/open-shift");
+        return View(new SwapSeatVm { Context = ctx });
+    }
+
+    /// <summary>Quét mã hóa đơn hoặc mã vé: trả suất, vé và lý do vé nào không đổi được.</summary>
+    [HttpPost("swap-seat/find")]
+    public IActionResult SwapFind(string? code)
+    {
+        var ctx = Context();
+        var s = _swap.Find(code, ctx.CinemaId);
+        return ApiOk(new
+        {
+            billId = s.Bill.Id, code = s.Bill.Code, showtimeId = s.Info.Showtime.Id, title = s.Info.Movie.Title, ageRating = s.Info.Movie.AgeRating,
+            time = $"{Fmt.WeekdayDate(s.Info.Showtime.StartTime)} · {Fmt.Time(s.Info.Showtime.StartTime)}–{Fmt.Time(s.Info.Showtime.EndTime)}", room = s.Info.Auditorium.Name,
+            tickets = s.Tickets.Select(t => new
+            {
+                ticketId = t.TicketId, seatId = t.SeatId, seat = t.SeatLabel, seatType = StatusDisplay.Of(StatusDisplay.Seat, t.SeatType).Label,
+                audience = StatusDisplay.Of(StatusDisplay.Audience, t.AudienceType).Label, price = Fmt.Money(t.FinalPrice), blocked = s.Blocked[t.TicketId],
+            }),
+        });
+    }
+
+    /// <summary>Sơ đồ ghế của suất để chọn ghế mới (ghế của hóa đơn hiện là đã bán).</summary>
+    [HttpGet("swap-seat/seat-map")]
+    public IActionResult SwapSeatMap(int showtimeId)
+    {
+        var ctx = Context();
+        var info = SeatMapService.Info(showtimeId);
+        if (info == null || info.Auditorium.CinemaId != ctx.CinemaId) return NotFoundPage("Không tìm thấy suất chiếu.");
+        return PartialView("_SeatMapRegion", new PosSeatMapVm { SeatMap = SeatMapVm.From(_seatMaps.Build(showtimeId, null)), Info = info, Now = _clock.Now });
+    }
+
+    /// <summary>Báo giá đổi ghế: chênh lệch = giá mới − giá cũ; không đổi dữ liệu.</summary>
+    [HttpPost("swap-seat/quote")]
+    public IActionResult SwapQuote(int billId, [FromForm] int[]? ticketIds, [FromForm] int[]? seatIds)
+    {
+        var ctx = Context();
+        var q = _swap.Quote(billId, ctx.CinemaId, ticketIds ?? Array.Empty<int>(), seatIds ?? Array.Empty<int>());
+        return ApiOk(new
+        {
+            lines = q.Lines.Select(l => new { l.OldSeat, l.NewSeat, oldPrice = Fmt.Money(l.OldPrice), newPrice = Fmt.Money(l.NewPrice) }),
+            difference = q.Quote.Difference, charge = q.Quote.Charge, chargeText = Fmt.Money(q.Quote.Charge), upgrade = q.Quote.IsUpgrade, message = q.Message,
+        });
+    }
+
+    /// <summary>Đổi ghế (route /pos/swap-seat): vé cũ SWAPPED, vé mới QR mới cùng hóa đơn; nâng hạng thì thu thêm bằng tiền mặt hoặc chuyển khoản.</summary>
+    [HttpPost("swap-seat")]
+    public async Task<IActionResult> SwapSeat(int billId, [FromForm] int[]? ticketIds, [FromForm] int[]? seatIds, string? method, long? cashReceived,
+        bool wheelchairConfirmed, bool overrideOrphan, string? overrideReason)
+    {
+        var r = await _swap.Swap(Context(), billId, ticketIds ?? Array.Empty<int>(), seatIds ?? Array.Empty<int>(), method, cashReceived, wheelchairConfirmed, overrideOrphan, overrideReason);
+        return ApiOk(r);
     }
 }

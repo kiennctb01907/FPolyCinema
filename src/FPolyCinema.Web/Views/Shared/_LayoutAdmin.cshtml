@@ -58,6 +58,15 @@
     </div>
     <partial name="_DemoBar" />
     <partial name="_Scripts" />
+    @if (Shell.IsSupervisor)
+    {
+        @* Kênh 7a (UI A7): popup phê duyệt thời gian thực ở góc phải và cảnh báo tồn kho cho quản lý ca, quản lý rạp *@
+        var alertCinemas = Shell.Cinema.CurrentCinemaId is int ac ? new List<int> { ac } : Shell.Cinema.Cinemas.Select(c => c.Id).ToList();
+        <div class="approval-stack" data-approval-stack data-cinema-ids="@string.Join(",", alertCinemas)" aria-live="polite"></div>
+        <script src="~/lib/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
+        <script src="~/js/realtime.js" asp-append-version="true"></script>
+        <script src="~/js/approvals.js" asp-append-version="true"></script>
+    }
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

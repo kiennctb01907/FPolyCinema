@@ -157,7 +157,6 @@ public class DrinkService
                 ProductRecipeDAL.Insert(new ProductRecipe { DrinkId = drink.Id, RawMaterialId = r.RawMaterialId, Quantity = Math.Round(r.Quantity, 3) }, conn, tx);
             return drink;
         });
-        // TODO(Phase 6): InventoryService tính lại IsSoldOut của món sau khi đổi định mức và phát PRODUCT_SOLD_OUT / PRODUCT_AVAILABLE.
         if (oldImage != null && oldImage != saved.Image) _uploads.DeleteIfUnused(oldImage);
         return saved;
     }

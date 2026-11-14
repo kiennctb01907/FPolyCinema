@@ -100,7 +100,7 @@ public class BookingController : AppControllerBase
     [HttpGet("{showtimeId:int}")]
     public async Task<IActionResult> Index(int showtimeId, string? persona, int? qty)
     {
-        var info = SeatMapService.Info(showtimeId);
+        var info = OnlineBookingService.OnlineInfo(showtimeId);
         if (info == null || info.Movie.AgeRating == AgeRating.C) return NotFoundPage("Không tìm thấy suất chiếu.");
         var bill = IsCustomer ? await _booking.CurrentFor(CurrentUserId, showtimeId) : null;
         var user = IsCustomer ? FPolyCinema.Web.DAL.UserDAL.GetById(CurrentUserId) : null;
@@ -144,14 +144,15 @@ public class BookingController : AppControllerBase
     [HttpGet("{showtimeId:int}/seat-map")]
     public async Task<IActionResult> SeatMap(int showtimeId)
     {
-        if (!_seatMaps.ShowtimeExists(showtimeId)) return NotFoundPage("Không tìm thấy suất chiếu.");
+        // Suất thuê trọn của doanh nghiệp không hiện trên web khách (SPEC 3.10-08)
+        if (!_seatMaps.ShowtimeExists(showtimeId) || OnlineBookingService.OnlineInfo(showtimeId) == null) return NotFoundPage("Không tìm thấy suất chiếu.");
         var bill = IsCustomer ? await _booking.CurrentFor(CurrentUserId, showtimeId) : null;
         return PartialView("_SeatMap", SeatMapVm.From(_seatMaps.Build(showtimeId, bill?.Id)));
     }
 
     private JsonResult CartJson(Cart? cart, int cinemaId) => ApiOk(new { cart = cart ?? new Cart(), stock = _catalog.Portions(cinemaId) });
 
-    private int CinemaOf(int showtimeId) => SeatMapService.Info(showtimeId)?.Auditorium.CinemaId ?? throw CustomerCatalogPages.ShowtimeNotFound();
+    private int CinemaOf(int showtimeId) => OnlineBookingService.OnlineInfo(showtimeId)?.Auditorium.CinemaId ?? throw CustomerCatalogPages.ShowtimeNotFound();
 
     [HttpGet("{showtimeId:int}/cart")]
     public async Task<IActionResult> Cart(int showtimeId) => CartJson(await _booking.Cart(CurrentUserId, showtimeId), CinemaOf(showtimeId));
@@ -266,11 +267,15 @@ public class TicketsController : AppControllerBase
 {
     private readonly OnlineBookingService _booking;
     private readonly CinemaRules _rules;
+    private readonly KdsService _kds;
+    private readonly IClock _clock;
 
-    public TicketsController(OnlineBookingService booking, CinemaRules rules)
+    public TicketsController(OnlineBookingService booking, CinemaRules rules, KdsService kds, IClock clock)
     {
         _booking = booking;
         _rules = rules;
+        _kds = kds;
+        _clock = clock;
     }
 
     [HttpGet("/tickets/{billCode}")]
@@ -287,6 +292,7 @@ public class TicketsController : AppControllerBase
             Tickets = FPolyCinema.Web.DAL.TicketDAL.RowsByBill(bill.Id), Lines = FPolyCinema.Web.DAL.BillDetailDAL.RowsByBill(bill.Id),
             Cancel = _booking.SelfCancelCheck(bill, CurrentUserId), MaxPerMonth = _rules.SelfCancelMaxPerMonth, MinMinutesBeforeStart = _rules.SelfCancelMinMinutesBeforeStart,
             Paid = payments.Where(p => p.Direction == PaymentDirection.In).Sum(p => p.Amount),
+            Now = _clock.Now, ImHereWindowMinutes = _rules.ImHereWindowMinutesBeforeStart,
         });
     }
 
@@ -296,5 +302,17 @@ public class TicketsController : AppControllerBase
     {
         var refund = await _booking.SelfCancel(CurrentUserId, billCode);
         return ApiOk(new { message = $"Đã hủy vé và hoàn {Fmt.Money(refund)} vào ví FPoly của bạn." });
+    }
+
+    /// <summary>
+    /// "Tôi đã tới rạp – làm bắp nước ngay" (SPEC 3.11-04): chỉ trong khung StartTime − ImHereWindowMinutesBeforeStart đến EndTime; bếp bắt đầu làm món
+    /// (RELEASE + CONSUME, PREPARING), số gọi được cấp và cập nhật trực tiếp trên vé (FNB_STATUS_CHANGED).
+    /// </summary>
+    [HttpPost("/tickets/{billCode}/im-here")]
+    public async Task<IActionResult> ImHere(string billCode)
+    {
+        var bill = OnlineBookingService.OwnBill(CurrentUserId, billCode) ?? throw CategoryService.NotFound("Không tìm thấy vé.");
+        var order = await _kds.StartOnline(bill.Id, CurrentUserId, null, null);
+        return ApiOk(new { pickupNumber = order.PickupNumber, message = $"Bếp đã nhận đơn. Số gọi của bạn là {order.PickupNumber}." });
     }
 }

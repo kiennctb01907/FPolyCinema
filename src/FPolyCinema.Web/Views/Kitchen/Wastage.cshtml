@@ -1,0 +1,50 @@
+@model StockFormVm
+@* Lập phiếu hủy hàng hỏng (UC20, SPEC 3.11-15; PosStaff): chọn nguyên liệu, số lượng, lý do; phiếu ở trạng thái Chờ duyệt, tồn kho chỉ trừ khi
+   quản lý ca duyệt. Bên dưới là các phiếu gần đây của rạp. *@
+@{
+    Layout = "_LayoutPos";
+    ViewData["Title"] = "Phiếu hủy hàng";
+}
+<div class="pos-scroll">
+    <partial name="_PageHeader" model="@(new PageHeaderVm { Title = "Lập phiếu hủy hàng hỏng", Description = $"{Model.CinemaName} · phiếu chờ quản lý ca duyệt rồi mới trừ tồn kho.", Crumbs = new() { new Crumb("Bán hàng", "/pos/index"), new Crumb("Bếp", "/pos/fnb-kds"), new Crumb("Phiếu hủy hàng") } })" />
+    <div class="row g-4">
+        <div class="col-12 col-xl-8">
+            <form class="card-ui card-ui-body" method="post" action="/pos/wastage" data-stock-form novalidate>
+                <partial name="_StockLines" model="Model" />
+                <div class="mt-3">
+                    <label class="form-label" for="w-note">Ghi chú</label>
+                    <textarea id="w-note" name="note" class="form-control" rows="2" maxlength="500" placeholder="Ví dụ: kiểm kho cuối ca phát hiện"></textarea>
+                </div>
+                <div class="d-flex gap-2 justify-content-end mt-4">
+                    <a class="btn btn-ghost" href="/pos/fnb-kds">Về màn hình bếp</a>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-send" aria-hidden="true"></i>Gửi phiếu</button>
+                </div>
+            </form>
+        </div>
+        <div class="col-12 col-xl-4">
+            <section class="card-ui card-ui-body" aria-labelledby="w-recent">
+                <h2 class="card-ui-title" id="w-recent">Phiếu gần đây</h2>
+                @if (Model.Recent.Count == 0)
+                {
+                    <p class="text-muted mb-0">Rạp chưa có phiếu hủy hàng nào.</p>
+                }
+                else
+                {
+                    <ul class="ops-list">
+                        @foreach (var w in Model.Recent)
+                        {
+                            <li>
+                                <span class="ops-main">Phiếu #@w.Log.Id · @w.ItemCount nguyên liệu
+                                    <span class="ops-sub">@w.CreatorName · <span class="num">@Fmt.DateTime(w.Log.CreatedAt)</span></span></span>
+                                <partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Wastage, w.Log.Status))" />
+                            </li>
+                        }
+                    </ul>
+                }
+            </section>
+        </div>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/js/pages/stock-form.js" asp-append-version="true"></script>
+}

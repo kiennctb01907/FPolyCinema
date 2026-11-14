@@ -34,6 +34,12 @@
     {
         <span class="text-muted">Lý do hủy: @StatusDisplay.Of(StatusDisplay.CancelReasons, b.CancelReason).Label</span>
     }
+    else if (b.Status == BillStatus.Finish)
+    {
+        @* Cờ "hóa đơn đã hoàn tất" (CONTRACTS C3-38): đã thanh toán, mọi vé đã vào cửa (hoặc không có vé), bắp nước đã giao (hoặc không có) *@
+        var done = CheckInRules.IsCompleted(b.Status, b.CheckInStatus, b.FnbStatus);
+        <span class="status-badge tone-@(done ? "success" : "info")">@(done ? "Đã hoàn tất" : "Chưa hoàn tất: còn vé chưa vào cửa hoặc bắp nước chưa giao")</span>
+    }
     <div class="ms-auto d-flex flex-wrap gap-2">
         @if (canCancel)
         {

@@ -1,0 +1,43 @@
+@model LobbyVm
+@* Bảng gọi số P5 /lobby/pickup-board (theme cinema, 1920 × 1080, không cần đăng nhập): hai cột "Đang chuẩn bị" (số 64px màu xám) và
+   "Mời nhận đồ" (số 96px màu vàng, nhấp nháy nhẹ 3 lần khi vừa xuất hiện, có âm báo); kèm đồng hồ và logo. Kênh 5 tham gia ẩn danh (JoinKds isBoard). *@
+@{
+    Layout = "_LayoutDisplay";
+    ViewData["Title"] = "Bảng gọi số";
+    ViewData["ConnState"] = "reconnecting";
+}
+<div class="lobby pickup-board" data-pickup-board data-cinema-id="@Model.CinemaId">
+    <header class="lobby-head">
+        <partial name="_Logo" model="@("/")" />
+        <h1 class="lobby-title">Quầy bắp nước · @Model.CinemaName</h1>
+        <partial name="_ConnIndicator" />
+        <time class="lobby-clock" data-clock="seconds" data-server-now="@Model.Now.ToString("yyyy-MM-ddTHH:mm:ss")">@Fmt.Time(Model.Now)</time>
+    </header>
+    <div class="pickup-cols">
+        <section class="pickup-col" aria-labelledby="pb-prep">
+            <h2 id="pb-prep" class="pickup-col-title">Đang chuẩn bị</h2>
+            <ul class="pickup-numbers is-preparing" data-board="PREPARING" aria-live="polite">
+                @foreach (var o in Model.Orders.Where(o => o.FnbStatus == FnbStatus.Preparing))
+                {
+                    <li data-bill-id="@o.BillId" class="num">@o.PickupNumber</li>
+                }
+            </ul>
+        </section>
+        <section class="pickup-col is-ready" aria-labelledby="pb-ready">
+            <h2 id="pb-ready" class="pickup-col-title">Mời nhận đồ</h2>
+            <ul class="pickup-numbers is-ready" data-board="READY_FOR_PICKUP" aria-live="assertive">
+                @foreach (var o in Model.Orders.Where(o => o.FnbStatus == FnbStatus.ReadyForPickup))
+                {
+                    <li data-bill-id="@o.BillId" class="num">@o.PickupNumber</li>
+                }
+            </ul>
+        </section>
+    </div>
+    <p class="lobby-foot">Khi số của bạn hiện ở cột "Mời nhận đồ", mời bạn tới quầy bắp nước và đưa mã vé cho nhân viên.</p>
+</div>
+
+@section Scripts {
+    <script src="~/lib/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
+    <script src="~/js/realtime.js" asp-append-version="true"></script>
+    <script src="~/js/pages/lobby.js" asp-append-version="true"></script>
+}

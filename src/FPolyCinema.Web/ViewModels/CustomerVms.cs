@@ -156,6 +156,12 @@ public class TicketPageVm
     public int MaxPerMonth { get; set; }
     public int MinMinutesBeforeStart { get; set; }
     public long Paid { get; set; }
+    public DateTime Now { get; set; }
+    public int ImHereWindowMinutes { get; set; }
+
+    /// <summary>Nút "Tôi đã tới rạp" hiện được không: bắp nước chờ nhận và đang trong khung giờ cho phép.</summary>
+    public bool CanImHere => Bill.FnbStatus == Domain.Constants.FnbStatus.PendingPickup && Info != null
+        && KdsRules.InImHereWindow(Info.Showtime.StartTime, Info.Showtime.EndTime, Now, ImHereWindowMinutes);
 }
 
 /// <summary>Tài khoản C5.</summary>

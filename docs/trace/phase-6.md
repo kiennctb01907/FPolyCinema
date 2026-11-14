@@ -13,98 +13,98 @@ File do `node tools/spec-check/check.mjs sync` tạo và giữ đồng bộ vớ
 
 | Mã | Yêu cầu | Trạng thái | Bằng chứng | Ghi chú |
 |---|---|---|---|---|
-| S2.7-07 | Đổi ghế; giải phóng ghế nội bộ; hủy suất; duyệt hủy hàng. | Chưa |  |  |
-| S3.1-05 | Máy soát vé hiện cảnh báo kiểm tra CCCD hoặc VNeID với phim T13 trở lên. | Chưa |  |  |
-| S3.1-12 | Máy soát vé hiện cảnh báo tương tự với các suất đó. | Chưa |  |  |
-| S3.1-25 | Máy soát vé và bảng sảnh. | Chưa |  |  |
-| S3.2-07 | SupervisorOrManager giải phóng được ghế nội bộ của từng suất vào bất kỳ lúc nào; dashboard quản lý ca nhắc trước giờ ch… | Chưa |  |  |
-| S3.3-18 | SCHEDULED chuyển BOARDING từ StartTime − BoardingLeadMinutes, nếu phòng đã sẵn sàng. | Chưa |  |  |
-| S3.3-19 | ADS_PLAYING từ StartTime; FEATURE_PLAYING từ FeatureStartTime; CREDITS_ROLLING từ EndTime − CreditsMinutes; CLEANING_IN… | Chưa |  |  |
-| S3.3-20 | COMPLETED khi nhân viên bấm "Đã dọn xong". | Chưa |  |  |
-| S3.3-21 | Phòng sẵn sàng khi suất trước trong phòng đã COMPLETED hoặc không có suất trước. Nếu phòng chưa sẵn sàng thì suất sau đ… | Chưa |  |  |
-| S3.3-22 | Mỗi lần đổi trạng thái đều phát SHOWTIME_OPS_CHANGED. | Chưa |  |  |
-| S3.6-11 | VIETQR_SIM: QR mô phỏng hiện thêm trên màn hình phụ của quầy (UI P2). | Chưa |  |  |
-| S3.6-17 | Phát POS_PAYMENT_DONE cho màn hình phụ. | Chưa |  |  |
-| S3.6-19 | Quét QR hóa đơn online tại quầy bắp nước để nhận bắp nước (3.11). | Chưa |  |  |
-| S3.6-21 | Thu ngân có thể chọn gửi yêu cầu duyệt từ xa thay cho nhập PIN. | Chưa |  |  |
-| S3.6-22 | Yêu cầu từ xa: phát APPROVAL_REQUESTED tới manager_alerts; quản lý duyệt hoặc từ chối trên dashboard; kết quả APPROVAL_… | Chưa |  |  |
-| S3.8-01 | Có thể quét QR hóa đơn (hiện mọi vé trong hóa đơn) hoặc QR vé (hiện vé đó cùng các vé khác trong hóa đơn). | Chưa |  |  |
-| S3.8-02 | Mã tồn tại. | Chưa |  |  |
-| S3.8-03 | Hóa đơn đang finish. | Chưa |  |  |
-| S3.8-04 | Vé không ở trạng thái VOIDED hay SWAPPED. | Chưa |  |  |
-| S3.8-05 | Đúng rạp. | Chưa |  |  |
-| S3.8-06 | Suất đang BOARDING, ADS_PLAYING hoặc FEATURE_PLAYING. Phòng chưa sẵn sàng thì báo "Phòng đang dọn vệ sinh, chưa thể đón… | Chưa |  |  |
-| S3.8-07 | Vé chưa CHECKED_IN. | Chưa |  |  |
-| S3.8-08 | Các cảnh báo vàng sau vẫn cho vào, nhưng nhân viên phải xác nhận: phim T13 trở lên (kiểm tra CCCD hoặc VNeID); phim K c… | Chưa |  |  |
-| S3.8-09 | Cho vào toàn bộ hoặc từng ghế. Bills.CheckInStatus tự tính thành NOT_CHECKED_IN, PARTIALLY_CHECKED_IN hoặc FULLY_CHECKE… | Chưa |  |  |
-| S3.8-10 | Vé điện tử đã vào cửa hiện dấu xác nhận động (đồng hồ chạy theo giây, hoa văn chuyển động) để phân biệt với ảnh chụp mà… | Chưa |  |  |
-| S3.8-11 | Nút "Đã dọn xong" (GateStaff) chuyển suất đang CLEANING_IN_PROGRESS sang COMPLETED. Bảng sảnh hiện "Mời vào rạp" khi su… | Chưa |  |  |
-| S3.8-12 | Dashboard vận hành hiện sĩ số trực tiếp (đã vào trên đã bán) của các suất đang chạy. | Chưa |  |  |
-| S3.10-01 | Quét vé, rồi chọn ghế mới trong cùng suất qua SeatHoldService (route /pos/swap-seat). | Chưa |  |  |
-| S3.10-02 | Chênh lệch = giá mới − giá cũ. Dương thì thu thêm (Payments IN); không dương thì đổi ngang, không hoàn tiền. | Chưa |  |  |
-| S3.10-03 | Vé cũ chuyển SWAPPED (QR cũ hết hiệu lực); vé mới có QR mới, nằm trong cùng hóa đơn. | Chưa |  |  |
-| S3.10-04 | Chỉ đổi được khi vé NOT_CHECKED_IN và trước FeatureStartTime. Ghi AuditLog. | Chưa |  |  |
-| S3.10-05 | Chọn suất, nhập lý do, gõ lại mã suất để xác nhận. | Chưa |  |  |
-| S3.10-06 | Trong một transaction: OperationalStatus chuyển CANCELLED; mọi hóa đơn finish của suất chuyển INCIDENT_COMPENSATED, hoà… | Chưa |  |  |
-| S3.10-07 | Cuối cùng hiện tổng kết: số hóa đơn, số vé, tổng tiền đã hoàn. | Chưa |  |  |
-| S3.10-08 | Thuê trọn suất: chỉ với suất chưa bán vé nào. Suất được đánh dấu IsPrivate (ẩn khỏi web khách) và có một hóa đơn CORPOR… | Chưa |  |  |
-| S3.10-09 | Phát hành loạt voucher FREE_TICKET: nhập số lượng và hạn dùng, gắn CorporateBookingId. Mỗi mã trả cho một vé ghế STANDA… | Chưa |  |  |
-| S3.11-04 | Bắt đầu làm món cho đơn online: khách bấm "Tôi đã tới rạp – làm bắp nước ngay" trên vé điện tử (nút chỉ hiện từ StartTi… | Chưa |  |  |
-| S3.11-06 | Đơn bắp nước mua tại quầy hiện ngay trên màn hình bếp. | Chưa |  |  |
-| S3.11-07 | Bếp: PREPARING chuyển READY_FOR_PICKUP khi bấm "Sẵn sàng giao" (số gọi lên bảng, có âm báo, gửi FNB_STATUS_CHANGED tới … | Chưa |  |  |
-| S3.11-09 | Món không còn đủ một phần thì đặt IsSoldOut = 1 và phát PRODUCT_SOLD_OUT. | Chưa |  |  |
-| S3.11-10 | Nhập hàng làm món khả dụng lại thì phát PRODUCT_AVAILABLE. | Chưa |  |  |
-| S3.11-11 | Nguyên liệu xuống dưới MinThreshold thì phát STOCK_LOW. | Chưa |  |  |
-| S3.11-14 | Nhập kho (Manager): phiếu nhập đơn giản (IMPORT). | Chưa |  |  |
-| S3.11-15 | Hủy hàng hỏng: PosStaff lập WastageLogs (PENDING), SupervisorOrManager duyệt, khi đó ActualStock giảm (WASTAGE). | Chưa |  |  |
-| S3.12-11 | Báo cáo hủy hàng. | Chưa |  |  |
-| S5-04 | Màn hình bếp, soát vé, bảng sảnh có chỉ báo trạng thái kết nối. | Chưa |  |  |
-| S8.6-01 | ShowtimeClockService, máy soát vé (kênh 4), bảng sảnh (kênh 6), nút "Đã dọn xong". | Chưa |  |  |
-| S8.6-02 | Bếp, bảng gọi số, nút "Tôi đã tới rạp", kho hai tầng, báo hết món, nhập kho, hủy hàng hỏng (kênh 5, 7). | Chưa |  |  |
-| S8.6-03 | Màn hình phụ của quầy (kênh 2); duyệt hủy từ xa (kênh 7); giải phóng ghế nội bộ; đổi và nâng hạng ghế; hủy suất do sự c… | Chưa |  |  |
-| U2-05 | Màn hình kết quả soát vé dùng nền đặc: hợp lệ #15803D, cảnh báo #B45309, từ chối #B91C1C, chữ trắng. | Chưa |  |  |
-| U7.C4-03 | Danh sách ghế, mỗi ghế có trạng thái vào cửa cập nhật trực tiếp. Ghế đã vào hiện dấu xác nhận động: đồng hồ HH:mm:ss ch… | Chưa |  |  |
-| U7.C4-05 | Nút "Tôi đã tới rạp – làm bắp nước ngay" (chỉ hiện trong khung giờ cho phép); số gọi hiện lớn khi món đã sẵn sàng. | Chưa |  |  |
-| U7.P1-12 | Trong hộp hủy có thêm nút "Gửi quản lý duyệt từ xa"; kết quả duyệt hiện ngay trên POS. | Chưa |  |  |
-| U7.P2-01 | P2. Màn hình phụ của quầy /pos/customer-display?terminal=POS-01 (cinema, 1920 × 1080) | Chưa |  |  |
-| U7.P2-02 | Lúc chờ: chạy slideshow poster cùng logo. | Chưa |  |  |
-| U7.P2-03 | Khi thu ngân chọn suất: trái là sơ đồ ghế lớn (ghế đang chọn sáng lên kèm điểm); phải là giỏ hàng chữ 24–28px, tổng tiề… | Chưa |  |  |
-| U7.P2-04 | Khi thanh toán QR: QR 360px ở giữa, số tiền 56px, đồng hồ đếm ngược. | Chưa |  |  |
-| U7.P2-05 | Khi xong: "Cảm ơn quý khách", kèm mã vé và QR vé. | Chưa |  |  |
-| U7.P3-01 | P3. Máy soát vé /pos/gate-inspector (cinema, ưu tiên điện thoại, chạy được trên desktop) | Chưa |  |  |
-| U7.P3-02 | Phần trên: chọn phòng hoặc cửa; ô nhập mã luôn autofocus và tự lấy lại focus sau mỗi lần quét; nút bật camera. | Chưa |  |  |
-| U7.P3-03 | Phần còn lại là thẻ kết quả, đổ nền đặc theo màu ở mục 2: xanh là hợp lệ, vàng là cần xác nhận, đỏ là từ chối. | Chưa |  |  |
-| U7.P3-04 | Icon 64px, dòng chính 28–32px (ví dụ "Hợp lệ – Phòng 3"), dòng phụ là suất và giờ. | Chưa |  |  |
-| U7.P3-05 | Danh sách ghế với checkbox 32px; nút "Cho vào tất cả" cao 56px. | Chưa |  |  |
-| U7.P3-06 | Cảnh báo độ tuổi nằm trong khung vàng nổi bật. | Chưa |  |  |
-| U7.P3-07 | Sau 6 giây tự quay về trạng thái chờ, có thanh đếm. Khung "Phòng đang dọn" có nút "Đã dọn xong". Có rung và âm báo ngắn… | Chưa |  |  |
-| U7.P4-01 | P4. Bếp /pos/fnb-kds (cinema) | Chưa |  |  |
-| U7.P4-02 | Hai cột "Đang chuẩn bị" và "Sẵn sàng giao". | Chưa |  |  |
-| U7.P4-03 | Thẻ đơn gồm: số gọi 40px; kênh (Quầy hoặc Online); thời gian chờ đổi màu (xanh dưới 5 phút, vàng 5–10 phút, đỏ trên 10 … | Chưa |  |  |
-| U7.P4-04 | Đơn mới trượt vào kèm âm báo nhẹ. | Chưa |  |  |
-| U7.P5-01 | P5. Bảng gọi số /lobby/pickup-board (cinema, 1920 × 1080) | Chưa |  |  |
-| U7.P5-02 | Hai cột: "Đang chuẩn bị" với số 64px màu xám; "Mời nhận đồ" với số 96px màu vàng, nhấp nháy nhẹ 3 lần khi vừa xuất hiện… | Chưa |  |  |
-| U7.P5-03 | Kèm đồng hồ và logo. | Chưa |  |  |
-| U7.P6-01 | P6. Bảng sảnh /lobby/digital-signage (cinema, 1920 × 1080) | Chưa |  |  |
-| U7.P6-02 | Bảng các suất sắp chiếu, gồm các cột: giờ (48px, tabular); phim (tên, nhãn tuổi, định dạng, ngôn ngữ); phòng; trạng thá… | Chưa |  |  |
-| U7.P6-03 | Trạng thái hiện bằng nhãn lớn: "Mời vào rạp" màu xanh nhấp nháy chậm, "Đang chiếu", "Đang dọn". | Chưa |  |  |
-| U7.P6-04 | Bảng tự cuộn khi nhiều dòng. Chân trang có dòng chữ chạy, ví dụ nhắc quy định độ tuổi. | Chưa |  |  |
-| U7.A1-05 | Danh sách cảnh báo thêm các yêu cầu phê duyệt đang chờ; thêm bảng sĩ số trực tiếp các suất đang chạy. | Chưa |  |  |
-| U7.A7-01 | A7. Phê duyệt (quản lý ca) | Chưa |  |  |
-| U7.A7-02 | Popup thời gian thực ở góc phải, không chặn thao tác khác. Nội dung: hóa đơn, lý do, người yêu cầu, hai nút lớn Duyệt v… | Chưa |  |  |
-| U7.A7-03 | Dashboard có thêm danh sách các yêu cầu đang chờ duyệt. | Chưa |  |  |
-| C3-38 | Hóa đơn "đã hoàn tất": Status finish, CheckInStatus là NONE hoặc FULLY_CHECKED_IN, FnbStatus là NONE hoặc FULFILLED. | Chưa |  |  |
-| UC10 | Xem vé điện tử, báo "Tôi đã tới rạp" (màn hình C4) | Chưa |  |  |
-| UC16 | In vé, nhận đơn online tại quầy (màn hình P1) | Chưa |  |  |
-| UC17 | Đổi, nâng hạng ghế (màn hình P1) | Chưa |  |  |
-| UC18 | Yêu cầu hủy hóa đơn đã thanh toán (màn hình P1) | Chưa |  |  |
-| UC19 | Xử lý đơn bắp nước tại bếp, gọi số (màn hình P4, P5) | Chưa |  |  |
-| UC20 | Lập phiếu hủy hàng hỏng (màn hình P4) | Chưa |  |  |
-| UC22 | Soát vé, check-in từng phần (màn hình P3) | Chưa |  |  |
-| UC23 | Xác nhận dọn phòng xong (màn hình P3, P6) | Chưa |  |  |
-| UC24 | Duyệt hủy hóa đơn (PIN hoặc từ xa) (màn hình P1, A7) | Chưa |  |  |
-| UC25 | Giải phóng ghế nội bộ (màn hình A7) | Chưa |  |  |
-| UC26 | Duyệt phiếu hủy hàng (màn hình A7) | Chưa |  |  |
-| UC27 | Hủy suất do sự cố (màn hình A5) | Chưa |  |  |
-| UC30 | Quản lý nguyên liệu, nhập kho (màn hình A2, A3) | Chưa |  |  |
-| UC40 | Bán vé doanh nghiệp (màn hình A2, A3) | Chưa |  |  |
+| S2.7-07 | Đổi ghế; giải phóng ghế nội bộ; hủy suất; duyệt hủy hàng. | Xong | src/FPolyCinema.Web/Services/SeatSwapService.cs#AuditAction.SeatSwapped; src/FPolyCinema.Web/Services/OpsManagementService.cs#AuditAction.HouseSeatReleased; src/FPolyCinema.Web/Services/OpsManagementService.cs#AuditAction.ShowtimeCancelled; src/FPolyCinema.Web/Services/InventoryService.Phase6.cs#AuditAction.WastageApproved; test:HouseSeats_ReleasedToAvailable_WithAuditLog |  |
+| S3.1-05 | Máy soát vé hiện cảnh báo kiểm tra CCCD hoặc VNeID với phim T13 trở lên. | Xong | src/FPolyCinema.Web/Domain/Rules/GateRules.cs#CCCD hoặc VNeID; src/FPolyCinema.Web/wwwroot/js/pages/gate.js#gate-warnings; test:Gate_YellowWarnings_AgeKidsCurfewDocuments |  |
+| S3.1-12 | Máy soát vé hiện cảnh báo tương tự với các suất đó. | Xong | src/FPolyCinema.Web/Domain/Rules/GateRules.cs#CurfewNotice; test:Gate_YellowWarnings_AgeKidsCurfewDocuments |  |
+| S3.1-25 | Máy soát vé và bảng sảnh. | Xong | src/FPolyCinema.Web/Views/Lobby/_SignageRows.cshtml#AgeExplanation; src/FPolyCinema.Web/wwwroot/js/pages/gate.js#gate-age; src/FPolyCinema.Web/Services/GateService.cs#AgeExplanation |  |
+| S3.2-07 | SupervisorOrManager giải phóng được ghế nội bộ của từng suất vào bất kỳ lúc nào; dashboard quản lý ca nhắc trước giờ ch… | Xong | src/FPolyCinema.Web/Services/OpsManagementService.cs#ReleaseHouseSeats; src/FPolyCinema.Web/Domain/Rules/HouseSeatRules.cs#NeedsReminder; src/FPolyCinema.Web/Views/Ops/_OpsBody.cshtml#data-release-house; test:HouseSeat_ReminderAndRelease; test:HouseSeats_ReleasedToAvailable_WithAuditLog |  |
+| S3.3-18 | SCHEDULED chuyển BOARDING từ StartTime − BoardingLeadMinutes, nếu phòng đã sẵn sàng. | Xong | src/FPolyCinema.Web/Domain/Rules/ShowtimeOpsRules.cs#BoardingLeadMinutes; src/FPolyCinema.Web/Background/ShowtimeClockService.cs#Period; test:ShowtimeOps_ByTime_FollowsMilestones |  |
+| S3.3-19 | ADS_PLAYING từ StartTime; FEATURE_PLAYING từ FeatureStartTime; CREDITS_ROLLING từ EndTime − CreditsMinutes; CLEANING_IN… | Xong | src/FPolyCinema.Web/Domain/Rules/ShowtimeOpsRules.cs#CreditsMinutes; test:ShowtimeOps_ByTime_FollowsMilestones |  |
+| S3.3-20 | COMPLETED khi nhân viên bấm "Đã dọn xong". | Xong | src/FPolyCinema.Web/Services/ShowtimeOpsService.cs#MarkCleaned; src/FPolyCinema.Web/Controllers/GateController.cs#cleaned; test:Clock_RoomNotReady_StaysScheduled_ThenCleanedJumpsAhead_AndGateAdmitsPartially |  |
+| S3.3-21 | Phòng sẵn sàng khi suất trước trong phòng đã COMPLETED hoặc không có suất trước. Nếu phòng chưa sẵn sàng thì suất sau đ… | Xong | src/FPolyCinema.Web/Domain/Rules/ShowtimeOpsRules.cs#IsRoomReady; src/FPolyCinema.Web/Services/ShowtimeOpsService.cs#IsLate; src/FPolyCinema.Web/Views/Ops/_OpsBody.cshtml#ops-late; test:ShowtimeOps_StaysScheduledWhileRoomNotReady_ThenJumpsToCurrentState; test:Clock_RoomNotReady_StaysScheduled_ThenCleanedJumpsAhead_AndGateAdmitsPartially |  |
+| S3.3-22 | Mỗi lần đổi trạng thái đều phát SHOWTIME_OPS_CHANGED. | Xong | src/FPolyCinema.Web/Services/ShowtimeOpsService.cs#ShowtimeOpsChanged; test:Clock_RoomNotReady_StaysScheduled_ThenCleanedJumpsAhead_AndGateAdmitsPartially |  |
+| S3.6-11 | VIETQR_SIM: QR mô phỏng hiện thêm trên màn hình phụ của quầy (UI P2). | Xong | src/FPolyCinema.Web/Controllers/PosController.cs#_display.PaymentQr; src/FPolyCinema.Web/wwwroot/js/pages/customer-display.js#POS_PAYMENT_QR |  |
+| S3.6-17 | Phát POS_PAYMENT_DONE cho màn hình phụ. | Xong | src/FPolyCinema.Web/Controllers/PosController.cs#_display.PaymentDone; src/FPolyCinema.Web/Services/CustomerDisplayService.cs#PaymentDone; src/FPolyCinema.Web/wwwroot/js/pages/customer-display.js#POS_PAYMENT_DONE |  |
+| S3.6-19 | Quét QR hóa đơn online tại quầy bắp nước để nhận bắp nước (3.11). | Xong | src/FPolyCinema.Web/Controllers/KitchenController.cs#Pickup; src/FPolyCinema.Web/Services/KdsService.cs#StartOnline; src/FPolyCinema.Web/Views/Kitchen/Kds.cshtml#data-pickup-form |  |
+| S3.6-21 | Thu ngân có thể chọn gửi yêu cầu duyệt từ xa thay cho nhập PIN. | Xong | src/FPolyCinema.Web/Views/Pos/_VoidModal.cshtml#data-void-remote; src/FPolyCinema.Web/Controllers/PosController.cs#RequestVoidRemote; src/FPolyCinema.Web/wwwroot/js/pages/void-bill.js#request-void-remote |  |
+| S3.6-22 | Yêu cầu từ xa: phát APPROVAL_REQUESTED tới manager_alerts; quản lý duyệt hoặc từ chối trên dashboard; kết quả APPROVAL_… | Xong | src/FPolyCinema.Web/Services/ApprovalService.cs#ApprovalRequested; src/FPolyCinema.Web/Services/ApprovalService.cs#ExpireOverdue; src/FPolyCinema.Web/Domain/Rules/ApprovalRules.cs#ExpiresAt; test:Approval_ExpiryAndDecider; test:RemoteApproval_RequestNotifiesManagers_RejectGoesBackToTerminal_AndExpires |  |
+| S3.8-01 | Có thể quét QR hóa đơn (hiện mọi vé trong hóa đơn) hoặc QR vé (hiện vé đó cùng các vé khác trong hóa đơn). | Xong | src/FPolyCinema.Web/Services/GateService.cs#Find; src/FPolyCinema.Web/Services/GateService.cs#Scan; test:Clock_RoomNotReady_StaysScheduled_ThenCleanedJumpsAhead_AndGateAdmitsPartially |  |
+| S3.8-02 | Mã tồn tại. | Xong | src/FPolyCinema.Web/Domain/Rules/GateRules.cs#GateReason.NotFound; test:Gate_ChecksInOrder_StopsAtFirstError |  |
+| S3.8-03 | Hóa đơn đang finish. | Xong | src/FPolyCinema.Web/Domain/Rules/GateRules.cs#GateReason.NotPaid; test:Gate_ChecksInOrder_StopsAtFirstError |  |
+| S3.8-04 | Vé không ở trạng thái VOIDED hay SWAPPED. | Xong | src/FPolyCinema.Web/Domain/Rules/GateRules.cs#TicketCheckInStatus.Swapped; test:Gate_ChecksInOrder_StopsAtFirstError |  |
+| S3.8-05 | Đúng rạp. | Xong | src/FPolyCinema.Web/Domain/Rules/GateRules.cs#GateReason.WrongCinema; test:Gate_ChecksInOrder_StopsAtFirstError |  |
+| S3.8-06 | Suất đang BOARDING, ADS_PLAYING hoặc FEATURE_PLAYING. Phòng chưa sẵn sàng thì báo "Phòng đang dọn vệ sinh, chưa thể đón… | Xong | src/FPolyCinema.Web/Domain/Rules/GateRules.cs#Phòng đang dọn vệ sinh, chưa thể đón khách; test:Gate_ShowtimeStatus_Messages |  |
+| S3.8-07 | Vé chưa CHECKED_IN. | Xong | src/FPolyCinema.Web/Domain/Rules/GateRules.cs#GateReason.AlreadyCheckedIn; test:Gate_ChecksInOrder_StopsAtFirstError |  |
+| S3.8-08 | Các cảnh báo vàng sau vẫn cho vào, nhưng nhân viên phải xác nhận: phim T13 trở lên (kiểm tra CCCD hoặc VNeID); phim K c… | Xong | src/FPolyCinema.Web/Domain/Rules/GateRules.cs#Warnings; src/FPolyCinema.Web/Services/GateService.cs#warningsConfirmed; test:Gate_YellowWarnings_AgeKidsCurfewDocuments |  |
+| S3.8-09 | Cho vào toàn bộ hoặc từng ghế. Bills.CheckInStatus tự tính thành NOT_CHECKED_IN, PARTIALLY_CHECKED_IN hoặc FULLY_CHECKE… | Xong | src/FPolyCinema.Web/Services/GateService.cs#Admit; src/FPolyCinema.Web/Domain/Rules/CheckInRules.cs#BillStatusOf; src/FPolyCinema.Web/Services/GateService.cs#OccupancyUpdated; test:CheckIn_BillStatus_IgnoresSwappedAndVoided; test:Clock_RoomNotReady_StaysScheduled_ThenCleanedJumpsAhead_AndGateAdmitsPartially |  |
+| S3.8-10 | Vé điện tử đã vào cửa hiện dấu xác nhận động (đồng hồ chạy theo giây, hoa văn chuyển động) để phân biệt với ảnh chụp mà… | Xong | src/FPolyCinema.Web/Views/Tickets/Show.cshtml#data-live-mark; src/FPolyCinema.Web/wwwroot/js/pages/ticket.js#data-live-clock; src/FPolyCinema.Web/wwwroot/css/app.css#ticket-live |  |
+| S3.8-11 | Nút "Đã dọn xong" (GateStaff) chuyển suất đang CLEANING_IN_PROGRESS sang COMPLETED. Bảng sảnh hiện "Mời vào rạp" khi su… | Xong | src/FPolyCinema.Web/Services/ShowtimeOpsService.cs#MarkCleaned; src/FPolyCinema.Web/Views/Gate/Index.cshtml#data-cleaned; src/FPolyCinema.Web/Views/Lobby/_SignageRows.cshtml#Mời vào rạp; test:Clock_RoomNotReady_StaysScheduled_ThenCleanedJumpsAhead_AndGateAdmitsPartially |  |
+| S3.8-12 | Dashboard vận hành hiện sĩ số trực tiếp (đã vào trên đã bán) của các suất đang chạy. | Xong | src/FPolyCinema.Web/Views/Shared/_LiveOccupancy.cshtml#data-occ-showtime; src/FPolyCinema.Web/wwwroot/js/pages/ops.js#OCCUPANCY_UPDATED; src/FPolyCinema.Web/Services/ShowtimeOpsService.cs#Board |  |
+| S3.10-01 | Quét vé, rồi chọn ghế mới trong cùng suất qua SeatHoldService (route /pos/swap-seat). | Xong | src/FPolyCinema.Web/Controllers/PosController.cs#swap-seat; src/FPolyCinema.Web/Services/SeatSwapService.cs#HoldForSwap; src/FPolyCinema.Web/Services/SeatHoldService.cs#HoldForSwap; src/FPolyCinema.Web/Views/Pos/SwapSeat.cshtml#data-swap |  |
+| S3.10-02 | Chênh lệch = giá mới − giá cũ. Dương thì thu thêm (Payments IN); không dương thì đổi ngang, không hoàn tiền. | Xong | src/FPolyCinema.Web/Domain/Rules/SeatSwapRules.cs#Quote; src/FPolyCinema.Web/Services/SeatSwapService.cs#PaymentDirection.In; test:SeatSwap_QuoteChargesOnlyPositiveDifference |  |
+| S3.10-03 | Vé cũ chuyển SWAPPED (QR cũ hết hiệu lực); vé mới có QR mới, nằm trong cùng hóa đơn. | Xong | src/FPolyCinema.Web/Services/SeatSwapService.cs#TicketCheckInStatus.Swapped; src/FPolyCinema.Web/Services/SeatSwapService.cs#SwappedFromTicketId |  |
+| S3.10-04 | Chỉ đổi được khi vé NOT_CHECKED_IN và trước FeatureStartTime. Ghi AuditLog. | Xong | src/FPolyCinema.Web/Domain/Rules/SeatSwapRules.cs#CannotSwapReason; src/FPolyCinema.Web/Services/SeatSwapService.cs#AuditAction.SeatSwapped; test:SeatSwap_OnlyBeforeFeatureAndNotCheckedIn |  |
+| S3.10-05 | Chọn suất, nhập lý do, gõ lại mã suất để xác nhận. | Xong | src/FPolyCinema.Web/Views/Ops/Incident.cshtml#confirmCode; src/FPolyCinema.Web/Domain/Rules/IncidentRules.cs#ConfirmMatches; test:Incident_RequiresReasonAndRetypedCode |  |
+| S3.10-06 | Trong một transaction: OperationalStatus chuyển CANCELLED; mọi hóa đơn finish của suất chuyển INCIDENT_COMPENSATED, hoà… | Xong | src/FPolyCinema.Web/Services/OpsManagementService.cs#CancelShowtime; src/FPolyCinema.Web/Services/OpsManagementService.cs#CancelReason.IncidentCompensated; test:Incident_CancelsShowtime_RefundsAll_VoidsTickets_GivesVouchers_InOneTransaction |  |
+| S3.10-07 | Cuối cùng hiện tổng kết: số hóa đơn, số vé, tổng tiền đã hoàn. | Xong | src/FPolyCinema.Web/Domain/Rules/IncidentRules.cs#IncidentSummary; src/FPolyCinema.Web/Views/Ops/Incident.cshtml#Tổng tiền đã hoàn; test:Incident_CancelsShowtime_RefundsAll_VoidsTickets_GivesVouchers_InOneTransaction |  |
+| S3.10-08 | Thuê trọn suất: chỉ với suất chưa bán vé nào. Suất được đánh dấu IsPrivate (ẩn khỏi web khách) và có một hóa đơn CORPOR… | Xong | src/FPolyCinema.Web/Services/OpsManagementService.cs#PrivateScreening; src/FPolyCinema.Web/Domain/Rules/CorporateRules.cs#ValidatePrivateScreening; test:Corporate_PrivateScreeningOnlyUnsoldFutureShowtime |  |
+| S3.10-09 | Phát hành loạt voucher FREE_TICKET: nhập số lượng và hạn dùng, gắn CorporateBookingId. Mỗi mã trả cho một vé ghế STANDA… | Xong | src/FPolyCinema.Web/Services/OpsManagementService.cs#VoucherBatch; src/FPolyCinema.Web/Domain/Rules/CorporateRules.cs#FreeTicketApplies; test:Corporate_VoucherBatchAndSplit |  |
+| S3.11-04 | Bắt đầu làm món cho đơn online: khách bấm "Tôi đã tới rạp – làm bắp nước ngay" trên vé điện tử (nút chỉ hiện từ StartTi… | Xong | src/FPolyCinema.Web/Controllers/CustomerController.cs#im-here; src/FPolyCinema.Web/Services/KdsService.cs#StartOnline; src/FPolyCinema.Web/Services/InventoryService.Phase6.cs#StartPreparingOnline; src/FPolyCinema.Web/Domain/Rules/KdsRules.cs#InImHereWindow; test:Kds_ImHereWindow_StartAndAdvance |  |
+| S3.11-06 | Đơn bắp nước mua tại quầy hiện ngay trên màn hình bếp. | Xong | src/FPolyCinema.Web/Services/KdsService.cs#QueuePosOrder; src/FPolyCinema.Web/Controllers/PosController.cs#_kds.QueuePosOrder |  |
+| S3.11-07 | Bếp: PREPARING chuyển READY_FOR_PICKUP khi bấm "Sẵn sàng giao" (số gọi lên bảng, có âm báo, gửi FNB_STATUS_CHANGED tới … | Xong | src/FPolyCinema.Web/Services/KdsService.cs#Advance; src/FPolyCinema.Web/Domain/Rules/KdsRules.cs#CanAdvance; src/FPolyCinema.Web/wwwroot/js/pages/lobby.js#is-new; test:Kds_ImHereWindow_StartAndAdvance |  |
+| S3.11-09 | Món không còn đủ một phần thì đặt IsSoldOut = 1 và phát PRODUCT_SOLD_OUT. | Xong | src/FPolyCinema.Web/Services/InventoryService.Phase6.cs#ProductSoldOut; src/FPolyCinema.Web/Domain/Rules/InventoryAlertRules.cs#Evaluate; test:Inventory_SoldOutAvailableAndLow |  |
+| S3.11-10 | Nhập hàng làm món khả dụng lại thì phát PRODUCT_AVAILABLE. | Xong | src/FPolyCinema.Web/Services/InventoryService.Phase6.cs#ProductAvailable; src/FPolyCinema.Web/Controllers/MaterialsController.cs#PublishAlerts; test:Inventory_SoldOutAvailableAndLow |  |
+| S3.11-11 | Nguyên liệu xuống dưới MinThreshold thì phát STOCK_LOW. | Xong | src/FPolyCinema.Web/Services/InventoryService.Phase6.cs#StockLow; src/FPolyCinema.Web/wwwroot/js/approvals.js#STOCK_LOW; test:Inventory_SoldOutAvailableAndLow |  |
+| S3.11-14 | Nhập kho (Manager): phiếu nhập đơn giản (IMPORT). | Xong | src/FPolyCinema.Web/Controllers/MaterialsController.cs#Import; src/FPolyCinema.Web/Services/InventoryService.Phase6.cs#InventoryTxnType.Import; src/FPolyCinema.Web/Views/Materials/Import.cshtml#data-stock-form; test:Inventory_Import_AndWastageNeedsApprovalBeforeStockDrops |  |
+| S3.11-15 | Hủy hàng hỏng: PosStaff lập WastageLogs (PENDING), SupervisorOrManager duyệt, khi đó ActualStock giảm (WASTAGE). | Xong | src/FPolyCinema.Web/Controllers/KitchenController.cs#Wastage; src/FPolyCinema.Web/Services/InventoryService.Phase6.cs#DecideWastage; src/FPolyCinema.Web/Controllers/OpsController.cs#ApproveWastage; test:Wastage_ValidatesLines; test:Inventory_Import_AndWastageNeedsApprovalBeforeStockDrops |  |
+| S3.12-11 | Báo cáo hủy hàng. | Xong | src/FPolyCinema.Web/Controllers/StatisticsController.cs#TabWastage; src/FPolyCinema.Web/DAL/OpsDAL.Phase6.cs#WastageReportRow; src/FPolyCinema.Web/Views/Statistics/Reports.cshtml#Báo cáo hủy hàng; test:Inventory_Import_AndWastageNeedsApprovalBeforeStockDrops |  |
+| S5-04 | Màn hình bếp, soát vé, bảng sảnh có chỉ báo trạng thái kết nối. | Xong | src/FPolyCinema.Web/Views/Shared/_LayoutPos.cshtml#_ConnIndicator; src/FPolyCinema.Web/Views/Lobby/DigitalSignage.cshtml#_ConnIndicator; src/FPolyCinema.Web/Views/Lobby/PickupBoard.cshtml#_ConnIndicator |  |
+| S8.6-01 | ShowtimeClockService, máy soát vé (kênh 4), bảng sảnh (kênh 6), nút "Đã dọn xong". | Xong | src/FPolyCinema.Web/Background/ShowtimeClockService.cs#ShowtimeClockService; src/FPolyCinema.Web/Controllers/GateController.cs#gate-inspector; src/FPolyCinema.Web/Controllers/LobbyController.cs#digital-signage; test:Clock_RoomNotReady_StaysScheduled_ThenCleanedJumpsAhead_AndGateAdmitsPartially |  |
+| S8.6-02 | Bếp, bảng gọi số, nút "Tôi đã tới rạp", kho hai tầng, báo hết món, nhập kho, hủy hàng hỏng (kênh 5, 7). | Xong | src/FPolyCinema.Web/Controllers/KitchenController.cs#fnb-kds; src/FPolyCinema.Web/Controllers/LobbyController.cs#pickup-board; src/FPolyCinema.Web/Controllers/MaterialsController.cs#import; src/FPolyCinema.Web/Services/InventoryService.Phase6.cs#CreateWastage; test:Inventory_Import_AndWastageNeedsApprovalBeforeStockDrops |  |
+| S8.6-03 | Màn hình phụ của quầy (kênh 2); duyệt hủy từ xa (kênh 7); giải phóng ghế nội bộ; đổi và nâng hạng ghế; hủy suất do sự c… | Xong | src/FPolyCinema.Web/Services/CustomerDisplayService.cs#CartUpdated; src/FPolyCinema.Web/Services/ApprovalService.cs#Decide; src/FPolyCinema.Web/Services/OpsManagementService.cs#ReleaseHouseSeats; src/FPolyCinema.Web/Services/SeatSwapService.cs#Swap; src/FPolyCinema.Web/Controllers/CorporateController.cs#Create; test:RemoteApproval_RequestNotifiesManagers_RejectGoesBackToTerminal_AndExpires |  |
+| U2-05 | Màn hình kết quả soát vé dùng nền đặc: hợp lệ #15803D, cảnh báo #B45309, từ chối #B91C1C, chữ trắng. | Xong | src/FPolyCinema.Web/wwwroot/css/tokens.css#--gate-ok: #15803D; src/FPolyCinema.Web/wwwroot/css/app.css#--gate-reject; ui:P3 |  |
+| U7.C4-03 | Danh sách ghế, mỗi ghế có trạng thái vào cửa cập nhật trực tiếp. Ghế đã vào hiện dấu xác nhận động: đồng hồ HH:mm:ss ch… | Xong | src/FPolyCinema.Web/Views/Tickets/Show.cshtml#data-ticket-status; src/FPolyCinema.Web/wwwroot/js/pages/ticket.js#CHECKIN_UPDATED; ui:C4 |  |
+| U7.C4-05 | Nút "Tôi đã tới rạp – làm bắp nước ngay" (chỉ hiện trong khung giờ cho phép); số gọi hiện lớn khi món đã sẵn sàng. | Xong | src/FPolyCinema.Web/Views/Tickets/Show.cshtml#data-im-here; src/FPolyCinema.Web/Views/Tickets/Show.cshtml#data-pickup-big; src/FPolyCinema.Web/wwwroot/js/pages/ticket.js#FNB_STATUS_CHANGED; ui:C4 |  |
+| U7.P1-12 | Trong hộp hủy có thêm nút "Gửi quản lý duyệt từ xa"; kết quả duyệt hiện ngay trên POS. | Xong | src/FPolyCinema.Web/Views/Pos/_VoidModal.cshtml#Gửi quản lý duyệt từ xa; src/FPolyCinema.Web/wwwroot/js/pages/void-bill.js#APPROVAL_DECIDED |  |
+| U7.P2-01 | P2. Màn hình phụ của quầy /pos/customer-display?terminal=POS-01 (cinema, 1920 × 1080) | Xong | src/FPolyCinema.Web/Controllers/LobbyController.cs#pos/customer-display; src/FPolyCinema.Web/Views/Lobby/CustomerDisplay.cshtml#data-cdisplay; ui:P2 |  |
+| U7.P2-02 | Lúc chờ: chạy slideshow poster cùng logo. | Xong | src/FPolyCinema.Web/Views/Lobby/CustomerDisplay.cshtml#cd-slides; src/FPolyCinema.Web/wwwroot/css/app.css#cd-slide; ui:P2 |  |
+| U7.P2-03 | Khi thu ngân chọn suất: trái là sơ đồ ghế lớn (ghế đang chọn sáng lên kèm điểm); phải là giỏ hàng chữ 24–28px, tổng tiề… | Xong | src/FPolyCinema.Web/Views/Lobby/CustomerDisplay.cshtml#data-cd-seatmap; src/FPolyCinema.Web/wwwroot/css/app.css#.cd-total strong { font-size: var(--fs-56); src/FPolyCinema.Web/wwwroot/js/pages/customer-display.js#POS_CART_UPDATED |  |
+| U7.P2-04 | Khi thanh toán QR: QR 360px ở giữa, số tiền 56px, đồng hồ đếm ngược. | Xong | src/FPolyCinema.Web/Views/Lobby/CustomerDisplay.cshtml#data-cd-countdown; src/FPolyCinema.Web/Views/Lobby/CustomerDisplay.cshtml#width="360" height="360"; src/FPolyCinema.Web/wwwroot/css/app.css#.cd-amount { font-size: var(--fs-56) |  |
+| U7.P2-05 | Khi xong: "Cảm ơn quý khách", kèm mã vé và QR vé. | Xong | src/FPolyCinema.Web/Views/Lobby/CustomerDisplay.cshtml#Cảm ơn quý khách; src/FPolyCinema.Web/wwwroot/js/pages/customer-display.js#onDone |  |
+| U7.P3-01 | P3. Máy soát vé /pos/gate-inspector (cinema, ưu tiên điện thoại, chạy được trên desktop) | Xong | src/FPolyCinema.Web/Controllers/GateController.cs#pos/gate-inspector; src/FPolyCinema.Web/Views/Gate/Index.cshtml#data-gate; ui:P3 |  |
+| U7.P3-02 | Phần trên: chọn phòng hoặc cửa; ô nhập mã luôn autofocus và tự lấy lại focus sau mỗi lần quét; nút bật camera. | Xong | src/FPolyCinema.Web/Views/Gate/Index.cshtml#data-gate-room; src/FPolyCinema.Web/Views/Gate/Index.cshtml#data-camera-toggle; src/FPolyCinema.Web/wwwroot/js/pages/gate.js#refocus; ui:P3 |  |
+| U7.P3-03 | Phần còn lại là thẻ kết quả, đổ nền đặc theo màu ở mục 2: xanh là hợp lệ, vàng là cần xác nhận, đỏ là từ chối. | Xong | src/FPolyCinema.Web/wwwroot/css/app.css#.gate-result.is-warn { background: var(--gate-warn); src/FPolyCinema.Web/wwwroot/js/pages/gate.js#gate-result is- |  |
+| U7.P3-04 | Icon 64px, dòng chính 28–32px (ví dụ "Hợp lệ – Phòng 3"), dòng phụ là suất và giờ. | Xong | src/FPolyCinema.Web/wwwroot/css/app.css#.gate-icon { font-size: var(--fs-64); src/FPolyCinema.Web/wwwroot/css/app.css#.gate-main { font-size: var(--fs-32) |  |
+| U7.P3-05 | Danh sách ghế với checkbox 32px; nút "Cho vào tất cả" cao 56px. | Xong | src/FPolyCinema.Web/wwwroot/css/app.css#.gate-check input { width: 32px; src/FPolyCinema.Web/wwwroot/css/app.css#.gate-ui .btn { min-height: 56px; src/FPolyCinema.Web/wwwroot/js/pages/gate.js#Cho vào tất cả |  |
+| U7.P3-06 | Cảnh báo độ tuổi nằm trong khung vàng nổi bật. | Xong | src/FPolyCinema.Web/wwwroot/css/app.css#.gate-warnings { background: var(--brand-gold); src/FPolyCinema.Web/wwwroot/js/pages/gate.js#gate-warnings |  |
+| U7.P3-07 | Sau 6 giây tự quay về trạng thái chờ, có thanh đếm. Khung "Phòng đang dọn" có nút "Đã dọn xong". Có rung và âm báo ngắn… | Xong | src/FPolyCinema.Web/wwwroot/js/pages/gate.js#startTimer; src/FPolyCinema.Web/wwwroot/js/pages/gate.js#navigator.vibrate; src/FPolyCinema.Web/Views/Gate/Index.cshtml#Đã dọn xong |  |
+| U7.P4-01 | P4. Bếp /pos/fnb-kds (cinema) | Xong | src/FPolyCinema.Web/Controllers/KitchenController.cs#fnb-kds; src/FPolyCinema.Web/Views/Kitchen/Kds.cshtml#data-kds; ui:P4 |  |
+| U7.P4-02 | Hai cột "Đang chuẩn bị" và "Sẵn sàng giao". | Xong | src/FPolyCinema.Web/Views/Kitchen/Kds.cshtml#Đang chuẩn bị; src/FPolyCinema.Web/Views/Kitchen/Kds.cshtml#Sẵn sàng giao; ui:P4 |  |
+| U7.P4-03 | Thẻ đơn gồm: số gọi 40px; kênh (Quầy hoặc Online); thời gian chờ đổi màu (xanh dưới 5 phút, vàng 5–10 phút, đỏ trên 10 … | Xong | src/FPolyCinema.Web/Views/Kitchen/_KdsCard.cshtml#kds-number; src/FPolyCinema.Web/wwwroot/css/app.css#.kds-number { font-size: var(--fs-40); src/FPolyCinema.Web/Domain/Rules/KdsRules.cs#WaitLevel; test:Kds_WaitColour |  |
+| U7.P4-04 | Đơn mới trượt vào kèm âm báo nhẹ. | Xong | src/FPolyCinema.Web/wwwroot/css/app.css#kds-slide-in; src/FPolyCinema.Web/wwwroot/js/pages/kds.js#is-new |  |
+| U7.P5-01 | P5. Bảng gọi số /lobby/pickup-board (cinema, 1920 × 1080) | Xong | src/FPolyCinema.Web/Controllers/LobbyController.cs#lobby/pickup-board; src/FPolyCinema.Web/Views/Lobby/PickupBoard.cshtml#data-pickup-board; ui:P5 |  |
+| U7.P5-02 | Hai cột: "Đang chuẩn bị" với số 64px màu xám; "Mời nhận đồ" với số 96px màu vàng, nhấp nháy nhẹ 3 lần khi vừa xuất hiện… | Xong | src/FPolyCinema.Web/wwwroot/css/app.css#.pickup-numbers.is-ready li { font-size: var(--fs-96); src/FPolyCinema.Web/wwwroot/css/app.css#pickup-blink 700ms ease-in-out 3; src/FPolyCinema.Web/wwwroot/js/pages/lobby.js#is-new |  |
+| U7.P5-03 | Kèm đồng hồ và logo. | Xong | src/FPolyCinema.Web/Views/Lobby/PickupBoard.cshtml#lobby-clock; src/FPolyCinema.Web/Views/Lobby/PickupBoard.cshtml#_Logo; ui:P5 |  |
+| U7.P6-01 | P6. Bảng sảnh /lobby/digital-signage (cinema, 1920 × 1080) | Xong | src/FPolyCinema.Web/Controllers/LobbyController.cs#lobby/digital-signage; src/FPolyCinema.Web/Views/Lobby/DigitalSignage.cshtml#data-signage; ui:P6 |  |
+| U7.P6-02 | Bảng các suất sắp chiếu, gồm các cột: giờ (48px, tabular); phim (tên, nhãn tuổi, định dạng, ngôn ngữ); phòng; trạng thá… | Xong | src/FPolyCinema.Web/Views/Lobby/_SignageRows.cshtml#signage-time; src/FPolyCinema.Web/wwwroot/css/app.css#.signage-time { font-size: var(--fs-display) |  |
+| U7.P6-03 | Trạng thái hiện bằng nhãn lớn: "Mời vào rạp" màu xanh nhấp nháy chậm, "Đang chiếu", "Đang dọn". | Xong | src/FPolyCinema.Web/Domain/Rules/ShowtimeOpsRules.cs#SignageState; src/FPolyCinema.Web/Views/Lobby/_SignageRows.cshtml#Mời vào rạp; src/FPolyCinema.Web/wwwroot/css/app.css#signage-pulse; test:ShowtimeOps_SignageState |  |
+| U7.P6-04 | Bảng tự cuộn khi nhiều dòng. Chân trang có dòng chữ chạy, ví dụ nhắc quy định độ tuổi. | Xong | src/FPolyCinema.Web/wwwroot/js/pages/lobby.js#scrollTop; src/FPolyCinema.Web/Views/Lobby/DigitalSignage.cshtml#signage-ticker; ui:P6 |  |
+| U7.A1-05 | Danh sách cảnh báo thêm các yêu cầu phê duyệt đang chờ; thêm bảng sĩ số trực tiếp các suất đang chạy. | Xong | src/FPolyCinema.Web/Views/Statistics/Dashboard.cshtml#_OpsLive; src/FPolyCinema.Web/Views/Ops/_OpsLive.cshtml#_LiveOccupancy; src/FPolyCinema.Web/Controllers/OpsDashboardPages.cs#Build; ui:A1 |  |
+| U7.A7-01 | A7. Phê duyệt (quản lý ca) | Xong | src/FPolyCinema.Web/Controllers/OpsController.cs#SupervisorOrManager; src/FPolyCinema.Web/Views/Ops/Index.cshtml#Vận hành ca; ui:A7 |  |
+| U7.A7-02 | Popup thời gian thực ở góc phải, không chặn thao tác khác. Nội dung: hóa đơn, lý do, người yêu cầu, hai nút lớn Duyệt v… | Xong | src/FPolyCinema.Web/wwwroot/js/approvals.js#APPROVAL_REQUESTED; src/FPolyCinema.Web/wwwroot/css/app.css#.approval-stack; src/FPolyCinema.Web/Views/Shared/_LayoutAdmin.cshtml#data-approval-stack |  |
+| U7.A7-03 | Dashboard có thêm danh sách các yêu cầu đang chờ duyệt. | Xong | src/FPolyCinema.Web/Views/Shared/_ApprovalList.cshtml#data-approval-decide; src/FPolyCinema.Web/Views/Ops/_OpsBody.cshtml#_ApprovalList; ui:A7 |  |
+| C3-38 | Hóa đơn "đã hoàn tất": Status finish, CheckInStatus là NONE hoặc FULLY_CHECKED_IN, FnbStatus là NONE hoặc FULFILLED. | Xong | src/FPolyCinema.Web/Domain/Rules/CheckInRules.cs#IsCompleted; src/FPolyCinema.Web/Views/Bills/Details.cshtml#CheckInRules.IsCompleted; test:CheckIn_BillCompletedFlag |  |
+| UC10 | Xem vé điện tử, báo "Tôi đã tới rạp" (màn hình C4) | Xong | src/FPolyCinema.Web/Views/Tickets/Show.cshtml#data-im-here; src/FPolyCinema.Web/Controllers/CustomerController.cs#ImHere; test:Kds_ImHereWindow_StartAndAdvance; ui:C4 |  |
+| UC16 | In vé, nhận đơn online tại quầy (màn hình P1) | Xong | src/FPolyCinema.Web/Controllers/KitchenController.cs#Pickup; src/FPolyCinema.Web/Controllers/PosController.cs#Print; test:Kds_ImHereWindow_StartAndAdvance |  |
+| UC17 | Đổi, nâng hạng ghế (màn hình P1) | Xong | src/FPolyCinema.Web/Services/SeatSwapService.cs#Swap; src/FPolyCinema.Web/Views/Pos/SwapSeat.cshtml#data-swap; test:SeatSwap_QuoteChargesOnlyPositiveDifference |  |
+| UC18 | Yêu cầu hủy hóa đơn đã thanh toán (màn hình P1) | Xong | src/FPolyCinema.Web/Controllers/PosController.cs#RequestVoidRemote; src/FPolyCinema.Web/Controllers/PosController.cs#RequestVoid; test:RemoteApproval_RequestNotifiesManagers_RejectGoesBackToTerminal_AndExpires |  |
+| UC19 | Xử lý đơn bắp nước tại bếp, gọi số (màn hình P4, P5) | Xong | src/FPolyCinema.Web/Services/KdsService.cs#Advance; src/FPolyCinema.Web/Views/Kitchen/Kds.cshtml#data-kds; src/FPolyCinema.Web/Views/Lobby/PickupBoard.cshtml#data-pickup-board; test:Kds_ImHereWindow_StartAndAdvance |  |
+| UC20 | Lập phiếu hủy hàng hỏng (màn hình P4) | Xong | src/FPolyCinema.Web/Controllers/KitchenController.cs#Wastage; src/FPolyCinema.Web/Views/Kitchen/Wastage.cshtml#data-stock-form; test:Inventory_Import_AndWastageNeedsApprovalBeforeStockDrops |  |
+| UC22 | Soát vé, check-in từng phần (màn hình P3) | Xong | src/FPolyCinema.Web/Services/GateService.cs#Admit; src/FPolyCinema.Web/Views/Gate/Index.cshtml#data-gate; test:Clock_RoomNotReady_StaysScheduled_ThenCleanedJumpsAhead_AndGateAdmitsPartially |  |
+| UC23 | Xác nhận dọn phòng xong (màn hình P3, P6) | Xong | src/FPolyCinema.Web/Services/ShowtimeOpsService.cs#MarkCleaned; src/FPolyCinema.Web/Views/Lobby/_SignageRows.cshtml#Mời vào rạp; test:Clock_RoomNotReady_StaysScheduled_ThenCleanedJumpsAhead_AndGateAdmitsPartially |  |
+| UC24 | Duyệt hủy hóa đơn (PIN hoặc từ xa) (màn hình P1, A7) | Xong | src/FPolyCinema.Web/Services/ApprovalService.cs#Decide; src/FPolyCinema.Web/Services/SalesSupportServices.cs#ManagerPinService; src/FPolyCinema.Web/wwwroot/js/approvals.js#data-approval-decide; test:RemoteApproval_RequestNotifiesManagers_RejectGoesBackToTerminal_AndExpires |  |
+| UC25 | Giải phóng ghế nội bộ (màn hình A7) | Xong | src/FPolyCinema.Web/Services/OpsManagementService.cs#ReleaseHouseSeats; src/FPolyCinema.Web/Views/Ops/_OpsBody.cshtml#data-release-house; test:HouseSeats_ReleasedToAvailable_WithAuditLog |  |
+| UC26 | Duyệt phiếu hủy hàng (màn hình A7) | Xong | src/FPolyCinema.Web/Controllers/OpsController.cs#DecideWastage; src/FPolyCinema.Web/Views/Ops/WastageDetail.cshtml#data-wastage-decide; test:Inventory_Import_AndWastageNeedsApprovalBeforeStockDrops |  |
+| UC27 | Hủy suất do sự cố (màn hình A5) | Xong | src/FPolyCinema.Web/Controllers/OpsController.cs#Incident; src/FPolyCinema.Web/Services/OpsManagementService.cs#CancelShowtime; test:Incident_CancelsShowtime_RefundsAll_VoidsTickets_GivesVouchers_InOneTransaction |  |
+| UC30 | Quản lý nguyên liệu, nhập kho (màn hình A2, A3) | Xong | src/FPolyCinema.Web/Controllers/MaterialsController.cs#MaterialsController; src/FPolyCinema.Web/Views/Materials/Index.cshtml#Nguyên liệu; test:Inventory_Import_AndWastageNeedsApprovalBeforeStockDrops |  |
+| UC40 | Bán vé doanh nghiệp (màn hình A2, A3) | Xong | src/FPolyCinema.Web/Controllers/CorporateController.cs#CorporateController; src/FPolyCinema.Web/Views/Corporate/Form.cshtml#Thuê trọn suất; test:Corporate_PrivateScreeningOnlyUnsoldFutureShowtime |  |

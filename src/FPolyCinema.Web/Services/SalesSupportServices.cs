@@ -14,7 +14,7 @@ namespace FPolyCinema.Web.Services;
 /// nguyên liệu có khả dụng ≥ n × định mức (STOCK_INSUFFICIENT); bán tại quầy trừ thẳng ActualStock khi hóa đơn finish (CONSUME).
 /// Món không có định mức tại rạp thì không giới hạn theo kho.
 /// </summary>
-public class InventoryService
+public partial class InventoryService
 {
     /// <summary>Số phần còn bán được của từng món tại rạp (món IsSoldOut hoặc ngưng bán là 0).</summary>
     public Dictionary<int, int> Portions(int cinemaId, IEnumerable<Drink> drinks, IReadOnlyDictionary<int, int>? alreadyInCart = null)
@@ -203,6 +203,9 @@ public class ShiftService
     }
 
     public static List<string> Terminals() => Enumerable.Range(1, TerminalsPerCinema).Select(CodeGenerator.TerminalCode).ToList();
+
+    /// <summary>Khóa máy dùng cho nhóm SignalR kênh 2: {CinemaId}-{TerminalCode} (mã máy POS-01 lặp lại ở mỗi rạp).</summary>
+    public static string TerminalKey(int cinemaId, string terminalCode) => $"{cinemaId}-{terminalCode}";
 
     /// <summary>
     /// Ngữ cảnh bán hàng: người dùng phải có ca OPEN tại đúng máy đang dùng (SHIFT_NOT_OPEN). Máy nhận biết bằng cookie mã máy đặt lúc mở ca;

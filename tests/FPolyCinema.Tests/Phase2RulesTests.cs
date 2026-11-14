@@ -163,7 +163,7 @@ public class Phase2RulesTests
         Assert.Equal("/admin", RoleRouting.HomePath(Roles.Manager));
         Assert.Equal("/pos/index", RoleRouting.HomePath(Roles.POSCashier));
         Assert.Equal("/pos/index", RoleRouting.HomePath(Roles.ShiftManager));
-        Assert.Equal("/me", RoleRouting.HomePath(Roles.TicketInspector));
+        Assert.Equal("/pos/gate-inspector", RoleRouting.HomePath(Roles.TicketInspector));
         Assert.Equal(UiArea.Admin, RoleRouting.AreaOfPath("/admin/users", Roles.POSCashier));
         Assert.Equal(UiArea.Pos, RoleRouting.AreaOfPath("/pos/index", Roles.Manager));
         Assert.Equal(UiArea.Customer, RoleRouting.AreaOfPath("/admin/users", Roles.Customer));

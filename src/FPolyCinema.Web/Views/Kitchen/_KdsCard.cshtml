@@ -1,0 +1,25 @@
+@model KdsOrder
+@* Thẻ đơn bếp (UI U7.P4-03). kds.js vẽ lại cùng cấu trúc khi nhận KDS_ORDER_QUEUED, KDS_ORDER_UPDATED. *@
+<article class="kds-card" data-bill-id="@Model.BillId" data-queued-at="@Model.QueuedAt.ToString("yyyy-MM-ddTHH:mm:ss")" aria-label="Đơn số @Model.PickupNumber">
+    <div class="kds-card-head">
+        <span class="kds-number num">@Model.PickupNumber</span>
+        <span class="status-badge tone-@(Model.Channel == BillChannel.Pos ? "neutral" : "info")">@Model.ChannelLabel</span>
+        @{ var waited = Shell.Now - Model.QueuedAt; if (waited < TimeSpan.Zero) { waited = TimeSpan.Zero; } }
+        <span class="kds-wait is-@KdsRules.WaitLevel(waited)" data-wait><i class="bi bi-stopwatch" aria-hidden="true"></i><span class="num" data-wait-text>@((int)waited.TotalMinutes) phút</span></span>
+    </div>
+    <ul class="kds-items">
+        @foreach (var i in Model.Items)
+        {
+            <li><span class="num">@i.Quantity ×</span> @i.Name</li>
+        }
+    </ul>
+    <p class="kds-code">@Model.Code</p>
+    @if (Model.FnbStatus == FnbStatus.Preparing)
+    {
+        <button type="button" class="btn btn-primary btn-xl w-100" data-ready="@Model.BillId"><i class="bi bi-bell" aria-hidden="true"></i>Sẵn sàng giao</button>
+    }
+    else
+    {
+        <button type="button" class="btn btn-success btn-xl w-100" data-served="@Model.BillId"><i class="bi bi-bag-check" aria-hidden="true"></i>Đã giao</button>
+    }
+</article>

@@ -429,7 +429,15 @@
   });
 
   // ---------------------------------------------------------------- khởi động
-  if (window.realtime) realtime.onReload(() => reloadAll());
+  if (window.realtime) {
+    realtime.onReload(() => reloadAll());
+    // Kênh 2: máy POS nhận kết quả duyệt hủy từ xa (APPROVAL_DECIDED); màn hình phụ nhận giỏ hàng do máy chủ phát sau mỗi thao tác
+    if (root.dataset.terminalKey) realtime.join('JoinTerminal', root.dataset.terminalKey, false);
+    // Kênh 7b: món hết hoặc bán lại được thì cập nhật lưới "Tạm hết" ngay
+    if (root.dataset.cinemaId) realtime.join('JoinCinema', Number(root.dataset.cinemaId));
+    realtime.on('PRODUCT_SOLD_OUT', () => reloadStock());
+    realtime.on('PRODUCT_AVAILABLE', () => reloadStock());
+  }
   renderCart(cart);
   if (showtimeId) {
     $$('.showtime-chip').forEach((c) => c.classList.toggle('is-active', Number(c.dataset.showtimeId) === showtimeId));

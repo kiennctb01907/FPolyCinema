@@ -1,0 +1,34 @@
+@model LobbyVm
+@* Bảng sảnh P6 /lobby/digital-signage (theme cinema, 1920 × 1080, không cần đăng nhập; SPEC 3.8-11, 3.1-25): bảng các suất sắp chiếu với giờ (48px, tabular),
+   phim (tên, nhãn tuổi, định dạng, ngôn ngữ), phòng, trạng thái bằng nhãn lớn ("Mời vào rạp" xanh nhấp nháy chậm, "Đang chiếu", "Đang dọn").
+   Bảng tự cuộn khi nhiều dòng; chân trang có dòng chữ chạy nhắc quy định độ tuổi. Kênh 6 (JoinOps) cập nhật trạng thái. *@
+@{
+    Layout = "_LayoutDisplay";
+    ViewData["Title"] = "Bảng sảnh";
+    ViewData["ConnState"] = "reconnecting";
+}
+<div class="lobby signage" data-signage data-cinema-id="@Model.CinemaId">
+    <header class="lobby-head">
+        <partial name="_Logo" model="@("/")" />
+        <h1 class="lobby-title">Lịch chiếu hôm nay · @Model.CinemaName</h1>
+        <partial name="_ConnIndicator" />
+        <time class="lobby-clock" data-clock="seconds" data-server-now="@Model.Now.ToString("yyyy-MM-ddTHH:mm:ss")">@Fmt.Time(Model.Now)</time>
+    </header>
+    <div class="signage-head" aria-hidden="true">
+        <span>Giờ</span><span>Phim</span><span>Phòng</span><span>Trạng thái</span>
+    </div>
+    <div class="signage-viewport" data-signage-viewport>
+        <div class="signage-rows" data-signage-rows>
+            <partial name="_SignageRows" model="Model" />
+        </div>
+    </div>
+    <div class="signage-ticker" aria-label="Thông báo">
+        <p class="signage-ticker-text">@Model.Ticker</p>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
+    <script src="~/js/realtime.js" asp-append-version="true"></script>
+    <script src="~/js/pages/lobby.js" asp-append-version="true"></script>
+}

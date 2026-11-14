@@ -1,0 +1,72 @@
+@model MaterialListVm
+@* Bảng nguyên liệu: tên, rạp, tồn thực tế, đã giữ, khả dụng (tô đỏ khi dưới ngưỡng), ngưỡng, trạng thái, thao tác. *@
+@{
+    var hasFilter = !string.IsNullOrEmpty(Model.Q) || !string.IsNullOrEmpty(Model.Status) || Model.LowOnly;
+}
+@if (Model.Rows.Count == 0)
+{
+    if (hasFilter)
+    {
+        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-search", Title = "Không có nguyên liệu phù hợp", Text = "Không có kết quả – thử đổi từ khóa hoặc bỏ bớt bộ lọc.", ActionLabel = "Xóa bộ lọc", ActionUrl = "/admin/materials", ActionIcon = "bi-funnel" })" />
+    }
+    else
+    {
+        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-box-seam", Title = "Chưa có nguyên liệu", Text = "Thêm nguyên liệu để khai báo định mức món và theo dõi tồn kho.", ActionLabel = "Thêm nguyên liệu", ActionUrl = "/admin/materials/create" })" />
+    }
+}
+else
+{
+    <div class="table-wrap">
+        <table class="data-table">
+            <caption class="visually-hidden">Danh sách nguyên liệu</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Nguyên liệu</th>
+                    <th scope="col" class="col-opt">Rạp</th>
+                    <th scope="col" class="num">Tồn thực tế</th>
+                    <th scope="col" class="num col-opt">Đã giữ cho đơn online</th>
+                    <th scope="col" class="num">Khả dụng</th>
+                    <th scope="col" class="num col-opt">Ngưỡng tối thiểu</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col" class="col-actions">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var row in Model.Rows)
+                {
+                    var m = row.Material;
+                    var available = m.ActualStock - m.ReservedStock;
+                    var low = available < m.MinThreshold;
+                    var active = StatusDisplay.Of(StatusDisplay.Active, m.Active);
+                    <tr>
+                        <td class="cell-title"><a class="cell-main" href="/admin/materials/@m.Id/edit">@m.Name</a><span class="cell-sub d-block">Đơn vị: @m.Unit</span></td>
+                        <td class="col-opt" data-label="Rạp">@row.CinemaName</td>
+                        <td class="num" data-label="Tồn thực tế">@Fmt.Decimal(m.ActualStock)</td>
+                        <td class="num col-opt" data-label="Đã giữ">@Fmt.Decimal(m.ReservedStock)</td>
+                        <td class="num" data-label="Khả dụng">
+                            @if (low)
+                            {
+                                <span class="status-badge tone-danger" title="Dưới ngưỡng tối thiểu">@Fmt.Decimal(available)</span>
+                            }
+                            else
+                            {
+                                @Fmt.Decimal(available)
+                            }
+                        </td>
+                        <td class="num col-opt" data-label="Ngưỡng">@Fmt.Decimal(m.MinThreshold)</td>
+                        <td data-label="Trạng thái">
+                            <label class="form-check form-switch active-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" checked="@m.Active" data-active-url="/admin/materials/@m.Id/set-active" data-on-done="Đã dùng lại nguyên liệu" data-off-done="Đã ngưng nguyên liệu" aria-label="Đang dùng: @m.Name" />
+                                <span data-active-label>@active.Label</span>
+                            </label>
+                        </td>
+                        <td class="col-actions">
+                            <a class="btn btn-ghost btn-icon btn-sm" href="/admin/materials/@m.Id/edit" aria-label="Sửa @m.Name" data-bs-toggle="tooltip" title="Sửa"><i class="bi bi-pencil" aria-hidden="true"></i></a>
+                            <a class="btn btn-ghost btn-icon btn-sm" href="/admin/materials/import?cinemaId=@m.CinemaId" aria-label="Nhập kho cho rạp của @m.Name" data-bs-toggle="tooltip" title="Nhập kho"><i class="bi bi-box-arrow-in-down" aria-hidden="true"></i></a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

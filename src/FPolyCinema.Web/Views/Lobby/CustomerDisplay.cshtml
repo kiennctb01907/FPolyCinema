@@ -1,0 +1,71 @@
+@model CustomerDisplayVm
+@* Màn hình phụ của quầy P2 /pos/customer-display?terminal=POS-01 (theme cinema, 1920 × 1080; SPEC 3.6-11, 3.6-17; kênh 2 tham gia ẩn danh, chỉ nhận).
+   Lúc chờ: slideshow poster cùng logo. Khi thu ngân chọn suất: trái là sơ đồ ghế lớn (ghế đang chọn sáng lên kèm điểm), phải là giỏ hàng chữ 24–28px,
+   tổng tiền 56px. Khi thanh toán QR: QR 360px ở giữa, số tiền 56px, đồng hồ đếm ngược. Khi xong: "Cảm ơn quý khách" kèm mã vé và QR vé. *@
+@{
+    Layout = "_LayoutDisplay";
+    ViewData["Title"] = "Màn hình phụ " + Model.Terminal;
+    ViewData["ConnState"] = "reconnecting";
+}
+<div class="cdisplay" data-cdisplay data-terminal="@Model.Terminal" data-terminal-key="@Model.TerminalKey" data-cinema-id="@Model.CinemaId">
+    <section class="cd-view cd-idle is-active" data-view="idle" aria-label="Màn hình chờ">
+        <div class="cd-slides" data-slides>
+            @for (int i = 0; i < Model.Posters.Count; i++)
+            {
+                var p = Model.Posters[i];
+                <figure class="cd-slide @(i == 0 ? "is-active" : null)">
+                    <img src="@(p.PosterUrl ?? "/img/placeholder-poster.svg")" alt="Poster phim @p.Title" onerror="this.onerror=null;this.src='/img/placeholder-poster.svg'" />
+                    <figcaption><span class="cd-slide-title">@p.Title</span> <partial name="_AgeBadge" model="@(new AgeBadgeVm(p.AgeRating, false, true))" /></figcaption>
+                </figure>
+            }
+        </div>
+        <div class="cd-idle-brand">
+            <partial name="_Logo" model="@("/")" />
+            <p class="cd-welcome">Chào mừng quý khách tới @Model.CinemaName</p>
+            <p class="cd-terminal">Quầy @Model.Terminal</p>
+        </div>
+    </section>
+
+    <section class="cd-view cd-cart" data-view="cart" aria-label="Giỏ hàng" hidden>
+        <div class="cd-left">
+            <div class="cd-show" data-cd-show></div>
+            <div class="cd-seatmap" data-cd-seatmap></div>
+        </div>
+        <aside class="cd-right">
+            <h2 class="cd-right-title">Đơn hàng của quý khách</h2>
+            <p class="cd-member" data-cd-member hidden></p>
+            <ul class="cd-lines" data-cd-lines></ul>
+            <p class="cd-discount" data-cd-discount hidden></p>
+            <div class="cd-total"><span>Tổng cộng</span><strong class="money" data-cd-total>0 ₫</strong></div>
+        </aside>
+    </section>
+
+    <section class="cd-view cd-qr" data-view="qr" aria-label="Thanh toán chuyển khoản" hidden>
+        <h2 class="cd-qr-title">Quét mã để thanh toán</h2>
+        <div class="cd-qr-box"><img alt="Mã QR thanh toán" data-cd-qr width="360" height="360" /></div>
+        <p class="cd-amount money" data-cd-amount></p>
+        <p class="cd-countdown">Mã hết hạn sau <span class="num" data-cd-countdown>--:--</span></p>
+        <p class="cd-qr-code" data-cd-qr-code></p>
+    </section>
+
+    <section class="cd-view cd-done" data-view="done" aria-label="Cảm ơn" hidden>
+        <i class="bi bi-check-circle-fill cd-done-icon" aria-hidden="true"></i>
+        <h2 class="cd-done-title">Cảm ơn quý khách</h2>
+        <div class="cd-done-body">
+            <div class="cd-qr-box cd-qr-small"><img alt="Mã QR vé" data-cd-done-qr width="240" height="240" /></div>
+            <div>
+                <p class="cd-done-code">Mã vé <strong data-cd-done-code></strong></p>
+                <p class="cd-done-seats" data-cd-done-seats></p>
+                <p class="cd-done-pickup" data-cd-done-pickup hidden></p>
+                <p class="cd-done-note" data-cd-done-note>Đưa mã này ở cửa soát vé. Chúc quý khách xem phim vui vẻ!</p>
+            </div>
+        </div>
+    </section>
+</div>
+<script type="application/json" id="cd-state">@Json.Serialize(Model.State)</script>
+
+@section Scripts {
+    <script src="~/lib/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
+    <script src="~/js/realtime.js" asp-append-version="true"></script>
+    <script src="~/js/pages/customer-display.js" asp-append-version="true"></script>
+}

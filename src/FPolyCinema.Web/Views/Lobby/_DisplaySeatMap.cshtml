@@ -1,0 +1,9 @@
+@model SeatMapVm
+@* Sơ đồ ghế lớn chỉ xem của màn hình phụ (UI P2): ghế của hóa đơn đang chọn hiện trạng thái "đang chọn" (sáng lên). *@
+@{
+    Model.Interactive = false;
+    Model.ShowLegend = true;
+}
+<div class="display-seatmap">
+    <partial name="~/Views/Shared/_SeatMap.cshtml" model="Model" />
+</div>

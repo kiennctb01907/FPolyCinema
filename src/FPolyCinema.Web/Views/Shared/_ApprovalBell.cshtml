@@ -14,24 +14,30 @@
         </button>
         <div class="dropdown-menu dropdown-menu-end p-0">
             <h2 class="dropdown-header">Yêu cầu phê duyệt đang chờ</h2>
+            <div data-bell-body>
             @if (list.Count == 0)
             {
                 <p class="px-3 pb-3 mb-0 text-muted small">Không có yêu cầu nào đang chờ duyệt.</p>
             }
             else
             {
-                @* TODO(Phase 6): bấm vào yêu cầu để duyệt hoặc từ chối từ xa (UI A7). *@
+                @* Bấm vào yêu cầu để mở popup duyệt hoặc từ chối từ xa (UI A7, approvals.js) *@
                 <ul class="list-unstyled mb-0">
                     @foreach (var a in list)
                     {
-                        <li class="dropdown-item flex-column align-items-start">
-                            <span class="fw-500">Hủy hóa đơn @a.BillCode</span>
-                            <span class="small text-muted">@a.RequesterName · <span class="num">@Fmt.DateTime(a.CreatedAt)</span></span>
-                            <span class="small text-truncate-1">@a.Reason</span>
+                        <li data-approval-id="@a.Id">
+                            <button type="button" class="dropdown-item d-flex flex-column align-items-start" data-approval-open="@a.Id" data-code="@a.BillCode"
+                                    data-reason="@a.Reason" data-requester="@a.RequesterName" data-time="@Fmt.Time(a.CreatedAt)">
+                                <span class="fw-500">Hủy hóa đơn @a.BillCode</span>
+                                <span class="small text-muted">@a.RequesterName · <span class="num">@Fmt.DateTime(a.CreatedAt)</span></span>
+                                <span class="small text-truncate-1">@a.Reason</span>
+                            </button>
                         </li>
                     }
                 </ul>
+                <a class="dropdown-item text-primary small" href="/ops">Xem tất cả ở trang Vận hành ca</a>
             }
+            </div>
         </div>
     </div>
 }

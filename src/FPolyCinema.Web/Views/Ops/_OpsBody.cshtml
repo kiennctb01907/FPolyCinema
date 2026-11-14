@@ -1,0 +1,105 @@
+@model OpsDashboardVm
+@* Nội dung dashboard vận hành (tải lại bằng ?partial=1). *@
+@{
+    var b = Model.Board;
+}
+@if (b.Late.Count > 0)
+{
+    <div class="ops-late mb-4" role="alert">
+        <p class="fw-semibold mb-1"><i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i> @b.Late.Count suất đã quá giờ chiếu nhưng phòng chưa sẵn sàng</p>
+        <ul class="mb-0 ps-3">
+            @foreach (var s in b.Late)
+            {
+                <li><strong>@s.AuditoriumName</strong> · @s.MovieTitle · bắt đầu <span class="num">@Fmt.Time(s.StartTime)</span> – suất trước trong phòng chưa được xác nhận dọn xong.</li>
+            }
+        </ul>
+    </div>
+}
+<div class="ops-grid">
+    <div class="ops-stack">
+        <section class="card-ui card-ui-body" aria-labelledby="ops-approvals">
+            <h2 class="card-ui-title" id="ops-approvals">Yêu cầu phê duyệt đang chờ @if (Model.Approvals.Count > 0) { <span class="count-pill" aria-hidden="true">@Model.Approvals.Count</span> }</h2>
+            <partial name="_ApprovalList" model="Model.Approvals" />
+        </section>
+        <section class="card-ui card-ui-body" aria-labelledby="ops-occupancy">
+            <h2 class="card-ui-title" id="ops-occupancy">Sĩ số trực tiếp các suất đang chạy</h2>
+            <partial name="_LiveOccupancy" model="b.Running" />
+        </section>
+    </div>
+    <div class="ops-stack">
+        <section class="card-ui card-ui-body" aria-labelledby="ops-cleaning">
+            <h2 class="card-ui-title" id="ops-cleaning">Phòng đang dọn</h2>
+            @if (b.Cleaning.Count == 0)
+            {
+                <p class="text-muted mb-0">Không có phòng nào đang chờ xác nhận dọn xong.</p>
+            }
+            else
+            {
+                <ul class="ops-list">
+                    @foreach (var c in b.Cleaning)
+                    {
+                        <li>
+                            <span class="ops-main"><strong>@c.AuditoriumName</strong> · @c.MovieTitle
+                                <span class="ops-sub">Kết thúc <span class="num">@Fmt.Time(c.EndTime)</span> · nhân viên soát vé bấm "Đã dọn xong" trên máy soát vé</span></span>
+                            <partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Showtime, c.OperationalStatus))" />
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section class="card-ui card-ui-body" aria-labelledby="ops-house">
+            <h2 class="card-ui-title" id="ops-house">Ghế nội bộ</h2>
+            <p class="small text-muted">Nhắc giải phóng trước giờ chiếu @Model.HouseReminderMinutes phút. Giải phóng được bất kỳ lúc nào trước khi suất kết thúc.</p>
+            @if (Model.HouseSeats.Count == 0)
+            {
+                <p class="text-muted mb-0">Không có suất nào trong 24 giờ tới còn giữ ghế nội bộ.</p>
+            }
+            else
+            {
+                <ul class="ops-list">
+                    @foreach (var h in Model.HouseSeats.Take(12))
+                    {
+                        var remind = Model.HouseReminders.Any(r => r.ShowtimeId == h.ShowtimeId);
+                        <li>
+                            <span class="ops-main">
+                                @if (remind)
+                                {
+                                    <span class="status-badge tone-warning">Sắp chiếu</span>
+                                }
+                                <strong>@h.MovieTitle</strong> · @h.AuditoriumName · <span class="num">@Fmt.DateTime(h.StartTime)</span>
+                                <span class="ops-sub">@h.HouseSeats ghế nội bộ: @h.Labels</span>
+                            </span>
+                            <button type="button" class="btn @(remind ? "btn-primary" : "btn-secondary") btn-sm" data-release-house="@h.ShowtimeId" data-title="@h.MovieTitle @Fmt.Time(h.StartTime) · @h.AuditoriumName" data-count="@h.HouseSeats">
+                                <i class="bi bi-unlock" aria-hidden="true"></i>Giải phóng
+                            </button>
+                        </li>
+                    }
+                </ul>
+                @if (Model.HouseSeats.Count > 12)
+                {
+                    <p class="small text-muted mb-0 mt-2">Còn @(Model.HouseSeats.Count - 12) suất khác.</p>
+                }
+            }
+        </section>
+        <section class="card-ui card-ui-body" aria-labelledby="ops-wastage">
+            <h2 class="card-ui-title" id="ops-wastage">Phiếu hủy hàng chờ duyệt</h2>
+            @if (Model.PendingWastage.Count == 0)
+            {
+                <p class="text-muted mb-0">Không có phiếu nào chờ duyệt.</p>
+            }
+            else
+            {
+                <ul class="ops-list">
+                    @foreach (var w in Model.PendingWastage)
+                    {
+                        <li>
+                            <span class="ops-main"><a class="fw-semibold" href="/ops/wastage/@w.Log.Id">Phiếu #@w.Log.Id</a> · @w.ItemCount nguyên liệu
+                                <span class="ops-sub">@w.CreatorName · <span class="num">@Fmt.DateTime(w.Log.CreatedAt)</span> · @w.CinemaName</span></span>
+                            <a class="btn btn-secondary btn-sm" href="/ops/wastage/@w.Log.Id">Xem và duyệt</a>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    </div>
+</div>

@@ -1,3 +1,4 @@
+using FPolyCinema.Web.DAL;
 using FPolyCinema.Web.Domain;
 using FPolyCinema.Web.Domain.Constants;
 using FPolyCinema.Web.Domain.Rules;
@@ -21,13 +22,15 @@ public class DrinksController : AppControllerBase
     private readonly CategoryService _categories;
     private readonly CinemaContextService _cinemas;
     private readonly IClock _clock;
+    private readonly RealtimeNotifier _notifier;
 
-    public DrinksController(DrinkService service, CategoryService categories, CinemaContextService cinemas, IClock clock)
+    public DrinksController(DrinkService service, CategoryService categories, CinemaContextService cinemas, IClock clock, RealtimeNotifier notifier)
     {
         _service = service;
         _categories = categories;
         _cinemas = cinemas;
         _clock = clock;
+        _notifier = notifier;
     }
 
     private bool CanManage => User.IsInRole(Roles.Manager);
@@ -70,7 +73,7 @@ public class DrinksController : AppControllerBase
 
     [Authorize(Policy = Policies.ManagerOnly)]
     [HttpPost("create")]
-    public IActionResult Create(DrinkFormVm vm) => SaveForm(null, vm);
+    public Task<IActionResult> Create(DrinkFormVm vm) => SaveForm(null, vm);
 
     [Authorize(Policy = Policies.ManagerOnly)]
     [HttpGet("{id:int}/edit")]
@@ -92,9 +95,9 @@ public class DrinksController : AppControllerBase
 
     [Authorize(Policy = Policies.ManagerOnly)]
     [HttpPost("{id:int}/edit")]
-    public IActionResult Edit(int id, DrinkFormVm vm) => SaveForm(id, vm);
+    public Task<IActionResult> Edit(int id, DrinkFormVm vm) => SaveForm(id, vm);
 
-    private IActionResult SaveForm(int? id, DrinkFormVm vm)
+    private async Task<IActionResult> SaveForm(int? id, DrinkFormVm vm)
     {
         vm.Id = id;
         vm.Recipes = vm.Recipes.Where(r => r.RawMaterialId > 0 || r.Quantity != 0).ToList();
@@ -103,7 +106,14 @@ public class DrinksController : AppControllerBase
         {
             var input = new DrinkInput(vm.CategoryId, vm.Name, vm.Price, vm.Description, vm.Image, vm.IsCombo, vm.Active,
                 vm.Recipes.Select(r => new RecipeInput(r.RawMaterialId, r.Quantity)).ToList());
+            bool? wasSoldOut = id is int old ? DrinkDAL.GetById(old)?.IsSoldOut : null;
             var saved = _service.Save(id, input, _clock.Now);
+            // Định mức đổi thì tính lại cờ "Tạm hết" của món và báo POS, web (PRODUCT_SOLD_OUT / PRODUCT_AVAILABLE, SPEC 3.11-09, 3.11-10)
+            InventoryService.SyncSoldOutFlags(new[] { saved.Id });
+            var soldOut = DrinkDAL.GetById(saved.Id)?.IsSoldOut ?? false;
+            if (wasSoldOut != soldOut)
+                foreach (var c in CinemaDAL.GetActive())
+                    if (soldOut) await _notifier.ProductSoldOut(c.Id, new[] { saved.Id }); else if (wasSoldOut == true) await _notifier.ProductAvailable(c.Id, new[] { saved.Id });
             Toast("success", id == null ? $"Đã thêm món “{saved.Name}”" : "Đã lưu thay đổi");
             return Redirect("/admin/drinks");
         }

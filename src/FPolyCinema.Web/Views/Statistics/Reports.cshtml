@@ -1,6 +1,6 @@
 @model ReportVm
 @* A6. Báo cáo: bộ lọc khoảng ngày có mốc nhanh; thẻ KPI; biểu đồ (Chart.js: doanh thu theo ngày, top 5 đồ uống, top 5 phim – Lab 6); bảng chi tiết;
-   nút "Xuất CSV". Các tab: Doanh thu, Tỷ lệ phim Việt (SPEC 3.1 mục 6), Tỷ lệ lấp đầy theo suất, Biên bản ca (SPEC 3.12-10). *@
+   nút "Xuất CSV". Các tab: Doanh thu, Tỷ lệ phim Việt (SPEC 3.1 mục 6), Tỷ lệ lấp đầy theo suất, Biên bản ca (SPEC 3.12-10), Hủy hàng (SPEC 3.12-11). *@
 @{
     Layout = "_LayoutAdmin";
     ViewData["Title"] = "Thống kê";
@@ -12,12 +12,13 @@
         (FPolyCinema.Web.Controllers.StatisticsController.TabVietnamese, "bi-flag", "Tỷ lệ phim Việt"),
         (FPolyCinema.Web.Controllers.StatisticsController.TabOccupancy, "bi-people", "Tỷ lệ lấp đầy"),
         (FPolyCinema.Web.Controllers.StatisticsController.TabShifts, "bi-journal-check", "Biên bản ca"),
+        (FPolyCinema.Web.Controllers.StatisticsController.TabWastage, "bi-trash3", "Hủy hàng"),
     };
     var exportUrl = Model.ExportUrl;
     var header = new PageHeaderVm
     {
         Title = "Thống kê",
-        Description = $"Từ {Fmt.Date(Model.Range.From)} đến {Fmt.Date(Model.Range.To)} · {(Model.Tab is FPolyCinema.Web.Controllers.StatisticsController.TabOccupancy or FPolyCinema.Web.Controllers.StatisticsController.TabShifts ? Model.ScopeName : "toàn chuỗi")}. Chỉ tính hóa đơn đã thanh toán; ngày theo thời điểm thanh toán.",
+        Description = $"Từ {Fmt.Date(Model.Range.From)} đến {Fmt.Date(Model.Range.To)} · {(Model.Tab is FPolyCinema.Web.Controllers.StatisticsController.TabOccupancy or FPolyCinema.Web.Controllers.StatisticsController.TabShifts or FPolyCinema.Web.Controllers.StatisticsController.TabWastage ? Model.ScopeName : "toàn chuỗi")}. Chỉ tính hóa đơn đã thanh toán; ngày theo thời điểm thanh toán.",
         Crumbs = crumbs,
         Actions = @<a class="btn btn-secondary" href="@exportUrl"><i class="bi bi-filetype-csv" aria-hidden="true"></i>Xuất CSV</a>,
     };
@@ -181,6 +182,64 @@
                     </table>
                 </div>
             }
+        </section>
+        break;
+
+    case FPolyCinema.Web.Controllers.StatisticsController.TabWastage:
+        @* Báo cáo hủy hàng (SPEC 3.12-11): các dòng của phiếu đã duyệt, ngày theo thời điểm duyệt; tổng theo nguyên liệu. *@
+        var byMaterial = Model.Wastage.GroupBy(w => (w.MaterialName, w.Unit)).Select(g => (g.Key.MaterialName, g.Key.Unit, Qty: g.Sum(x => x.Quantity), Logs: g.Select(x => x.LogId).Distinct().Count())).OrderByDescending(x => x.Logs).ToList();
+        <section class="kpi-row" aria-label="Tổng hợp hủy hàng">
+            <partial name="_KpiCard" model="@(new KpiCardVm("bi-trash3", "Phiếu đã duyệt", Fmt.Number(Model.Wastage.Select(w => w.LogId).Distinct().Count()), null, "warning"))" />
+            <partial name="_KpiCard" model="@(new KpiCardVm("bi-box-seam", "Nguyên liệu bị hủy", Fmt.Number(byMaterial.Count), null, "info"))" />
+        </section>
+        <section class="row g-4 mt-1">
+            <div class="col-12 col-xl-4">
+                <section class="card-ui card-ui-body h-100">
+                    <h2 class="h6">Tổng theo nguyên liệu · @Model.ScopeName</h2>
+                    @if (byMaterial.Count == 0)
+                    {
+                        <p class="text-muted mb-0">Không có hàng hủy trong khoảng ngày này.</p>
+                    }
+                    else
+                    {
+                        <ul class="plain-list">
+                            @foreach (var m in byMaterial)
+                            {
+                                <li><span>@m.MaterialName <span class="small text-muted">(@m.Logs phiếu)</span></span><span class="num">@Fmt.Decimal(m.Qty) @m.Unit</span></li>
+                            }
+                        </ul>
+                    }
+                </section>
+            </div>
+            <div class="col-12 col-xl-8">
+                <section class="card-ui card-ui-body h-100">
+                    <h2 class="h6">Chi tiết hủy hàng đã duyệt</h2>
+                    @if (Model.Wastage.Count == 0)
+                    {
+                        <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-trash3", Title = "Không có hàng hủy", Text = "Không có phiếu hủy hàng nào được duyệt trong khoảng ngày này." })" />
+                    }
+                    else
+                    {
+                        <div class="table-wrap">
+                            <table class="data-table">
+                                <thead><tr><th scope="col">Ngày duyệt</th><th scope="col">Nguyên liệu</th><th scope="col" class="num">Số lượng</th><th scope="col">Lý do</th><th scope="col" class="col-opt">Người lập / duyệt</th></tr></thead>
+                                <tbody>
+                                    @foreach (var w in Model.Wastage)
+                                    {
+                                        <tr>
+                                            <td><span class="num">@Fmt.DateTime(w.DecidedAt)</span><span class="d-block small text-muted"><a href="/ops/wastage/@w.LogId">Phiếu #@w.LogId</a> · @w.CinemaName</span></td>
+                                            <td>@w.MaterialName</td>
+                                            <td class="num">@Fmt.Decimal(w.Quantity) @w.Unit</td>
+                                            <td>@(w.Reason ?? "–")</td>
+                                            <td class="col-opt">@w.CreatorName / @(w.DeciderName ?? "–")</td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </section>
+            </div>
         </section>
         break;
 }

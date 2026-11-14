@@ -1,0 +1,57 @@
+@model WastageDetailVm
+@* Chi tiết phiếu hủy hàng (UC26): các dòng nguyên liệu, số lượng, lý do; quản lý ca duyệt (ActualStock giảm, WASTAGE) hoặc từ chối. *@
+@{
+    Layout = "_LayoutAdmin";
+    var w = Model.Row;
+    ViewData["Title"] = $"Phiếu hủy hàng #{w.Log.Id}";
+    ViewData["Crumbs"] = new List<Crumb> { new("Kho bắp nước"), new("Phiếu hủy hàng", "/ops/wastage"), new($"#{w.Log.Id}") };
+}
+<partial name="_PageHeader" model="@(new PageHeaderVm { Title = $"Phiếu hủy hàng #{w.Log.Id}", Description = $"{w.CinemaName} · lập bởi {w.CreatorName} lúc {Fmt.DateTime(w.Log.CreatedAt)}", Crumbs = new() { new("Phiếu hủy hàng", "/ops/wastage"), new($"#{w.Log.Id}") } })" />
+<div class="row g-4">
+    <div class="col-12 col-xl-8">
+        <section class="card-ui card-ui-body" aria-labelledby="wl-items">
+            <h2 class="card-ui-title" id="wl-items">Nguyên liệu hủy</h2>
+            <div class="table-wrap">
+                <table class="data-table">
+                    <caption class="visually-hidden">Các dòng của phiếu hủy hàng</caption>
+                    <thead><tr><th scope="col">Nguyên liệu</th><th scope="col" class="num">Số lượng</th><th scope="col">Lý do</th></tr></thead>
+                    <tbody>
+                        @foreach (var i in Model.Items)
+                        {
+                            <tr>
+                                <td class="cell-main">@i.MaterialName</td>
+                                <td class="num" data-label="Số lượng">@Fmt.Decimal(i.Quantity) @i.Unit</td>
+                                <td data-label="Lý do">@(i.Reason ?? "–")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            @if (!string.IsNullOrWhiteSpace(w.Log.Note))
+            {
+                <p class="mt-3 mb-0"><span class="text-muted">Ghi chú:</span> @w.Log.Note</p>
+            }
+        </section>
+    </div>
+    <div class="col-12 col-xl-4">
+        <section class="card-ui card-ui-body" aria-labelledby="wl-status" data-wastage-decide data-id="@w.Log.Id">
+            <h2 class="card-ui-title" id="wl-status">Trạng thái</h2>
+            <p><partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Wastage, w.Log.Status))" /></p>
+            @if (w.DeciderName != null)
+            {
+                <p class="small text-muted">@w.DeciderName · <span class="num">@(w.Log.DecidedAt is DateTime d ? Fmt.DateTime(d) : "")</span></p>
+            }
+            @if (Model.CanDecide)
+            {
+                <p class="small text-muted">Duyệt thì tồn kho thực tế của từng nguyên liệu giảm theo số lượng trên phiếu; món không còn đủ một phần sẽ tạm hết.</p>
+                <div class="d-grid gap-2">
+                    <button type="button" class="btn btn-primary btn-xl" data-decide="approve"><i class="bi bi-check2" aria-hidden="true"></i>Duyệt phiếu</button>
+                    <button type="button" class="btn btn-ghost" data-decide="reject"><i class="bi bi-x" aria-hidden="true"></i>Từ chối</button>
+                </div>
+            }
+        </section>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/js/pages/stock-form.js" asp-append-version="true"></script>
+}

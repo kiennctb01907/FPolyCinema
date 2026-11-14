@@ -1,0 +1,62 @@
+@model WastageListVm
+@* Phiếu hủy hàng hỏng (UC26, SPEC 3.11-15): danh sách lọc theo trạng thái; quản lý ca mở phiếu để duyệt hoặc từ chối. *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Phiếu hủy hàng";
+    ViewData["Crumbs"] = new List<Crumb> { new("Kho bắp nước"), new("Phiếu hủy hàng") };
+    var tabs = new List<(string? Value, string Label)> { (WastageStatus.Pending, "Chờ duyệt"), (WastageStatus.Approved, "Đã duyệt"), (WastageStatus.Rejected, "Từ chối"), (null, "Tất cả") };
+    var header = new PageHeaderVm
+    {
+        Title = "Phiếu hủy hàng", Description = "Nhân viên quầy lập phiếu khi nguyên liệu hỏng; tồn kho chỉ trừ khi quản lý ca duyệt.",
+        Crumbs = new() { new("Kho bắp nước"), new("Phiếu hủy hàng") },
+    };
+    if (Shell.IsManager)
+    {
+        header.Actions = @<a class="btn btn-secondary" href="/admin/reports?tab=wastage"><i class="bi bi-bar-chart" aria-hidden="true"></i>Báo cáo hủy hàng</a>;
+    }
+}
+<partial name="_PageHeader" model="header" />
+<nav class="page-tabs" aria-label="Lọc theo trạng thái">
+    @foreach (var t in tabs)
+    {
+        var active = t.Value == Model.Status;
+        <a class="@(active ? "active" : null)" aria-current="@(active ? "page" : null)" href="/ops/wastage@(t.Value != null ? "?status=" + t.Value : null)">@t.Label</a>
+    }
+</nav>
+@if (Model.Logs.Count == 0)
+{
+    <partial name="_EmptyState" model="@(new EmptyStateVm { Icon = "bi-trash3", Title = "Không có phiếu nào", Text = Model.Status == WastageStatus.Pending ? "Không có phiếu hủy hàng nào chờ duyệt." : "Chưa có phiếu hủy hàng ở mục này." })" />
+}
+else
+{
+    <div class="table-wrap">
+        <table class="data-table">
+            <caption class="visually-hidden">Phiếu hủy hàng</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Phiếu</th>
+                    <th scope="col">Rạp</th>
+                    <th scope="col" class="num">Số nguyên liệu</th>
+                    <th scope="col">Người lập</th>
+                    <th scope="col" class="col-opt">Người quyết định</th>
+                    <th scope="col">Trạng thái</th>
+                    <th scope="col" class="col-actions">Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var w in Model.Logs)
+                {
+                    <tr>
+                        <td class="cell-title"><a class="cell-main" href="/ops/wastage/@w.Log.Id">Phiếu #@w.Log.Id</a><span class="cell-sub d-block num">@Fmt.DateTime(w.Log.CreatedAt)</span></td>
+                        <td data-label="Rạp">@w.CinemaName</td>
+                        <td class="num" data-label="Số nguyên liệu">@w.ItemCount</td>
+                        <td data-label="Người lập">@w.CreatorName</td>
+                        <td class="col-opt" data-label="Người quyết định">@(w.DeciderName ?? "–")</td>
+                        <td data-label="Trạng thái"><partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Wastage, w.Log.Status))" /></td>
+                        <td class="col-actions"><a class="btn btn-ghost btn-sm" href="/ops/wastage/@w.Log.Id">@(w.Log.Status == WastageStatus.Pending ? "Xem và duyệt" : "Xem")</a></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}

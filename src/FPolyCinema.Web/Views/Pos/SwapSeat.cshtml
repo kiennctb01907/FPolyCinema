@@ -1,0 +1,61 @@
+@model SwapSeatVm
+@* Đổi hoặc nâng hạng ghế /pos/swap-seat (UC17, SPEC 3.10-01..04; PosStaff): quét vé hoặc hóa đơn, chọn vé cần đổi, chọn ghế mới trong cùng suất trên sơ đồ.
+   Chênh lệch = giá mới − giá cũ: dương thì thu thêm (tiền mặt hoặc chuyển khoản), không dương thì đổi ngang, không hoàn tiền. Chỉ đổi vé chưa vào cửa và trước
+   giờ chiếu phim chính. Vé cũ chuyển SWAPPED (QR cũ hết hiệu lực), vé mới có QR mới trong cùng hóa đơn. *@
+@{
+    Layout = "_LayoutPos";
+    ViewData["Title"] = "Đổi, nâng hạng ghế";
+    ViewData["ConnState"] = "reconnecting";
+}
+<div class="pos-scroll" data-swap>
+    <partial name="_PageHeader" model="@(new PageHeaderVm { Title = "Đổi, nâng hạng ghế", Description = "Quét mã vé hoặc mã hóa đơn, chọn vé cần đổi rồi chọn ghế mới trong cùng suất.", Crumbs = new() { new Crumb("Bán hàng", "/pos/index"), new Crumb("Đổi ghế") } })" />
+    <form class="filter-bar" data-swap-find autocomplete="off" novalidate>
+        <div class="filter-item flex-grow-1">
+            <label class="form-label" for="swap-code">Mã vé hoặc mã hóa đơn</label>
+            <input id="swap-code" name="code" class="form-control" placeholder="Quét hoặc nhập HD… / TK…" autofocus />
+        </div>
+        <div class="filter-item">
+            <button type="submit" class="btn btn-primary"><i class="bi bi-upc-scan" aria-hidden="true"></i>Tìm vé</button>
+        </div>
+        <div class="filter-item">
+            <a class="btn btn-ghost" href="/pos/index"><i class="bi bi-arrow-left" aria-hidden="true"></i>Về màn hình bán</a>
+        </div>
+    </form>
+    <div class="swap-grid" data-swap-body hidden>
+        <div class="d-flex flex-column gap-4 min-w-0">
+            <section class="card-ui card-ui-body" aria-labelledby="swap-bill-title">
+                <h2 class="card-ui-title" id="swap-bill-title">Vé của hóa đơn <span data-swap-code></span></h2>
+                <p class="text-muted mb-3" data-swap-show></p>
+                <ul class="swap-tickets" data-swap-tickets></ul>
+            </section>
+            <section class="pos-seat-region" data-swap-seatmap aria-label="Chọn ghế mới"></section>
+        </div>
+        <aside class="card-ui card-ui-body" aria-labelledby="swap-quote-title">
+            <h2 class="card-ui-title" id="swap-quote-title">Chênh lệch</h2>
+            <p class="text-muted" data-swap-hint>Chọn vé cần đổi ở bên trái, rồi bấm đúng số ghế mới trên sơ đồ.</p>
+            <ul class="plain-list" data-swap-lines></ul>
+            <p class="fw-500 mt-2" data-swap-message></p>
+            <div data-swap-pay hidden>
+                <fieldset class="mb-3">
+                    <legend class="form-label">Thu thêm bằng</legend>
+                    <label class="form-check"><input class="form-check-input" type="radio" name="method" value="@PaymentMethod.Cash" checked /> <span>Tiền mặt</span></label>
+                    <label class="form-check"><input class="form-check-input" type="radio" name="method" value="@PaymentMethod.VietQrSim" /> <span>Chuyển khoản QR (đã nhận tiền)</span></label>
+                </fieldset>
+                <div class="mb-3" data-swap-cash>
+                    <label class="form-label" for="swap-cash">Tiền khách đưa (₫)</label>
+                    <input id="swap-cash" name="cashReceived" type="number" min="0" step="1000" class="form-control num" />
+                </div>
+            </div>
+            <div class="d-grid gap-2">
+                <button type="button" class="btn btn-primary btn-xl" data-swap-confirm disabled><i class="bi bi-arrow-left-right" aria-hidden="true"></i>Xác nhận đổi ghế</button>
+            </div>
+            <div class="alert-ui tone-success mt-3" role="status" data-swap-done hidden></div>
+        </aside>
+    </div>
+</div>
+@section Scripts {
+    <script src="~/lib/signalr/dist/browser/signalr.min.js" asp-append-version="true"></script>
+    <script src="~/js/realtime.js" asp-append-version="true"></script>
+    <script src="~/js/seatmap.js" asp-append-version="true"></script>
+    <script src="~/js/pages/swap-seat.js" asp-append-version="true"></script>
+}

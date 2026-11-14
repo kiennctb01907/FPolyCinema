@@ -41,6 +41,9 @@ public static class CodeGenerator
     /// <summary>Mã giao dịch mô phỏng của cổng thanh toán: SIM + 17 ký tự ngẫu nhiên.</summary>
     public static string SimTxnId() => "SIM" + RandomString(QrAlphabet, 17);
 
+    /// <summary>Mã voucher doanh nghiệp (FREE_TICKET): DN + 8 ký tự ngẫu nhiên khó đoán.</summary>
+    public static string CorporateVoucherCode() => "DN" + RandomString(QrAlphabet, 8);
+
     private static string RandomString(string alphabet, int length)
     {
         var chars = new char[length];
