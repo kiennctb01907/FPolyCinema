@@ -92,7 +92,8 @@ builder.Services.AddScoped<LocalAgent>();
 builder.Services.AddHttpClient<LlmAgent>(c => c.Timeout = TimeSpan.FromSeconds(20));
 builder.Services.AddScoped<BookingAgentService>();
 builder.Services.AddScoped<AiSchedulerService>();
-builder.Services.AddSignalR();
+// HubErrorFilter: lời từ chối quyền ghi một dòng cảnh báo, lỗi khác ghi Error (DefaultHubDispatcher hạ xuống Critical trong appsettings.json)
+builder.Services.AddSignalR(o => Microsoft.AspNetCore.SignalR.HubOptionsExtensions.AddFilter<FPolyCinema.Web.Hubs.HubErrorFilter>(o));
 builder.Services.AddHostedService<FPolyCinema.Web.Background.SeatHoldSweeper>();
 builder.Services.AddHostedService<FPolyCinema.Web.Background.ShowtimeClockService>();
 

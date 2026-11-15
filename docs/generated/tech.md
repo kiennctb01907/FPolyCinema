@@ -31,10 +31,11 @@ Thư mục wwwroot/lib: be-vietnam-pro, bootstrap, bootstrap-icons, chart.js, ht
 ## SignalR
 
 - src/FPolyCinema.Web/Hubs/CinemaHub.cs: JoinShowtime, LeaveShowtime, JoinBill, LeaveBill, JoinTerminal, LeaveTerminal, JoinAuditorium, LeaveAuditorium, JoinKds, LeaveKds, JoinOps, LeaveOps, JoinManagerAlerts, LeaveManagerAlerts, JoinCinema, LeaveCinema
+- src/FPolyCinema.Web/Hubs/HubErrorFilter.cs: 
 
 ## Kiểm thử
 
-363 test trong 32 file.
+366 test trong 33 file.
 
 - tests/FPolyCinema.Tests/ArchitectureTests.cs: 8
 - tests/FPolyCinema.Tests/BillStateMachineTests.cs: 14
@@ -42,6 +43,7 @@ Thư mục wwwroot/lib: be-vietnam-pro, bootstrap, bootstrap-icons, chart.js, ht
 - tests/FPolyCinema.Tests/ConventionTests.cs: 4
 - tests/FPolyCinema.Tests/DatabaseTests.cs: 14
 - tests/FPolyCinema.Tests/FileUtilTests.cs: 7
+- tests/FPolyCinema.Tests/HubErrorFilterTests.cs: 3
 - tests/FPolyCinema.Tests/InfrastructureTests.cs: 12
 - tests/FPolyCinema.Tests/NlpParserTests.cs: 25
 - tests/FPolyCinema.Tests/Phase2RulesTests.cs: 19
@@ -105,6 +107,7 @@ src/
     Hubs/
       .gitkeep
       CinemaHub.cs
+      HubErrorFilter.cs
     Infrastructure/
       Seed/
         SchedulePlanner.cs
@@ -293,7 +296,7 @@ src/
     Program.cs
 tests/
   FPolyCinema.Tests/
-    (34 file: ArchitectureTests.cs, BillStateMachineTests.cs, BookingAgentTests.cs, ConventionTests.cs, DatabaseTests.cs, FileUtilTests.cs, …)
+    (35 file: ArchitectureTests.cs, BillStateMachineTests.cs, BookingAgentTests.cs, ConventionTests.cs, DatabaseTests.cs, FileUtilTests.cs, …)
 tools/
   spec-check/
     check.mjs

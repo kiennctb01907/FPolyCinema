@@ -19,14 +19,28 @@
   const connected = () => conn.state === signalR.HubConnectionState.Connected;
 
   async function joinAll() {
+    let rejected = 0;
     for (const g of groups.values()) {
-      try { await conn.invoke(g.join, ...g.args); } catch (e) { console.warn('Không tham gia được nhóm', g.join, e); }
+      try { await conn.invoke(g.join, ...g.args); } catch (e) { rejected++; console.warn('Không tham gia được nhóm', g.join, e); }
     }
+    return rejected;
+  }
+
+  // Kết nối lại mà hub từ chối cho vào nhóm đã vào được trước đó: phiên đăng nhập đã đổi trong lúc trang mở (đăng xuất, đổi vai trò ở tab khác,
+  // tạo lại CSDL làm phiên cũ hết hiệu lực). Tải lại trang một lần để giao diện và quyền khớp phiên hiện tại; không tải lại liên tục.
+  function sessionChanged() {
+    const key = 'fpc.rt-reload';
+    let last = 0;
+    try { last = Number(sessionStorage.getItem(key) || 0); } catch { /* bỏ qua */ }
+    if (Date.now() - last < 60000) return;
+    try { sessionStorage.setItem(key, String(Date.now())); } catch { /* bỏ qua */ }
+    location.reload();
   }
   function reloadAll() { reloaders.forEach((f) => { try { f(); } catch (e) { console.warn(e); } }); }
 
   let starting = null;
-  async function start() {
+  /** again = true khi kết nối lại sau khi đã từng kết nối (onclose): tham gia nhóm bị từ chối nghĩa là phiên đã đổi. */
+  async function start(again = false) {
     if (starting) return starting;
     starting = (async () => {
       setState('reconnecting');
@@ -34,8 +48,9 @@
         try {
           await conn.start();
           setState('connected');
-          await joinAll();
-          if (attempt > 0) reloadAll();
+          const rejected = await joinAll();
+          if ((again || attempt > 0) && rejected > 0) { sessionChanged(); return; }
+          if (again || attempt > 0) reloadAll();
           return;
         } catch {
           setState(attempt >= 2 ? 'lost' : 'reconnecting');
@@ -47,14 +62,14 @@
   }
 
   conn.onreconnecting(() => setState('reconnecting'));
-  conn.onreconnected(async () => { setState('connected'); await joinAll(); reloadAll(); });
+  conn.onreconnected(async () => { setState('connected'); if (await joinAll() > 0) { sessionChanged(); return; } reloadAll(); });
   // Hết lượt tự kết nối lại: báo mất kết nối rồi tiếp tục thử định kỳ, kết nối được thì tải lại trạng thái
-  conn.onclose(async () => { setState('lost'); await start(); reloadAll(); });
+  conn.onclose(async () => { setState('lost'); await start(true); });
 
   const api = {
     connection: conn,
     get isConnected() { return connected(); },
-    start,
+    start: () => start(),
     /** Tham gia nhóm bằng hàm Join… của hub; được ghi nhớ để tham gia lại sau khi kết nối lại. */
     async join(method, ...args) {
       const key = method + ':' + args.join(',');
