@@ -26,11 +26,18 @@ public class EmailOptions
     public bool UseSmtp => !string.IsNullOrWhiteSpace(SmtpHost);
 }
 
-/// <summary>Khóa Demo (CONTRACTS mục 7): EnableTools = true chỉ trong Development.</summary>
+/// <summary>
+/// Khóa Demo (CONTRACTS mục 7): EnableTools = true chỉ trong Development. ClockOffsetMinutes (C7-09) lệch đồng hồ ứng dụng để chạy thử ngoài giờ chiếu,
+/// chỉ có tác dụng khi EnableTools = true.
+/// </summary>
 public class DemoOptions
 {
     public const string SectionName = "Demo";
     public bool EnableTools { get; set; }
+    public int ClockOffsetMinutes { get; set; }
+
+    /// <summary>Độ lệch đồng hồ thật sự áp dụng: 0 khi tắt công cụ demo.</summary>
+    public TimeSpan EffectiveClockOffset => EnableTools ? TimeSpan.FromMinutes(ClockOffsetMinutes) : TimeSpan.Zero;
 }
 
 /// <summary>Khóa Uploads (CONTRACTS mục 7): thư mục lưu ảnh, mặc định wwwroot/uploads (tính từ thư mục gốc của ứng dụng).</summary>

@@ -54,4 +54,4 @@
 | 5 | Web khách và đặt vé online | 86/86 | 3 |
 | 6 | Vận hành thời gian thực | 95/95 | 7 |
 | 7 | AI xếp lịch và trợ lý đặt vé | 53/53 | 1 |
-| 8 | Hoàn thiện, demo, kiểm tra tổng thể | 0/15 | 0 |
+| 8 | Hoàn thiện, demo, kiểm tra tổng thể | 15/15 | 1 |

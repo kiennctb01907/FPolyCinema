@@ -154,6 +154,7 @@ Khóa nào chứa bí mật thì để chuỗi rỗng trong appsettings.json và
 - [C7-05 P2 auto:config] Auth:OtpLength = 6, Auth:OtpValidMinutes = 5, Auth:OtpMaxAttempts = 5, Auth:NewPasswordLength = 10.
 - [C7-06 P5 auto:config] Payment:WebhookSecret – khóa ký webhook của trang mô phỏng thanh toán.
 - [C7-07 P7 auto:config] Llm:BaseUrl, Llm:Model, Llm:ApiKey – ApiKey chỉ đặt qua biến môi trường Llm__ApiKey.
+- [C7-09 P8 auto:config] Demo:ClockOffsetMinutes – mặc định 0; chỉ có tác dụng khi Demo:EnableTools = true: đồng hồ ứng dụng (IClock) lệch đi số phút này (ví dụ -300 là lùi 5 giờ) để chạy thử và trình diễn các kịch bản cần suất đang chiếu ngoài giờ mở cửa; đặt bằng biến môi trường Demo__ClockOffsetMinutes rồi chạy lại với --reset-db để dữ liệu mẫu theo cùng đồng hồ.
 - [C7-08 P1 auto:config-table] CinemaRules: có đủ mọi khóa trong bảng dưới với đúng giá trị mặc định, đọc qua lớp options tên CinemaRules (Infrastructure/CinemaRules.cs) dùng chung cho mọi service.
 
 | Khóa | Mặc định | Ghi chú |
@@ -379,3 +380,16 @@ Lớp chính:
 - Services: `BookingAgentService` (chọn LlmAgent hoặc LocalAgent, HoldCard), `LocalAgent`, `LlmAgent`, `IBookingTools`/`BookingTools`, `AgentSessionStore`, `AiSchedulerService`; `ScheduleService.ApplyAiDrafts`, `ScheduleService.Check(…, pending)`.
 - DAL: `MovieDAL.DemandStats`, `MovieDAL.UpdateDemandScore` (DAL/SchedulerDAL.Phase7.cs).
 - Giao diện: `Controllers/AssistantController`, partial `_AssistantWidget`, `Scheduler/_Gantt`, `Scheduler/_AiModal`; JS `pages/assistant.js`, `pages/gantt.js`.
+
+### Phase 8
+
+Route và quyền (chỉ khi Demo:EnableTools; tắt thì DemoToolsMiddleware trả 404):
+- AllowAnonymous: `/demo/multi-screen` (UI D4, 5 thẻ kịch bản), `/demo/multi-screen/stage?scenario=N` (cửa sổ sân khấu, iframe màn hình phụ, bảng gọi số, bảng sảnh), POST `/demo/multi-screen/prepare-ticket` (tạo vé mẫu có bắp nước cho khach@), `/demo/switch-role` nhận thêm `role=khach2`.
+- Tên miền phụ của cửa sổ demo: `cashier.localhost`, `manager.localhost`, `gate.localhost`, `khach-a.localhost`, `khach-b.localhost` (cùng cổng với trang demo).
+
+Tên mới thêm vào hợp đồng: cấu hình C7-09 `Demo:ClockOffsetMinutes` (đọc qua `DemoOptions.EffectiveClockOffset`, áp vào `SystemClock`); thẻ `<meta name="server-now">` trong `_Head` và hàm `ui.now()` (giờ máy chủ cho mọi đồng hồ đếm ngược phía trình duyệt); `DemoAccounts.Extra` (khach2). Không thêm bảng, cột, sự kiện SignalR hay mã lỗi.
+
+Lớp chính:
+- Domain/Rules (unit test Phase8RulesTests): `DemoScreenRules` (WindowOrigin, SwitchRolePath, Slots, PickContest, PickEntry, TicketUsable, ReadyNow).
+- Services: `DemoCenterService` (Build, Scenario, Options, UsableTicket, PrepareTicket dùng OnlineBookingService và SeatSuggestService); test tích hợp Phase8ServiceTests, HTTP Phase8WebTests, Phase8ClockTests.
+- Giao diện: `Views/Demo/MultiScreen.cshtml`, `Views/Demo/Stage.cshtml`, JS `pages/demo-center.js`; `_DemoBar` có nút mở trung tâm demo.

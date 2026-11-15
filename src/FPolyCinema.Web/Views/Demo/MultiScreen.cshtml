@@ -1,0 +1,121 @@
+@model DemoCenter
+@* D4. Trung tâm demo /demo/multi-screen (chỉ khi Demo:EnableTools, UI D4, SPEC 5): 5 kịch bản dựng sẵn, mỗi kịch bản một thẻ có mô tả và nút "Mở các màn hình".
+   Màn hình cần đăng nhập mở trong cửa sổ riêng (window.open, chia đôi màn hình) trên tên miền phụ của localhost: cashier, manager, gate, khach-a, khach-b –
+   mỗi cửa sổ một phiên, tự đăng nhập bằng /demo/switch-role. Màn hình không cần đăng nhập (màn hình phụ, bảng gọi số, bảng sảnh) nhúng iframe trong cửa sổ sân khấu. *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Trung tâm demo";
+    var crumbs = new List<Crumb> { new("Công cụ phát triển"), new("Trung tâm demo") };
+    ViewData["Crumbs"] = crumbs;
+    var header = new PageHeaderVm
+    {
+        Title = "Trung tâm demo nhiều màn hình",
+        Description = $"Mỗi kịch bản mở các màn hình liên quan trong cửa sổ riêng, chia đôi màn hình, để thấy dữ liệu thời gian thực đi giữa các vai trò. Rạp dùng để demo: {Model.CinemaName}.",
+        Crumbs = crumbs,
+    };
+    header.Actions = @<form asp-antiforgery="true" method="post" action="/demo/multi-screen/prepare-ticket">
+        <button type="submit" class="btn btn-secondary"><i class="bi bi-ticket-perforated" aria-hidden="true"></i>Tạo vé mẫu có bắp nước</button>
+    </form>;
+}
+<partial name="_PageHeader" model="header" />
+
+@if (!Model.SeparateSessions)
+{
+    <div class="alert-ui tone-warning" role="status">
+        <i class="bi bi-exclamation-triangle" aria-hidden="true"></i>
+        <div>Bạn đang mở trang bằng một địa chỉ không phải localhost, nên các cửa sổ dùng chung một phiên đăng nhập. Bạn mở lại trang tại <span class="num">http://localhost:5080/demo/multi-screen</span> để mỗi cửa sổ có phiên riêng.</div>
+    </div>
+}
+
+<div class="demo-intro card-ui card-ui-body mb-4">
+    <ul class="demo-facts">
+        <li><i class="bi bi-clock" aria-hidden="true"></i>
+            <span>Giờ ứng dụng: <strong class="num">@Fmt.DateTime(Model.Now)</strong>.
+                @if (Model.ClockOffsetMinutes != 0)
+                {
+                    <text>Đồng hồ đang lệch <span class="num">@Model.ClockOffsetMinutes</span> phút so với giờ thật (Demo:ClockOffsetMinutes).</text>
+                }
+                else
+                {
+                    <text>Ngoài giờ chiếu, bạn đặt biến môi trường Demo__ClockOffsetMinutes (ví dụ -300) rồi chạy lại với --reset-db để có suất đang chiếu.</text>
+                }
+            </span>
+        </li>
+        <li><i class="bi bi-window-split" aria-hidden="true"></i><span>Cửa sổ đầu nằm nửa trái màn hình, các cửa sổ còn lại chia nửa phải. Trang này nằm phía sau, bạn quay lại bằng thanh tác vụ.</span></li>
+        <li><i class="bi bi-globe2" aria-hidden="true"></i><span>Mỗi cửa sổ chạy trên một tên miền phụ (cashier.localhost, manager.localhost, gate.localhost, khach-a.localhost, khach-b.localhost) nên giữ phiên đăng nhập riêng. Chrome và Edge tự trỏ các tên này về máy.</span></li>
+        <li><i class="bi bi-ticket-perforated" aria-hidden="true"></i>
+            <span>
+                @if (Model.TicketCode != null)
+                {
+                    <text>Vé mẫu của khách cho kịch bản 3 và 4: <strong class="num">@Model.TicketCode</strong> (@Model.TicketInfo)@(Model.TicketReady ? "." : ", chưa tới giờ dùng – xem ghi chú ở kịch bản 3 và 4.")</text>
+                }
+                else
+                {
+                    <text>Khách mẫu chưa có vé kèm bắp nước cho suất sắp chiếu (kịch bản 3 và 4). Bạn bấm "Tạo vé mẫu có bắp nước" ở đầu trang.</text>
+                }
+            </span>
+        </li>
+    </ul>
+</div>
+
+<div class="alert-ui tone-warning d-none" role="alert" data-popup-blocked>
+    <i class="bi bi-window-x" aria-hidden="true"></i>
+    <div><strong>Trình duyệt đã chặn <span data-blocked-count>0</span> cửa sổ.</strong> Bạn bấm biểu tượng chặn cửa sổ bật lên ở cuối thanh địa chỉ, chọn cho phép cửa sổ bật lên từ trang này, rồi bấm lại "Mở các màn hình". Hoặc mở từng màn hình bằng các liên kết trong thẻ.</div>
+</div>
+
+<div class="demo-grid">
+    @foreach (var s in Model.Scenarios)
+    {
+        <article class="card-ui demo-card" id="kich-ban-@s.No" aria-labelledby="kb-@s.No-title">
+            <header class="demo-card-head">
+                <span class="demo-card-icon"><i class="bi @s.Icon" aria-hidden="true"></i></span>
+                <div>
+                    <p class="demo-card-no">Kịch bản @s.No</p>
+                    <h2 class="h5 mb-0" id="kb-@s.No-title">@s.Title</h2>
+                </div>
+            </header>
+            <p class="demo-card-desc">@s.Description</p>
+            <ol class="demo-steps">
+                @foreach (var step in s.Steps)
+                {
+                    <li>@step</li>
+                }
+            </ol>
+            @if (s.Notice != null)
+            {
+                <div class="alert-ui tone-info mb-3" role="note"><i class="bi bi-info-circle" aria-hidden="true"></i><div>@s.Notice</div></div>
+            }
+            <ul class="demo-screens" aria-label="Các màn hình của kịch bản @s.No">
+                @foreach (var w in s.Windows)
+                {
+                    <li>
+                        <i class="bi @w.Icon" aria-hidden="true"></i>
+                        <span class="demo-screen-name">@w.Label<span class="demo-screen-meta">@w.Host · @(w.Account ?? "") · @SlotLabel(w.Slot?.Name)</span></span>
+                        <a class="btn btn-ghost btn-sm" href="@w.Url" target="@w.WindowName" data-demo-window data-x="@Num(w.Slot?.X)" data-y="@Num(w.Slot?.Y)" data-w="@Num(w.Slot?.Width)" data-h="@Num(w.Slot?.Height)">Mở riêng<span class="visually-hidden"> @w.Label</span></a>
+                    </li>
+                }
+            </ul>
+            <div class="demo-card-foot">
+                <button type="button" class="btn btn-primary" data-open-scenario="@s.No"><i class="bi bi-window-stack" aria-hidden="true"></i>Mở các màn hình</button>
+                <span class="small text-muted">@s.Windows.Count cửa sổ@(s.Frames.Count > 0 ? $", {s.Frames.Count} màn hình nhúng iframe" : null)</span>
+            </div>
+        </article>
+    }
+</div>
+
+@functions {
+    private static string Num(double? v) => (v ?? 0).ToString("0.####", System.Globalization.CultureInfo.InvariantCulture);
+    private static string SlotLabel(string? slot) => slot switch
+    {
+        "left" => "nửa trái",
+        "right" => "nửa phải",
+        "right-top" => "phải trên",
+        "right-bottom" => "phải dưới",
+        "full" => "cả màn hình",
+        _ => "nửa phải",
+    };
+}
+
+@section Scripts {
+    <script src="~/js/pages/demo-center.js" asp-append-version="true"></script>
+}

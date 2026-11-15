@@ -23,8 +23,8 @@ else
                     <th scope="col">Thời gian tạo</th>
                     <th scope="col">Kênh</th>
                     <th scope="col" class="col-opt">Nhân viên hoặc khách</th>
-                    <th scope="col" class="num">Số vé</th>
-                    <th scope="col" class="num col-opt">Số món</th>
+                    <th scope="col" class="num col-opt-xl">Số vé</th>
+                    <th scope="col" class="num col-opt col-opt-xl">Số món</th>
                     <th scope="col" class="num">Tổng tiền</th>
                     <th scope="col">Trạng thái</th>
                     <th scope="col" class="col-actions">Thao tác</th>
@@ -41,8 +41,8 @@ else
                             {
                                 <span class="d-block small text-muted">Khách: @b.CustomerName</span>
                             }</td>
-                        <td class="num">@b.TicketCount</td>
-                        <td class="num col-opt">@b.ItemCount</td>
+                        <td class="num col-opt-xl">@b.TicketCount</td>
+                        <td class="num col-opt col-opt-xl">@b.ItemCount</td>
                         <td class="num money">@Fmt.Money(b.Total)</td>
                         <td><partial name="_StatusBadge" model="@(new StatusBadgeVm(StatusDisplay.Bill, b.Status))" /></td>
                         <td class="col-actions"><a class="btn btn-ghost btn-sm" href="/admin/bills/@b.Id"><i class="bi bi-eye" aria-hidden="true"></i>Xem</a></td>

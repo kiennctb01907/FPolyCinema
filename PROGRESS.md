@@ -1,9 +1,18 @@
 # Tiến độ
 ## Trạng thái
 - [x] Phase 1  - [x] Phase 2  - [x] Phase 3  - [x] Phase 4
-- [x] Phase 5  - [x] Phase 6  - [x] Phase 7  - [ ] Phase 8
+- [x] Phase 5  - [x] Phase 6  - [x] Phase 7  - [x] Phase 8
 ## Phase đang làm
-Phase 7 – AI xếp lịch và trợ lý đặt vé: xong ngày 14/11/2026 (verify 7 --final ĐẠT, commit "Phase 7: …"; Phase 7 không có tag lab). Phase kế tiếp: Phase 8 – Hoàn thiện.
+Phase 8 – Hoàn thiện, demo, kiểm tra tổng thể: xong ngày 15/11/2026 (verify 8 --final ĐẠT, commit "Phase 8: …", tag lab-8). Đã hoàn thành cả 8 phase.
+
+### Việc đã làm ở Phase 8
+- Trung tâm demo /demo/multi-screen (UI D4, SPEC 5): 5 thẻ kịch bản (hai khách giành ghế, POS và màn hình phụ, bếp và bảng gọi số, soát vé và bảng sảnh, duyệt hủy từ xa), mỗi thẻ có mô tả, các bước, danh sách cửa sổ và nút "Mở các màn hình". Cửa sổ cần đăng nhập mở bằng window.open trên cashier/manager/gate/khach-a/khach-b.localhost (phiên riêng, tự đăng nhập bằng /demo/switch-role), chia đôi màn hình theo DemoScreenRules.Slots; màn hình không cần đăng nhập nhúng iframe trong cửa sổ sân khấu /demo/multi-screen/stage. Nút "Tạo vé mẫu có bắp nước" tạo vé cho khách mẫu qua đúng luồng đặt vé online (giữ ghế theo gợi ý AI, thêm combo, VietQR mô phỏng có ký HMAC).
+- Thanh demo có nút mở trung tâm demo (icon, tooltip). Tài khoản khach2 thêm vào DemoAccounts.Extra (không có nút trên thanh) cho kịch bản 1.
+- Cấu hình mới Demo:ClockOffsetMinutes (CONTRACTS C7-09): lệch đồng hồ ứng dụng khi bật công cụ demo, để demo và chạy thử ngoài giờ chiếu.
+- Đồng hồ đếm ngược phía trình duyệt tính theo giờ máy chủ (meta server-now, ui.now) – BUG-061.
+- README.md đầy đủ: yêu cầu cài đặt, chuỗi kết nối, cách chạy, tài khoản mẫu, publish và chạy sau Nginx trên Linux (systemd, Nginx có WebSocket cho SignalR, bí mật qua EnvironmentFile).
+- Kiểm tra giao diện mọi màn hình (snap.mjs --phase 8 chụp lại mọi phase): 263 ảnh, sửa BUG-062 → BUG-069. Chạy lại toàn bộ TEST-SCENARIOS trên DB mới (bảng "Chạy lại…" ở mục Phase 8).
+- Test: Phase8Tests.cs (Phase8RulesTests, Phase8ServiceTests trên CSDL mẫu riêng, Phase8WebTests, Phase8ClockTests).
 
 ### Việc đã làm ở Phase 7
 - Domain/Rules (logic thuần, unit test): NlpParser (24 câu ở NlpParserTests), AiDemandScore, AiScheduler (TargetCounts, LanguageFor, Stagger, Generate) ở Phase7RulesTests.
@@ -164,6 +173,11 @@ Phase 3 – Phim, phòng chiếu, giá, suất chiếu: xong ngày 13/11/2026 (v
 81. 14/11/2026 – "Đổi lựa chọn" trên thẻ đặt vé mở trang đặt vé của suất với persona và số vé đã chọn để khách tự chọn ghế; "Giữ ghế & thanh toán ngay" giữ ghế qua OnlineBookingService.Hold (SeatHoldService), thêm món, rồi mở /booking/{suất}?step=4. Khách chưa đăng nhập thì chuyển tới đăng nhập, thẻ vẫn còn trong phiên trợ lý.
 82. 14/11/2026 – NlpParser xét các từ trùng khi bỏ dấu trên chữ còn dấu ("sáng"/"sang", "tối"/"tôi", "mốt"/"một", "hài"/"hai"); tên phim ngắn một từ (ví dụ "Mai") chỉ nhận khi đứng sau chữ "phim"; "8 giờ" không ghi buổi hiểu là sáng, giờ nhỏ hơn 8 không ghi buổi hiểu là chiều tối; "thứ 2 tuần sau" là thứ Hai của tuần kế tiếp.
 83. 14/11/2026 – Liên kết mở thẳng: /#tro-ly (mở trợ lý), /#tro-ly?q=… (mở và gửi câu hỏi), /scheduler#ai-xep-lich (mở hộp AI); dùng cho banner và cho công cụ chụp giao diện.
+84. 14/11/2026 – Trung tâm demo: cửa sổ sân khấu /demo/multi-screen/stage?scenario=N (cùng tên miền với trang demo) chứa các iframe màn hình không cần đăng nhập; kịch bản có N cửa sổ thì cửa sổ đầu nửa trái, các cửa sổ còn lại chia đều nửa phải theo chiều dọc (DemoScreenRules.Slots); kịch bản 5 dùng manager.localhost đăng nhập bằng tài khoản quản lý ca (người duyệt hủy từ xa).
+85. 14/11/2026 – Vé cho kịch bản 3, 4: thêm nút "Tạo vé mẫu có bắp nước" (chọn suất theo DemoScreenRules.PickEntry: đang mở cửa, rồi đã vào khung "Tôi đã tới rạp", rồi sớm nhất) để demo được bất kỳ lúc nào có suất; trang ghi giờ vé bắt đầu dùng được.
+86. 14/11/2026 – Thêm cấu hình Demo:ClockOffsetMinutes (C7-09, chỉ khi Demo:EnableTools) để chạy lại các kịch bản cần suất đang chiếu ngoài giờ mở cửa; dữ liệu mẫu phải tạo lại cùng độ lệch.
+87. 14/11/2026 – snap.mjs --phase 8 chụp lại mọi màn hình của mọi phase (bỏ dòng trùng) vì Phase 8 là kiểm tra tổng thể (SPEC 8.8-02); thêm vào routes.json D4, cửa sổ sân khấu, A9 của quản lý ca và nhân viên soát vé.
+88. 15/11/2026 – Bảng hóa đơn ẩn cột Số vé, Số món dưới 1400px; nhãn vai trò trong bảng nhân viên được xuống dòng; khối sĩ số ở /admin chiếm cả hàng – để cột trạng thái và thao tác luôn trong khung (UI mục 13).
 
 ## Thay đổi mô hình (ngày – bảng/cột/use case/màn hình – trước – sau)
 - 14/11/2026 – Ảnh mẫu (UI 7 phần Ảnh mẫu) – poster và ảnh món SVG tự vẽ – ảnh thật tải từ Unsplash (Unsplash License) lưu ở wwwroot/uploads/seed/photos/*.jpg, nguồn ở photos/CREDITS.md; DbSeeder.PosterPath và DrinkImagePath trỏ sang ảnh .jpg, SvgArtGenerator vẫn sinh SVG dự phòng. Người dùng yêu cầu. Đã sửa S8.1-15, U7.ART-03, chạy sync.
@@ -174,6 +188,8 @@ Phase 3 – Phim, phòng chiếu, giá, suất chiếu: xong ngày 13/11/2026 (v
 - 06/11/2026 – Ràng buộc thêm (không đổi cột): UNIQUE(CinemaId, Name) của RawMaterials; UNIQUE(AuditoriumId, Label) của Seats; index lọc UX_PosShifts_OpenTerminal, UX_PosShifts_OpenUser (một ca mở cho mỗi máy và mỗi thu ngân), UX_Tickets_ActiveSeat (một vé còn hiệu lực cho mỗi ghế của suất), UX_Payments_ProviderTxnId, UX_Users_MemberCode; CHECK CK_Vouchers_PercentValue (voucher PERCENT không quá 100).
 
 ## Lỗi biết trước và việc còn lại
+- Phase 8: khung trình duyệt nhúng của Claude Code mở cửa sổ bật lên vào cùng tab nên "Mở các màn hình" kiểm bằng từng liên kết "Mở riêng"; trên Chrome hoặc Edge thật, lần đầu cần cho phép cửa sổ bật lên từ localhost (trang có hướng dẫn khi bị chặn).
+- Phase 8: "Tạo vé mẫu có bắp nước" chỉ cho vé dùng được ngay khi rạp mẫu có suất trong 60 phút tới còn bán online; ngoài giờ chiếu dùng Demo__ClockOffsetMinutes rồi chạy lại --reset-db.
 - Phase 7: khi chạy thử, một lần duy nhất yêu cầu đầu tiên tới /assistant/message mất hơn 40 giây (máy đang chạy song song một bản app khác trên cùng CSDL); không tái hiện được ở các lần sau (mỗi câu 50–300 ms), test tích hợp cùng câu chạy 0,3 giây.
 - Phase 7: chân trang Gantt và thẻ KPI chỉ tính suất đã lưu; tỷ lệ phim Việt của bản nháp hiện ở thanh bản nháp.
 - Phase 7: LlmAgent chỉ được kiểm bằng máy chủ giả trong test (không có khóa API thật trên máy này).
@@ -193,6 +209,7 @@ Phase 3 – Phim, phòng chiếu, giá, suất chiếu: xong ngày 13/11/2026 (v
 ## Đang bị chặn (câu hỏi cần người dùng trả lời)
 Không có. (07/11/2026: câu hỏi về SDK .NET 8 của S8.1-01 đã xong, người dùng cài SDK 8.0.427.)
 ## Kết quả kiểm tra giao diện (phase – màn hình – kích thước – đạt/chưa)
+- Phase 8 – 14–15/11/2026, `node tools/ui-snapshots/snap.mjs --phase 8` (mọi màn hình C, P, A, D của 5 vai trò, giờ ứng dụng lùi 300 phút để có suất đang chiếu): 263 ảnh trong artifacts/ui/phase-8, 0 lỗi HTTP 5xx, 0 cuộn ngang, 0 ảnh vỡ, 0 lỗi JS. Ghép ảnh thành tờ 2 × 2 và mở từng tờ đối chiếu UI mục 13; sửa BUG-061 (đồng hồ đếm ngược theo giờ máy khách, D1 mở hộp hết giờ), BUG-062 (thanh demo che nút lưu), BUG-063 (bảng sĩ số bóp cột ở A1, A7), BUG-064 (bảng nhân viên A2), BUG-065 (bảng hóa đơn A8), BUG-066 (thanh demo đè hộp AI A5), BUG-067 (thanh trên P3, A9 ở 768), BUG-068 (chip C1), BUG-069 (thẻ đổi mật khẩu C6). Chụp lại A1, A2, A3, A5, A7, A8, A9, P3, C1, C6, D1, D4: đạt ở mọi kích thước của UI mục 11. D4 đạt ở 1440, 1280, 768; cửa sổ sân khấu đạt ở 1920.
 - Phase 7 – 14/11/2026, `node tools/ui-snapshots/snap.mjs --phase 7 --base http://localhost:5083`: 8 đường dẫn (C1 nút trợ lý, C7 lời chào, thẻ đặt vé, danh sách suất; A5 Gantt, Gantt ngày mai, hộp AI, Bảng), 24 ảnh trong artifacts/ui/phase-7, 0 lỗi HTTP 5xx, 0 cuộn ngang, 0 ảnh vỡ, 0 lỗi JS. Mở từng ảnh đối chiếu UI mục 13 và sửa: sheet trợ lý trên điện thoại bị thanh demo che (BUG-058), khung chat cuộn qua mất câu trả lời (BUG-059), nhãn phòng lặp định dạng trong hộp AI (BUG-060), icon lỗi thừa trong hộp AI (BUG-057). Bản nháp AI và kéo thả kiểm bằng trình duyệt trong Claude Code (BUG-056). Chụp lại: đạt.
 - Phase 6 – 14/11/2026, `node tools/ui-snapshots/snap.mjs --phase 6`: 19 đường dẫn, 47 ảnh trong artifacts/ui/phase-6, 0 lỗi HTTP 5xx, 0 cuộn ngang, 0 ảnh vỡ, 0 lỗi JS. Mở từng ảnh đối chiếu UI mục 13 và sửa: P3 (thanh trên ở 390px – BUG-048), P4 (cột không giãn, ô đếm đỏ – BUG-047), P6 (chữ chạy, giải thích nhãn tuổi – BUG-049), form doanh nghiệp và hủy suất (BUG-046). Màn hình phụ, popup phê duyệt, đổi ghế, "Tôi đã tới rạp" thử tay trên trình duyệt (TC-P6-01..05). Kết quả cuối: P2, P5, P6 đạt ở 1920; P3 đạt ở 390, 768; P4 đạt ở 1280, 1920; A1, A2, A3, A6, A7 đạt ở 1440, 1280, dùng được ở 768; C4 đạt ở 390, 768, 1440.
 - Phase 5 – 14/11/2026, `node tools/ui-snapshots/snap.mjs --phase 5`: 13 đường dẫn, 39 ảnh trong artifacts/ui/phase-5, 0 lỗi HTTP 5xx, 0 cuộn ngang, 0 ảnh vỡ, 0 lỗi JS. Mở từng ảnh đối chiếu UI mục 13 và sửa: C1 (nhãn tuổi che chữ trên poster – BUG-031; hero – BUG-037), C5 (tab xuống 3 dòng ở 390px – BUG-032), C3 (nhãn tuổi trên điện thoại – BUG-036), C4 (thông tin suất trên cuống vé – BUG-038). Màn hình QR và trang mô phỏng thanh toán kiểm bằng tay trên trình duyệt (TC-P5-01). Kết quả cuối: C1–C5 đạt ở 390, 768, 1440.

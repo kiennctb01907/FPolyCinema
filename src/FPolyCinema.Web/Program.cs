@@ -35,7 +35,9 @@ builder.Services.Configure<EmailOptions>(builder.Configuration.GetSection(EmailO
 builder.Services.Configure<DemoOptions>(builder.Configuration.GetSection(DemoOptions.SectionName));
 builder.Services.Configure<UploadOptions>(builder.Configuration.GetSection(UploadOptions.SectionName));
 builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<CinemaRules>>().Value);
-builder.Services.AddSingleton<IClock>(sp => new FPolyCinema.Web.Infrastructure.SystemClock(sp.GetRequiredService<CinemaRules>()));
+// Demo:ClockOffsetMinutes (CONTRACTS C7-09) chỉ áp dụng khi Demo:EnableTools = true
+builder.Services.AddSingleton<IClock>(sp => new FPolyCinema.Web.Infrastructure.SystemClock(sp.GetRequiredService<CinemaRules>().TimeZoneId,
+    sp.GetRequiredService<IOptions<DemoOptions>>().Value.EffectiveClockOffset));
 builder.Services.AddHttpContextAccessor();
 
 // Gửi email (SPEC 2.5): có Email:SmtpHost thì SMTP thật, không có thì ghi vào EmailOutbox (/dev/mailbox)
@@ -57,6 +59,7 @@ builder.Services.AddScoped<ScheduleService>();
 builder.Services.AddScoped<CinemaContextService>();
 builder.Services.AddScoped<ShellService>();
 builder.Services.AddScoped<DevToolsService>();
+builder.Services.AddScoped<DemoCenterService>();
 // Phase 4: bán hàng tại quầy, hóa đơn, thống kê, thời gian thực
 builder.Services.AddScoped<RealtimeNotifier>();
 builder.Services.AddScoped<SeatMapService>();
@@ -188,6 +191,8 @@ builder.Services.Configure<ForwardedHeadersOptions>(options =>
 var app = builder.Build();
 var logger = app.Services.GetRequiredService<ILoggerFactory>().CreateLogger("FPolyCinema.Startup");
 var clock = app.Services.GetRequiredService<IClock>();
+if (clock is FPolyCinema.Web.Infrastructure.SystemClock { Offset: var clockOffset } && clockOffset != TimeSpan.Zero)
+    logger.LogWarning("Đồng hồ ứng dụng lệch {Minutes} phút so với giờ thật (Demo:ClockOffsetMinutes): giờ ứng dụng là {Now:dd/MM/yyyy HH:mm}.", clockOffset.TotalMinutes, clock.Now);
 var rules = app.Services.GetRequiredService<CinemaRules>();
 FileUtil.Clock = clock;
 

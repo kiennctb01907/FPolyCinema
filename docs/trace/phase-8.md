@@ -13,18 +13,18 @@ File do `node tools/spec-check/check.mjs sync` tạo và giữ đồng bộ vớ
 
 | Mã | Yêu cầu | Trạng thái | Bằng chứng | Ghi chú |
 |---|---|---|---|---|
-| S5-06 | Có nút mở trung tâm demo. | Chưa |  |  |
-| S5-08 | Trang /demo/multi-screen chỉ có khi bật Demo:EnableTools. | Chưa |  |  |
-| S5-09 | Mỗi màn hình mở trong một cửa sổ riêng, trên một tên miền phụ khác nhau của localhost: cashier.localhost, manager.local… | Chưa |  |  |
-| S5-10 | Các màn hình không cần đăng nhập (màn hình phụ, bảng gọi số, bảng sảnh) được nhúng bằng iframe. | Chưa |  |  |
-| S5-11 | Hai khách cùng giành một ghế. | Chưa |  |  |
-| S5-12 | POS và màn hình phụ của khách. | Chưa |  |  |
-| S5-13 | Khách đặt bắp nước, bếp và bảng gọi số. | Chưa |  |  |
-| S5-14 | Máy soát vé, vé điện tử và bảng sảnh. | Chưa |  |  |
-| S5-15 | Thu ngân xin hủy hóa đơn, quản lý ca duyệt từ xa. | Chưa |  |  |
-| S8.8-01 | Trung tâm demo nhiều màn hình (mục 5). | Chưa |  |  |
-| S8.8-02 | Kiểm tra giao diện mọi màn hình (C, P, A, D) của cả 5 vai trò theo UI mục 13 và sửa hết lỗi. | Chưa |  |  |
-| S8.8-03 | Chạy lại toàn bộ TEST-SCENARIOS.md trên DB mới, cập nhật kết quả. | Chưa |  |  |
-| S8.8-04 | README.md gồm: yêu cầu cài đặt, cấu hình chuỗi kết nối, cách chạy, tài khoản mẫu, hướng dẫn publish và chạy sau Nginx t… | Chưa |  |  |
-| U4-15 | Nút mở trung tâm demo. | Chưa |  |  |
-| U7.D4-01 | D4. Trung tâm demo /demo/multi-screen (chỉ khi Demo:EnableTools): 5 kịch bản ở SPEC mục 5, mỗi kịch bản một thẻ có mô t… | Chưa |  |  |
+| S5-06 | Có nút mở trung tâm demo. | Xong | src/FPolyCinema.Web/Views/Shared/_DemoBar.cshtml#demo-hub-link; test:Phase8WebTests.MultiScreen_OnlyWhenToolsEnabled |  |
+| S5-08 | Trang /demo/multi-screen chỉ có khi bật Demo:EnableTools. | Xong | src/FPolyCinema.Web/Controllers/ToolsControllers.cs#MultiScreen; src/FPolyCinema.Web/Infrastructure/Web/Middlewares.cs#DemoToolsMiddleware; test:Phase8WebTests.MultiScreen_OnlyWhenToolsEnabled; route:/demo/multi-screen |  |
+| S5-09 | Mỗi màn hình mở trong một cửa sổ riêng, trên một tên miền phụ khác nhau của localhost: cashier.localhost, manager.local… | Xong | src/FPolyCinema.Web/Domain/Rules/DemoScreenRules.cs#WindowOrigin; src/FPolyCinema.Web/Domain/Rules/DemoScreenRules.cs#Slots; src/FPolyCinema.Web/wwwroot/js/pages/demo-center.js#window.open; test:Phase8RulesTests.WindowOrigin_UsesLocalhostSubdomainsWithSamePort; test:Phase8RulesTests.Slots_SplitScreenInHalves; test:Phase8ServiceTests.Build_FiveScenariosWithSubdomainWindowsAndIframes |  |
+| S5-10 | Các màn hình không cần đăng nhập (màn hình phụ, bảng gọi số, bảng sảnh) được nhúng bằng iframe. | Xong | src/FPolyCinema.Web/Views/Demo/Stage.cshtml#iframe; src/FPolyCinema.Web/Services/DemoCenterService.cs#Frame; test:Phase8WebTests.MultiScreen_OnlyWhenToolsEnabled; route:/demo/multi-screen/stage |  |
+| S5-11 | Hai khách cùng giành một ghế. | Xong | src/FPolyCinema.Web/Services/DemoCenterService.cs#Hai khách cùng giành một ghế; src/FPolyCinema.Web/Domain/Rules/DemoScreenRules.cs#PickContest; src/FPolyCinema.Web/Services/ShellServices.cs#khach2; test:Phase8RulesTests.PickContest_PrefersEarliestOpenShowtimeAtLeast30MinutesAhead; test:Phase8WebTests.SwitchRole_SignsInSecondCustomerForSeatContest |  |
+| S5-12 | POS và màn hình phụ của khách. | Xong | src/FPolyCinema.Web/Services/DemoCenterService.cs#POS và màn hình phụ của khách; test:Phase8ServiceTests.Build_FiveScenariosWithSubdomainWindowsAndIframes |  |
+| S5-13 | Khách đặt bắp nước, bếp và bảng gọi số. | Xong | src/FPolyCinema.Web/Services/DemoCenterService.cs#PrepareTicket; src/FPolyCinema.Web/Services/DemoCenterService.cs#Khách đặt bắp nước, bếp và bảng gọi số; test:Phase8ServiceTests.PrepareTicket_CreatesPaidTicketWithComboAndScenariosUseIt |  |
+| S5-14 | Máy soát vé, vé điện tử và bảng sảnh. | Xong | src/FPolyCinema.Web/Services/DemoCenterService.cs#Máy soát vé, vé điện tử và bảng sảnh; src/FPolyCinema.Web/Domain/Rules/DemoScreenRules.cs#PickEntry; test:Phase8RulesTests.PickEntry_PrefersBoardingThenImHereWindowThenEarliest; test:Phase8ServiceTests.PrepareTicket_CreatesPaidTicketWithComboAndScenariosUseIt |  |
+| S5-15 | Thu ngân xin hủy hóa đơn, quản lý ca duyệt từ xa. | Xong | src/FPolyCinema.Web/Services/DemoCenterService.cs#Thu ngân xin hủy hóa đơn, quản lý ca duyệt từ xa; test:Phase8ServiceTests.Build_FiveScenariosWithSubdomainWindowsAndIframes |  |
+| S8.8-01 | Trung tâm demo nhiều màn hình (mục 5). | Xong | src/FPolyCinema.Web/Views/Demo/MultiScreen.cshtml#Mở các màn hình; src/FPolyCinema.Web/Services/DemoCenterService.cs#Build; test:Phase8WebTests.MultiScreen_OnlyWhenToolsEnabled; test:Phase8ServiceTests.Build_FiveScenariosWithSubdomainWindowsAndIframes |  |
+| S8.8-02 | Kiểm tra giao diện mọi màn hình (C, P, A, D) của cả 5 vai trò theo UI mục 13 và sửa hết lỗi. | Xong | tools/ui-snapshots/snap.mjs#phase === 8; src/FPolyCinema.Web/wwwroot/css/app.css#col-opt-xl; src/FPolyCinema.Web/wwwroot/js/ui.js#serverSkew; ui:A1; ui:A2; ui:A8; ui:P3; ui:C1; ui:D4; docs/TEST-SCENARIOS.md#TC-P8-06; docs/BUG-LOG.md#BUG-069 |  |
+| S8.8-03 | Chạy lại toàn bộ TEST-SCENARIOS.md trên DB mới, cập nhật kết quả. | Xong | docs/TEST-SCENARIOS.md#SPEC 8.8-03; docs/TEST-SCENARIOS.md#Chạy lại toàn bộ kịch bản Phase 1–7; test:Phase8ServiceTests.PrepareTicket_CreatesPaidTicketWithComboAndScenariosUseIt; tools/spec-check/check.mjs#reset-db |  |
+| S8.8-04 | README.md gồm: yêu cầu cài đặt, cấu hình chuỗi kết nối, cách chạy, tài khoản mẫu, hướng dẫn publish và chạy sau Nginx t… | Xong | README.md#dotnet publish; README.md#systemd; README.md#proxy_pass; README.md#ConnectionStrings__Default; README.md#cashier@fpolycinema.vn |  |
+| U4-15 | Nút mở trung tâm demo. | Xong | src/FPolyCinema.Web/Views/Shared/_DemoBar.cshtml#demo-hub-link; test:Phase8WebTests.MultiScreen_OnlyWhenToolsEnabled |  |
+| U7.D4-01 | D4. Trung tâm demo /demo/multi-screen (chỉ khi Demo:EnableTools): 5 kịch bản ở SPEC mục 5, mỗi kịch bản một thẻ có mô t… | Xong | src/FPolyCinema.Web/Views/Demo/MultiScreen.cshtml#Mở các màn hình; src/FPolyCinema.Web/Services/DemoCenterService.cs#Build; test:Phase8WebTests.MultiScreen_OnlyWhenToolsEnabled; test:Phase8ServiceTests.Build_FiveScenariosWithSubdomainWindowsAndIframes |  |

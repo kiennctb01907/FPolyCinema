@@ -1,4 +1,5 @@
 @inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Antiforgery
+@inject FPolyCinema.Web.Infrastructure.IClock Clock
 @{
     var title = ViewData["Title"] as string;
     var flashes = Flash.Read(TempData);
@@ -7,6 +8,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="color-scheme" content="light dark" />
 <meta name="csrf-token" content="@Antiforgery.GetAndStoreTokens(Context).RequestToken" />
+@* Giờ máy chủ (giờ Việt Nam theo IClock) lúc dựng trang: mọi đồng hồ đếm ngược phía trình duyệt tính theo giờ này (ui.now), không theo đồng hồ của máy khách *@
+<meta name="server-now" content="@Clock.Now.ToString("yyyy-MM-dd'T'HH:mm:ss", System.Globalization.CultureInfo.InvariantCulture)" />
 <title>@(string.IsNullOrEmpty(title) ? "FPoly Cinema" : title + " · FPoly Cinema")</title>
 <link rel="icon" type="image/svg+xml" href="~/img/favicon.svg" />
 <link rel="preload" href="~/lib/be-vietnam-pro/files/be-vietnam-pro-vietnamese-400-normal.woff2" as="font" type="font/woff2" crossorigin />

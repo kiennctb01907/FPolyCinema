@@ -1,3 +1,4 @@
+using FPolyCinema.Web.Domain;
 using FPolyCinema.Web.Domain.Constants;
 using FPolyCinema.Web.Domain.Rules;
 using FPolyCinema.Web.Infrastructure;
@@ -37,8 +38,45 @@ public class CinemaController : AppControllerBase
 public class DemoController : AppControllerBase
 {
     private readonly AuthService _auth;
+    private readonly DemoCenterService _center;
 
-    public DemoController(AuthService auth) => _auth = auth;
+    public DemoController(AuthService auth, DemoCenterService center)
+    {
+        _auth = auth;
+        _center = center;
+    }
+
+    /// <summary>
+    /// Trung tâm demo nhiều màn hình (UI D4, SPEC 5): 5 kịch bản dựng sẵn, mỗi kịch bản một thẻ có mô tả và nút "Mở các màn hình". Mỗi màn hình cần đăng nhập mở trong
+    /// cửa sổ riêng trên tên miền phụ của localhost (phiên riêng, tự đăng nhập bằng /demo/switch-role); màn hình không cần đăng nhập nhúng iframe trong cửa sổ sân khấu.
+    /// </summary>
+    [HttpGet("multi-screen")]
+    public IActionResult MultiScreen() => View(_center.Build(Request.Scheme, Request.Host.Host, Request.Host.Port));
+
+    /// <summary>Cửa sổ sân khấu của một kịch bản: các màn hình không cần đăng nhập (màn hình phụ, bảng gọi số, bảng sảnh) nhúng bằng iframe (SPEC S5-10).</summary>
+    [HttpGet("multi-screen/stage")]
+    public IActionResult Stage(int scenario)
+    {
+        var s = _center.Scenario(scenario, Request.Scheme, Request.Host.Host, Request.Host.Port);
+        if (s == null || s.Frames.Count == 0) return NotFoundPage("Kịch bản này không có màn hình nhúng.");
+        return View(s);
+    }
+
+    /// <summary>Tạo vé mẫu có bắp nước cho khách mẫu ở suất đang mở cửa hoặc sắp chiếu (kịch bản 3 và 4).</summary>
+    [HttpPost("multi-screen/prepare-ticket")]
+    public async Task<IActionResult> PrepareTicket()
+    {
+        try
+        {
+            var (code, start) = await _center.PrepareTicket();
+            Toast("success", $"Đã tạo vé mẫu {code} có combo cho khách mẫu, suất {Fmt.DateTime(start)}. Bạn mở các màn hình của kịch bản 3 hoặc 4.");
+        }
+        catch (BusinessRuleException ex)
+        {
+            Toast("error", ex.Message);
+        }
+        return Redirect("/demo/multi-screen#kich-ban-3");
+    }
 
     /// <summary>/demo/switch-role?role=Manager&amp;returnUrl=/admin/drinks (role nhận tên vai trò hoặc tên ngắn: manager, shift, cashier, gate, khach).</summary>
     [HttpGet("switch-role")]

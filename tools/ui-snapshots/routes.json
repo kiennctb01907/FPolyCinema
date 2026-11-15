@@ -108,6 +108,11 @@
     { "screen": "A5", "role": "manager", "variant": "gantt", "path": "/scheduler?view=gantt", "area": "admin", "phase": 7, "note": "Chế độ Gantt: trục 08:00–02:00, khối suất, khóa, chân trang tỷ lệ phim Việt ngày và tuần" },
     { "screen": "A5", "role": "manager", "variant": "gantt-ngay-mai", "resolveFrom": "/scheduler?view=gantt", "resolveLink": "a[aria-label='Ngày sau']", "area": "admin", "phase": 7, "note": "Gantt ngày mai" },
     { "screen": "A5", "role": "manager", "variant": "ai-xep-lich", "path": "/scheduler?view=gantt#ai-xep-lich", "area": "admin", "phase": 7, "note": "Hộp AI tự động xếp lịch" },
-    { "screen": "A5", "role": "manager", "variant": "bang", "path": "/scheduler", "area": "admin", "phase": 7, "note": "Chế độ Bảng có nút chuyển Bảng/Gantt và AI tự động xếp lịch" }
+    { "screen": "A5", "role": "manager", "variant": "bang", "path": "/scheduler", "area": "admin", "phase": 7, "note": "Chế độ Bảng có nút chuyển Bảng/Gantt và AI tự động xếp lịch" },
+    { "screen": "D4", "role": "manager", "path": "/demo/multi-screen", "area": "admin", "phase": 8, "note": "Trung tâm demo: 5 thẻ kịch bản, nút Mở các màn hình" },
+    { "screen": "D4", "role": "guest", "variant": "san-khau", "path": "/demo/multi-screen/stage?scenario=2", "area": "display", "phase": 8, "note": "Cửa sổ sân khấu: màn hình phụ nhúng iframe" },
+    { "screen": "D4", "role": "guest", "variant": "san-khau-bang-sanh", "path": "/demo/multi-screen/stage?scenario=4", "area": "display", "phase": 8, "note": "Cửa sổ sân khấu: bảng sảnh nhúng iframe" },
+    { "screen": "A9", "role": "shift", "path": "/me", "area": "admin", "phase": 8, "note": "Trang cá nhân của quản lý ca" },
+    { "screen": "A9", "role": "gate", "path": "/me", "area": "gate", "phase": 8, "note": "Trang cá nhân của nhân viên soát vé" }
   ]
 }

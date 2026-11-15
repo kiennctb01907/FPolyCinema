@@ -20,7 +20,16 @@
   // ---------------------------------------------------------------- định dạng (UI mục 9)
   const nf = new Intl.NumberFormat('vi-VN', { maximumFractionDigits: 0 });
   const toDate = (d) => (d instanceof Date ? d : new Date(d));
+  // Độ lệch giữa giờ máy chủ (meta server-now, giờ Việt Nam) và đồng hồ của trình duyệt. Mốc hết hạn từ máy chủ (giữ ghế, mã QR) là giờ máy chủ
+  // không kèm múi giờ, nên đếm ngược phải so với giờ máy chủ: máy khách lệch giờ hoặc ở múi giờ khác vẫn đếm đúng.
+  const serverSkew = (() => {
+    const m = document.querySelector('meta[name="server-now"]');
+    const t = m ? toDate(m.content).getTime() : NaN;
+    return isNaN(t) ? 0 : t - Date.now();
+  })();
   const ui = {
+    /** Giờ hiện tại theo máy chủ (mili giây), dùng cho mọi đồng hồ đếm ngược. */
+    now: () => Date.now() + serverSkew,
     money: (n) => nf.format(Math.round(Number(n) || 0)) + ' ₫',
     number: (n) => nf.format(Math.round(Number(n) || 0)),
     date: (d) => { const x = toDate(d); return isNaN(x) ? '–' : `${pad(x.getDate())}/${pad(x.getMonth() + 1)}/${x.getFullYear()}`; },
@@ -316,7 +325,7 @@
     $$('select, input[type="date"]', form).forEach((s) => s.addEventListener('change', go));
     $$('[data-range]', form).forEach((b) => b.addEventListener('click', () => {
       const from = form.querySelector('[data-range-from]'), to = form.querySelector('[data-range-to]');
-      const d = new Date(), iso = (x) => `${x.getFullYear()}-${pad(x.getMonth() + 1)}-${pad(x.getDate())}`;
+      const d = new Date(ui.now()), iso = (x) => `${x.getFullYear()}-${pad(x.getMonth() + 1)}-${pad(x.getDate())}`;
       let start = new Date(d);
       if (b.dataset.range === '7') start.setDate(d.getDate() - 6);
       else if (b.dataset.range === '30') start.setDate(d.getDate() - 29);
@@ -550,7 +559,7 @@
     const out = $('[data-time]', el) || el;
     let fired = false;
     const tick = () => {
-      const left = Math.max(0, Math.round((end - Date.now()) / 1000));
+      const left = Math.max(0, Math.round((end - ui.now()) / 1000));
       out.textContent = `${pad(Math.floor(left / 60))}:${pad(left % 60)}`;
       el.classList.toggle('is-warning', left <= 120 && left > 60);
       el.classList.toggle('is-danger', left <= 60);
@@ -575,7 +584,7 @@
   };
   function initCountdown(el) {
     const end = toDate(el.dataset.expiresAt).getTime();
-    const tick = () => { const left = Math.max(0, Math.round((end - Date.now()) / 1000)); el.textContent = `${pad(Math.floor(left / 60))}:${pad(left % 60)}`; if (!left) clearInterval(h); };
+    const tick = () => { const left = Math.max(0, Math.round((end - ui.now()) / 1000)); el.textContent = `${pad(Math.floor(left / 60))}:${pad(left % 60)}`; if (!left) clearInterval(h); };
     const h = setInterval(tick, 1000); tick();
   }
 
@@ -594,7 +603,7 @@
   // ---------------------------------------------------------------- đồng hồ theo giờ máy chủ (giờ Việt Nam)
   function initClock(el) {
     const serverNow = toDate(el.dataset.serverNow).getTime();
-    const offset = isNaN(serverNow) ? 0 : serverNow - Date.now();
+    const offset = isNaN(serverNow) ? serverSkew : serverNow - Date.now();
     const sec = el.dataset.clock === 'seconds';
     const tick = () => { const d = new Date(Date.now() + offset); el.textContent = `${pad(d.getHours())}:${pad(d.getMinutes())}${sec ? ':' + pad(d.getSeconds()) : ''}`; };
     tick(); setInterval(tick, 1000);
@@ -676,7 +685,9 @@
     const shell = $('.admin-shell');
     if (shell && store.get('fpc.sidebar') === '1') shell.classList.add('is-collapsed');
     const bar = $('.demo-bar');
-    if (bar && (store.get('fpc.demo') === '1' || (store.get('fpc.demo') === null && (window.innerWidth < 992 || !!document.querySelector('.pos-shell'))))) { bar.classList.add('is-collapsed'); bar.querySelector('[data-demo-toggle]')?.setAttribute('aria-expanded', 'false'); }
+    // Trung tâm demo (UI D4): thẻ kịch bản có nút "Mở các màn hình" ở cuối thẻ, nên thanh demo luôn thu gọn khi mở trang để không che nút (UI U4-16)
+    const onDemoHub = !!document.querySelector('[data-open-scenario]');
+    if (bar && (onDemoHub || store.get('fpc.demo') === '1' || (store.get('fpc.demo') === null && (window.innerWidth < 992 || !!document.querySelector('.pos-shell'))))) { bar.classList.add('is-collapsed'); bar.querySelector('[data-demo-toggle]')?.setAttribute('aria-expanded', 'false'); }
     // Toast do server gửi sau khi chuyển trang (TempData)
     try { JSON.parse($('#flash-toasts')?.textContent || '[]').forEach((f) => ui.toast[f.type]?.(f.message)); } catch { /* bỏ qua */ }
     // Layout hiển thị: ẩn con trỏ sau 3 giây không dùng

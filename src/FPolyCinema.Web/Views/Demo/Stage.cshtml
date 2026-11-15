@@ -1,0 +1,19 @@
+@model DemoScenario
+@* Cửa sổ sân khấu của trung tâm demo (UI D4, SPEC S5-10): các màn hình không cần đăng nhập (màn hình phụ, bảng gọi số, bảng sảnh) của một kịch bản
+   nhúng bằng iframe, lấp đầy cửa sổ. Thanh mảnh phía trên ghi kịch bản và tên màn hình. *@
+@{
+    Layout = "_LayoutDisplay";
+    ViewData["Title"] = $"Kịch bản {Model.No} – {Model.Frames[0].Label}";
+}
+<div class="demo-stage">
+    <header class="demo-stage-bar">
+        <span><i class="bi bi-window-stack" aria-hidden="true"></i>Kịch bản @Model.No · @Model.Title</span>
+        <a class="btn btn-ghost btn-sm" href="/demo/multi-screen#kich-ban-@Model.No">Về trung tâm demo</a>
+    </header>
+    <div class="demo-stage-frames">
+        @foreach (var f in Model.Frames)
+        {
+            <iframe class="demo-frame" src="@f.Url" title="@f.Label" allow="autoplay; fullscreen"></iframe>
+        }
+    </div>
+</div>

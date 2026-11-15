@@ -85,9 +85,17 @@ public static class DemoAccounts
         new DemoAccount("khach", Roles.Customer, SeedCatalog.KhachEmail, "Khách hàng"),
     };
 
-    /// <summary>Tìm theo tên vai trò (Manager…) hoặc tên ngắn (manager, cashier…), không phân biệt hoa thường.</summary>
+    /// <summary>
+    /// Tài khoản mẫu thêm, không có nút trên thanh đổi vai trò: khách thứ hai cho kịch bản "Hai khách cùng giành một ghế" của trung tâm demo (SPEC S5-11).
+    /// </summary>
+    public static readonly IReadOnlyList<DemoAccount> Extra = new[]
+    {
+        new DemoAccount("khach2", Roles.Customer, SeedCatalog.Khach2Email, "Khách hàng 2"),
+    };
+
+    /// <summary>Tìm theo tên vai trò (Manager…) hoặc tên ngắn (manager, cashier…, khach2), không phân biệt hoa thường.</summary>
     public static DemoAccount? Find(string? roleOrSlug) =>
-        All.FirstOrDefault(a => string.Equals(a.Role, roleOrSlug, StringComparison.OrdinalIgnoreCase) || string.Equals(a.Slug, roleOrSlug, StringComparison.OrdinalIgnoreCase));
+        All.Concat(Extra).FirstOrDefault(a => string.Equals(a.Role, roleOrSlug, StringComparison.OrdinalIgnoreCase) || string.Equals(a.Slug, roleOrSlug, StringComparison.OrdinalIgnoreCase));
 }
 
 /// <summary>Thông tin người đang đăng nhập cho layout (tên, vai trò hiển thị, chữ cái đầu).</summary>

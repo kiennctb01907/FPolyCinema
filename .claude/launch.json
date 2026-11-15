@@ -6,6 +6,12 @@
       "runtimeExecutable": "dotnet",
       "runtimeArgs": ["run", "--project", "src/FPolyCinema.Web"],
       "port": 5080
+    },
+    {
+      "name": "web-lech-gio",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "src/FPolyCinema.Web", "--", "--Demo:ClockOffsetMinutes=-300"],
+      "port": 5080
     }
   ]
 }

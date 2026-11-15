@@ -41,7 +41,7 @@
 
   // ---------------------------------------------------------------- dấu xác nhận động: đồng hồ chạy theo giây
   function tick() {
-    const d = new Date();
+    const d = new Date(ui.now());
     const text = `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
     live.querySelectorAll('[data-live-clock]').forEach((el) => { el.textContent = text; });
   }

@@ -4,6 +4,7 @@
 //
 //   node tools/ui-snapshots/snap.mjs --phase 2            chụp mọi màn hình của Phase 2
 //   node tools/ui-snapshots/snap.mjs --phase 2 --only A3  chỉ chụp màn hình A3
+//   node tools/ui-snapshots/snap.mjs --phase 8            chụp lại mọi màn hình của mọi phase (kiểm tra tổng thể)
 //   node tools/ui-snapshots/snap.mjs --base http://localhost:5080
 //
 // Đọc routes.json: mã màn hình, vai trò, đường dẫn, khu vực (kích thước theo UI mục 11).
@@ -33,7 +34,10 @@ catch {
   process.exit(2);
 }
 
-const routes = config.routes.filter((r) => r.phase === phase && (!only || r.screen === only));
+// Phase 8 (kiểm tra tổng thể, SPEC 8.8-02): chụp lại mọi màn hình của mọi phase, bỏ dòng trùng (cùng mã, vai trò, biến thể, đường dẫn).
+const seen = new Set();
+const routes = config.routes.filter((r) => (phase === 8 ? r.phase <= 8 : r.phase === phase) && (!only || r.screen === only))
+  .filter((r) => { const k = [r.screen, r.role, r.variant, r.path || r.resolveFrom, r.resolveLink].join('|'); if (seen.has(k)) return false; seen.add(k); return true; });
 if (!routes.length) { console.error(`routes.json không có màn hình nào của Phase ${phase}${only ? ' mã ' + only : ''}.`); process.exit(2); }
 
 // Kiểm tra app đang chạy

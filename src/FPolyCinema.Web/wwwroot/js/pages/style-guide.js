@@ -52,7 +52,7 @@
     if (exp) {
       const slot = exp.parentElement.querySelector('[data-sg-expire-slot]');
       slot.innerHTML = '<span class="hold-timer"><i class="bi bi-hourglass-split" aria-hidden="true"></i><span data-time>00:03</span></span>';
-      ui.holdTimer(slot.firstElementChild, new Date(Date.now() + 3000), {
+      ui.holdTimer(slot.firstElementChild, new Date(ui.now() + 3000), {
         onExpire: async () => {
           const again = await ui.confirm({ title: 'Hết thời gian giữ ghế', message: 'Đã hết 10 phút giữ ghế. Bạn chọn lại ghế để tiếp tục nhé.', confirmText: 'Chọn lại', cancelText: 'Đóng' });
           if (again) slot.innerHTML = '';

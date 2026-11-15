@@ -1,6 +1,6 @@
 # Controller, route và quyền (sinh từ Controllers/*.cs)
 
-29 controller, 217 route.
+29 controller, 220 route.
 
 | Route | HTTP | Controller.Action | Quyền | File |
 |---|---|---|---|---|
@@ -106,17 +106,20 @@
 | /booking/{}/voucher | POST | Booking.Voucher | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/CustomerController.cs:173 |
 | /booking/pay/{} | GET | Booking.Pay | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/CustomerController.cs:198 |
 | /booking/pay/{}/status | GET | Booking.PayStatus | Policy Policies.CustomerOnly | src/FPolyCinema.Web/Controllers/CustomerController.cs:213 |
-| /cinema/select | POST | Cinema.Select | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:22 |
-| /demo/switch-role | GET | Demo.SwitchRole | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:45 |
-| /dev/layouts/display | GET | Dev.LayoutDisplay | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:145 |
-| /dev/layouts/pos | GET | Dev.LayoutPos | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:141 |
-| /dev/mailbox | GET | Dev.Mailbox | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:124 |
-| /dev/mailbox/clear | POST | Dev.ClearMailbox | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:132 |
-| /dev/style-guide | GET | Dev.StyleGuide | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:86 |
-| /dev/style-guide/broken | GET | Dev.SampleBroken | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:121 |
-| /dev/style-guide/fail | POST | Dev.SampleFail | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:110 |
-| /dev/style-guide/ok | POST | Dev.SampleOk | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:107 |
-| /dev/style-guide/slow | GET | Dev.SampleSlow | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:114 |
+| /cinema/select | POST | Cinema.Select | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:23 |
+| /demo/multi-screen | GET | Demo.MultiScreen | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:54 |
+| /demo/multi-screen/prepare-ticket | POST | Demo.PrepareTicket | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:67 |
+| /demo/multi-screen/stage | GET | Demo.Stage | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:58 |
+| /demo/switch-role | GET | Demo.SwitchRole | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:83 |
+| /dev/layouts/display | GET | Dev.LayoutDisplay | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:183 |
+| /dev/layouts/pos | GET | Dev.LayoutPos | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:179 |
+| /dev/mailbox | GET | Dev.Mailbox | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:162 |
+| /dev/mailbox/clear | POST | Dev.ClearMailbox | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:170 |
+| /dev/style-guide | GET | Dev.StyleGuide | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:124 |
+| /dev/style-guide/broken | GET | Dev.SampleBroken | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:159 |
+| /dev/style-guide/fail | POST | Dev.SampleFail | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:148 |
+| /dev/style-guide/ok | POST | Dev.SampleOk | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:145 |
+| /dev/style-guide/slow | GET | Dev.SampleSlow | AllowAnonymous | src/FPolyCinema.Web/Controllers/ToolsControllers.cs:152 |
 | /file/delete | POST | File.Delete | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/FileController.cs:40 |
 | /file/upload | POST | File.Upload | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/FileController.cs:24 |
 | /home/accessdenied | GET | Home.AccessDenied | AllowAnonymous | src/FPolyCinema.Web/Controllers/HomeController.cs:34 |
@@ -246,7 +249,7 @@
 | D1 | 2 | /dev/style-guide | có |
 | D2 | 2 | /dev/mailbox | có |
 | D3 | 2 | /Home/AccessDenied, /Home/Error | có, có |
-| D4 | 8 | /demo/multi-screen | chưa |
+| D4 | 8 | /demo/multi-screen | có |
 | P1 | 4, 6 | /pos/index | có |
 | P2 | 6 | /pos/customer-display?terminal=POS-01 | có |
 | P3 | 6 | /pos/gate-inspector | có |

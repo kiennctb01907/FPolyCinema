@@ -90,7 +90,7 @@
     $('[data-cd-qr-code]').textContent = `Nội dung chuyển khoản: ${p.code}`;
     const end = new Date(p.expiresAt).getTime();
     const el = $('[data-cd-countdown]');
-    const tick = () => { const s = Math.max(0, Math.round((end - Date.now()) / 1000)); el.textContent = `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
+    const tick = () => { const s = Math.max(0, Math.round((end - ui.now()) / 1000)); el.textContent = `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(s % 60).padStart(2, '0')}`; };
     clearInterval(countdown); tick(); countdown = setInterval(tick, 1000);
   }
   function onDone(p) {

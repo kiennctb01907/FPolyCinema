@@ -34,7 +34,7 @@ Thư mục wwwroot/lib: be-vietnam-pro, bootstrap, bootstrap-icons, chart.js, ht
 
 ## Kiểm thử
 
-349 test trong 31 file.
+363 test trong 32 file.
 
 - tests/FPolyCinema.Tests/ArchitectureTests.cs: 8
 - tests/FPolyCinema.Tests/BillStateMachineTests.cs: 14
@@ -60,6 +60,7 @@ Thư mục wwwroot/lib: be-vietnam-pro, bootstrap, bootstrap-icons, chart.js, ht
 - tests/FPolyCinema.Tests/Phase6ServiceTests.cs: 5
 - tests/FPolyCinema.Tests/Phase7RulesTests.cs: 11
 - tests/FPolyCinema.Tests/Phase7ServiceTests.cs: 5
+- tests/FPolyCinema.Tests/Phase8Tests.cs: 14
 - tests/FPolyCinema.Tests/PricingCalculatorTests.cs: 17
 - tests/FPolyCinema.Tests/SeatScoringTests.cs: 10
 - tests/FPolyCinema.Tests/SeedDataTests.cs: 13
@@ -96,7 +97,7 @@ src/
         PricingConstants.cs
         Roles.cs
       Rules/
-        (37 file: AgeRules.cs, AiDemandScore.cs, AiScheduler.cs, ApprovalRules.cs, AuditoriumLayout.cs, BillStateMachine.cs, …)
+        (38 file: AgeRules.cs, AiDemandScore.cs, AiScheduler.cs, ApprovalRules.cs, AuditoriumLayout.cs, BillStateMachine.cs, …)
       BusinessRuleException.cs
       FieldErrors.cs
     Entities/
@@ -118,7 +119,7 @@ src/
     Properties/
       launchSettings.json
     Services/
-      (34 file: AiSchedulerService.cs, ApprovalService.cs, AuditoriumService.cs, AuthService.cs, BillService.cs, BillStatusService.cs, …)
+      (35 file: AiSchedulerService.cs, ApprovalService.cs, AuditoriumService.cs, AuthService.cs, BillService.cs, BillStatusService.cs, …)
     Utils/
       DBUtil.cs
       FileUtil.cs
@@ -167,6 +168,9 @@ src/
         Movie.cshtml
         Movies.cshtml
         Showtimes.cshtml
+      Demo/
+        MultiScreen.cshtml
+        Stage.cshtml
       Dev/
         _StyleGuideBody.cshtml
         LayoutDisplay.cshtml
@@ -289,7 +293,7 @@ src/
     Program.cs
 tests/
   FPolyCinema.Tests/
-    (33 file: ArchitectureTests.cs, BillStateMachineTests.cs, BookingAgentTests.cs, ConventionTests.cs, DatabaseTests.cs, FileUtilTests.cs, …)
+    (34 file: ArchitectureTests.cs, BillStateMachineTests.cs, BookingAgentTests.cs, ConventionTests.cs, DatabaseTests.cs, FileUtilTests.cs, …)
 tools/
   spec-check/
     check.mjs

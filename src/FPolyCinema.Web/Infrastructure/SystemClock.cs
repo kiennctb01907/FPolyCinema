@@ -10,21 +10,27 @@ public sealed class SystemClock : IClock
     public const string WindowsFallbackTimeZoneId = "SE Asia Standard Time";
 
     private readonly TimeZoneInfo _zone;
+    private readonly TimeSpan _offset;
 
-    public SystemClock(string timeZoneId)
+    /// <param name="offset">Độ lệch của đồng hồ ứng dụng (Demo:ClockOffsetMinutes, chỉ khi bật công cụ demo); mặc định 0.</param>
+    public SystemClock(string timeZoneId, TimeSpan offset = default)
     {
         _zone = ResolveTimeZone(timeZoneId);
+        _offset = offset;
     }
 
     public SystemClock(CinemaRules rules) : this(rules.TimeZoneId) { }
 
     public TimeZoneInfo Zone => _zone;
 
+    /// <summary>Độ lệch đang áp dụng so với giờ thật.</summary>
+    public TimeSpan Offset => _offset;
+
     public DateTime Now
     {
         get
         {
-            var local = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _zone);
+            var local = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, _zone) + _offset;
             // Bỏ phần lẻ dưới giây để khớp cột DATETIME2(0)
             return DateTime.SpecifyKind(local.AddTicks(-(local.Ticks % TimeSpan.TicksPerSecond)), DateTimeKind.Unspecified);
         }
