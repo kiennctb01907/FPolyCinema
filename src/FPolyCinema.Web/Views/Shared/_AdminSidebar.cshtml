@@ -17,7 +17,7 @@
         ("Kho bắp nước", new() { ("Loại đồ uống", "bi-collection", "/admin/categories", false), ("Đồ uống", "bi-cup-straw", "/admin/drinks", false), ("Nguyên liệu", "bi-box-seam", "/admin/materials", true), ("Phiếu hủy hàng", "bi-trash3", "/ops/wastage", false) }),
         ("Nhân sự", new() { ("Nhân viên", "bi-people", "/admin/users", true) }),
         ("Báo cáo", new() { ("Thống kê", "bi-bar-chart", "/admin/reports", true), ("Đối soát nhà phát hành", "bi-file-earmark-spreadsheet", "/admin/reports/settlement", true) }),
-        ("Cấu hình", new() { ("Cấu hình rạp", "bi-gear", null, true) }),
+        ("Cấu hình", new() { ("Cấu hình rạp", "bi-gear", "/admin/settings", true) }),
     };
     // Mục đang mở: /admin chỉ khớp đúng /admin; /admin/reports không gồm trang đối soát; /ops không gồm phiếu hủy hàng
     bool IsActive(string? url) => url != null && (url == "/admin" ? path.TrimEnd('/').Equals("/admin", StringComparison.OrdinalIgnoreCase)

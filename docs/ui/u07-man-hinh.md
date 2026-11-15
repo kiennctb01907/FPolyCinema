@@ -141,6 +141,10 @@ Mục lục và cách đọc mã yêu cầu như [S3.6-04 P4]: docs/README.md. T
 - [U7.A9-01 P2] A9. Trang cá nhân nhân viên `/me` (mọi nhân viên, dùng layout của vai trò đang đăng nhập)
   - [U7.A9-02 P2] Thẻ thông tin: ảnh đại diện chữ cái đầu, họ tên, email (chỉ đọc), số điện thoại, vai trò, rạp. Nút "Lưu".
   - [U7.A9-03 P2] Thẻ đổi mật khẩu: mật khẩu hiện tại, mật khẩu mới, nhập lại; có thước đo độ mạnh và nút hiện hoặc ẩn. Đổi xong thì đăng xuất các phiên khác.
+- [U7.A10-01 P8] A10. Cấu hình rạp `/admin/settings` (quản lý rạp, chỉ đọc; mục "Cấu hình rạp" trong nhóm Cấu hình của sidebar)
+  - [U7.A10-02 P8] Thẻ hệ thống rạp: mỗi rạp một dòng gồm tên, địa chỉ, điện thoại, số phòng chiếu đang hoạt động, trạng thái.
+  - [U7.A10-03 P8] Tham số nghiệp vụ CinemaRules đang áp dụng, chia nhóm (giờ vận hành và suất chiếu; giữ ghế và giờ bán; giá vé và thuế; xếp lịch và ghế nội bộ; phim Việt; thành viên và điểm; hủy vé, bồi thường và phê duyệt). Mỗi dòng có tên tiếng Việt, khóa cấu hình, giá trị đã định dạng (phút, giờ, %, ₫) và nhãn "Đã đổi" kèm giá trị mặc định khi khác mặc định ở CONTRACTS mục 7. Mọi khóa của CinemaRules đều có mặt.
+  - [U7.A10-04 P8] Không sửa trên web: trang ghi cách đổi (appsettings.json mục CinemaRules hoặc biến môi trường CinemaRules__TênKhóa, rồi khởi động lại ứng dụng) và múi giờ đang dùng.
 
 ### Ảnh mẫu (SvgArtGenerator)
 - [U7.ART-01 P1] Poster 600 × 900: nền gradient hai màu theo thể loại, họa tiết hình học nhẹ, tên phim chữ lớn (đậm 600–700, tự xuống dòng), dòng phụ ghi thể loại và năm, nhãn tuổi ở góc trên.

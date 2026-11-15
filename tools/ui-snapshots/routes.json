@@ -113,6 +113,7 @@
     { "screen": "D4", "role": "guest", "variant": "san-khau", "path": "/demo/multi-screen/stage?scenario=2", "area": "display", "phase": 8, "note": "Cửa sổ sân khấu: màn hình phụ nhúng iframe" },
     { "screen": "D4", "role": "guest", "variant": "san-khau-bang-sanh", "path": "/demo/multi-screen/stage?scenario=4", "area": "display", "phase": 8, "note": "Cửa sổ sân khấu: bảng sảnh nhúng iframe" },
     { "screen": "A9", "role": "shift", "path": "/me", "area": "admin", "phase": 8, "note": "Trang cá nhân của quản lý ca" },
-    { "screen": "A9", "role": "gate", "path": "/me", "area": "gate", "phase": 8, "note": "Trang cá nhân của nhân viên soát vé" }
+    { "screen": "A9", "role": "gate", "path": "/me", "area": "gate", "phase": 8, "note": "Trang cá nhân của nhân viên soát vé" },
+    { "screen": "A10", "role": "manager", "path": "/admin/settings", "area": "admin", "phase": 8, "note": "Cấu hình rạp chỉ đọc: hệ thống rạp, tham số CinemaRules theo nhóm" }
   ]
 }

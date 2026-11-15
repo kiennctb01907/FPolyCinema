@@ -60,6 +60,7 @@ builder.Services.AddScoped<CinemaContextService>();
 builder.Services.AddScoped<ShellService>();
 builder.Services.AddScoped<DevToolsService>();
 builder.Services.AddScoped<DemoCenterService>();
+builder.Services.AddScoped<SettingsService>();
 // Phase 4: bán hàng tại quầy, hóa đơn, thống kê, thời gian thực
 builder.Services.AddScoped<RealtimeNotifier>();
 builder.Services.AddScoped<SeatMapService>();

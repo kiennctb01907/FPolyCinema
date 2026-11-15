@@ -385,6 +385,7 @@ Lớp chính:
 
 Route và quyền (chỉ khi Demo:EnableTools; tắt thì DemoToolsMiddleware trả 404):
 - AllowAnonymous: `/demo/multi-screen` (UI D4, 5 thẻ kịch bản), `/demo/multi-screen/stage?scenario=N` (cửa sổ sân khấu, iframe màn hình phụ, bảng gọi số, bảng sảnh), POST `/demo/multi-screen/prepare-ticket` (tạo vé mẫu có bắp nước cho khach@), `/demo/switch-role` nhận thêm `role=khach2`.
+- ManagerOnly: `/admin/settings` (UI A10, Cấu hình rạp chỉ đọc; SettingsController, SettingsService, quy tắc thuần CinemaRulesCatalog).
 - Tên miền phụ của cửa sổ demo: `cashier.localhost`, `manager.localhost`, `gate.localhost`, `khach-a.localhost`, `khach-b.localhost` (cùng cổng với trang demo).
 
 Tên mới thêm vào hợp đồng: cấu hình C7-09 `Demo:ClockOffsetMinutes` (đọc qua `DemoOptions.EffectiveClockOffset`, áp vào `SystemClock`); thẻ `<meta name="server-now">` trong `_Head` và hàm `ui.now()` (giờ máy chủ cho mọi đồng hồ đếm ngược phía trình duyệt); `DemoAccounts.Extra` (khach2). Không thêm bảng, cột, sự kiện SignalR hay mã lỗi.

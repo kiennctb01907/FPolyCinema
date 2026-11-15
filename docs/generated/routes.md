@@ -1,6 +1,6 @@
 # Controller, route và quyền (sinh từ Controllers/*.cs)
 
-29 controller, 220 route.
+30 controller, 221 route.
 
 | Route | HTTP | Controller.Action | Quyền | File |
 |---|---|---|---|---|
@@ -80,6 +80,7 @@
 | /admin/reports/export | GET | Statistics.Export | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/StatisticsController.cs:110 |
 | /admin/reports/settlement | GET | Statistics.Settlement | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/StatisticsController.cs:156 |
 | /admin/reports/settlement/export | GET | Statistics.SettlementExport | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/StatisticsController.cs:175 |
+| /admin/settings | GET | Settings.Index | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/SettingsController.cs:18 |
 | /admin/users | GET | Users.Index | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/UsersController.cs:29 |
 | /admin/users/{} | GET | Users.Details | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/UsersController.cs:42 |
 | /admin/users/{}/delete | POST | Users.Delete | Policy Policies.ManagerOnly | src/FPolyCinema.Web/Controllers/UsersController.cs:120 |
@@ -230,6 +231,7 @@
 | Màn hình | Phase | Đường dẫn trong spec | Có trong code |
 |---|---|---|---|
 | A1 | 4, 6 | /admin | có |
+| A10 | 8 | /admin/settings | có |
 | A2 | 2 |  |  |
 | A3 | 2, 3 |  |  |
 | A4 | 3 |  |  |

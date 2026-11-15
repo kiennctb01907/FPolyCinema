@@ -1,0 +1,93 @@
+@model SettingsPage
+@* A10. Cấu hình rạp /admin/settings (UI A10, quản lý rạp, chỉ đọc): thẻ hệ thống rạp; tham số nghiệp vụ CinemaRules đang áp dụng chia nhóm, mỗi dòng có tên,
+   khóa, giá trị và nhãn "Đã đổi" kèm mặc định khi khác CONTRACTS mục 7; ghi cách đổi và múi giờ. Không sửa trên web. *@
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Cấu hình rạp";
+    var crumbs = new List<Crumb> { new("Cấu hình"), new("Cấu hình rạp") };
+    ViewData["Crumbs"] = crumbs;
+    var header = new PageHeaderVm
+    {
+        Title = "Cấu hình rạp",
+        Description = "Hệ thống rạp và tham số nghiệp vụ đang áp dụng cho bán vé, xếp lịch, thành viên và hủy vé. Trang chỉ để xem.",
+        Crumbs = crumbs,
+    };
+}
+<partial name="_PageHeader" model="header" />
+
+<div class="alert-ui tone-info" role="note">
+    <i class="bi bi-info-circle" aria-hidden="true"></i>
+    <div>
+        Tham số đọc từ <span class="num">appsettings.json</span> mục <strong>CinemaRules</strong> hoặc biến môi trường <span class="num">CinemaRules__TênKhóa</span>
+        (ví dụ <span class="num">CinemaRules__SeatHoldMinutes=12</span>). Muốn đổi, bạn sửa một trong hai chỗ rồi khởi động lại ứng dụng.
+        Múi giờ <strong>@Model.TimeZoneId</strong> · @Model.TimeZoneName; giờ hệ thống hiện tại <span class="num">@Fmt.DateTime(Model.Now)</span>.
+        @if (Model.ChangedCount > 0)
+        {
+            <text>Có <strong>@Model.ChangedCount</strong> tham số khác giá trị mặc định.</text>
+        }
+        else
+        {
+            <text>Mọi tham số đang dùng giá trị mặc định.</text>
+        }
+    </div>
+</div>
+
+<section class="card-ui card-ui-body mb-4" aria-labelledby="settings-cinemas">
+    <h2 class="card-ui-title" id="settings-cinemas"><i class="bi bi-buildings me-2" aria-hidden="true"></i>Hệ thống rạp</h2>
+    <div class="table-wrap">
+        <table class="data-table">
+            <caption class="visually-hidden">Danh sách rạp</caption>
+            <thead>
+                <tr>
+                    <th scope="col">Rạp</th>
+                    <th scope="col">Địa chỉ</th>
+                    <th scope="col">Điện thoại</th>
+                    <th scope="col" class="num">Phòng chiếu</th>
+                    <th scope="col">Trạng thái</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in Model.Cinemas)
+                {
+                    var st = StatusDisplay.Of(StatusDisplay.Active, c.Active);
+                    <tr>
+                        <td class="cell-title"><span class="cell-main">@c.Name</span></td>
+                        <td data-label="Địa chỉ">@c.Address</td>
+                        <td class="num text-nowrap" data-label="Điện thoại">@(c.Phone ?? "–")</td>
+                        <td class="num" data-label="Phòng chiếu">@c.ActiveAuditoriums@(c.TotalAuditoriums > c.ActiveAuditoriums ? $" / {c.TotalAuditoriums}" : null)</td>
+                        <td data-label="Trạng thái"><span class="status-badge tone-@st.Tone">@st.Label</span></td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+<div class="settings-grid">
+    @foreach (var g in Model.Groups)
+    {
+        var id = "settings-g-" + Model.Groups.IndexOf(g);
+        <section class="card-ui settings-card" aria-labelledby="@id">
+            <h2 class="settings-card-title" id="@id"><i class="bi @g.Icon" aria-hidden="true"></i>@g.Title</h2>
+            <dl class="settings-list">
+                @foreach (var s in g.Settings)
+                {
+                    <div class="settings-row @(s.Changed ? "is-changed" : null)">
+                        <dt>
+                            <span class="settings-label">@s.Label</span>
+                            <code class="settings-key">@s.Key</code>
+                            @if (s.Note != null) { <span class="settings-note">@s.Note</span> }
+                        </dt>
+                        <dd>
+                            <span class="settings-value num">@s.Value</span>
+                            @if (s.Changed)
+                            {
+                                <span class="status-badge tone-warning" title="Mặc định: @s.DefaultValue">Đã đổi · mặc định @s.DefaultValue</span>
+                            }
+                        </dd>
+                    </div>
+                }
+            </dl>
+        </section>
+    }
+</div>

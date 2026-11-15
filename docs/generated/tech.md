@@ -35,7 +35,7 @@ Thư mục wwwroot/lib: be-vietnam-pro, bootstrap, bootstrap-icons, chart.js, ht
 
 ## Kiểm thử
 
-366 test trong 33 file.
+369 test trong 33 file.
 
 - tests/FPolyCinema.Tests/ArchitectureTests.cs: 8
 - tests/FPolyCinema.Tests/BillStateMachineTests.cs: 14
@@ -62,7 +62,7 @@ Thư mục wwwroot/lib: be-vietnam-pro, bootstrap, bootstrap-icons, chart.js, ht
 - tests/FPolyCinema.Tests/Phase6ServiceTests.cs: 5
 - tests/FPolyCinema.Tests/Phase7RulesTests.cs: 11
 - tests/FPolyCinema.Tests/Phase7ServiceTests.cs: 5
-- tests/FPolyCinema.Tests/Phase8Tests.cs: 14
+- tests/FPolyCinema.Tests/Phase8Tests.cs: 17
 - tests/FPolyCinema.Tests/PricingCalculatorTests.cs: 17
 - tests/FPolyCinema.Tests/SeatScoringTests.cs: 10
 - tests/FPolyCinema.Tests/SeedDataTests.cs: 13
@@ -81,7 +81,7 @@ src/
       SeatHoldSweeper.cs
       ShowtimeClockService.cs
     Controllers/
-      (27 file: .gitkeep, AccountController.cs, AppControllerBase.cs, AssistantController.cs, AuditoriumsController.cs, BillsController.cs, …)
+      (28 file: .gitkeep, AccountController.cs, AppControllerBase.cs, AssistantController.cs, AuditoriumsController.cs, BillsController.cs, …)
     DAL/
       (47 file: AccountDAL.Phase2.cs, AudienceDiscountDAL.cs, AuditLogDAL.cs, AuditoriumDAL.cs, BillDAL.cs, BillDetailDAL.cs, …)
     Database/
@@ -99,7 +99,7 @@ src/
         PricingConstants.cs
         Roles.cs
       Rules/
-        (38 file: AgeRules.cs, AiDemandScore.cs, AiScheduler.cs, ApprovalRules.cs, AuditoriumLayout.cs, BillStateMachine.cs, …)
+        (39 file: AgeRules.cs, AiDemandScore.cs, AiScheduler.cs, ApprovalRules.cs, AuditoriumLayout.cs, BillStateMachine.cs, …)
       BusinessRuleException.cs
       FieldErrors.cs
     Entities/
@@ -122,7 +122,7 @@ src/
     Properties/
       launchSettings.json
     Services/
-      (35 file: AiSchedulerService.cs, ApprovalService.cs, AuditoriumService.cs, AuthService.cs, BillService.cs, BillStatusService.cs, …)
+      (36 file: AiSchedulerService.cs, ApprovalService.cs, AuditoriumService.cs, AuthService.cs, BillService.cs, BillStatusService.cs, …)
     Utils/
       DBUtil.cs
       FileUtil.cs
@@ -255,6 +255,8 @@ src/
         _AiModal.cshtml
         _Gantt.cshtml
         Form.cshtml
+        Index.cshtml
+      Settings/
         Index.cshtml
       Shared/
         (36 file: _AdminSidebar.cshtml, _AgeBadge.cshtml, _ApprovalBell.cshtml, _ApprovalList.cshtml, _AssistantWidget.cshtml, _AuthArt.cshtml, …)

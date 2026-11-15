@@ -276,6 +276,29 @@ public class Phase8WebTests
         var page = await (await c.GetAsync("/account")).Content.ReadAsStringAsync();
         Assert.Contains("Lê Hoàng Nam", page);
     }
+
+    [Fact]
+    public async Task Settings_ManagerSeesReadOnlyRules_CashierDenied()
+    {
+        using var f = new WebAppFactory(_db.ConnectionString, true);
+        var manager = Client(f);
+        await manager.GetAsync("/demo/switch-role?role=manager&returnUrl=%2Fadmin");
+        var res = await manager.GetAsync("/admin/settings");
+        Assert.Equal(HttpStatusCode.OK, res.StatusCode);
+        var html = await res.Content.ReadAsStringAsync();
+        Assert.Contains("Hệ thống rạp", html);
+        Assert.Contains("FPoly Cinema Hà Nội", html);
+        Assert.Contains(nameof(CinemaRules.SeatHoldMinutes), html);
+        Assert.Contains("CinemaRules__", html);
+        Assert.DoesNotContain("<form", html.Substring(html.IndexOf("<main", StringComparison.Ordinal)).Split("</main>")[0]);
+        Assert.Contains("href=\"/admin/settings\"", html); // mục sidebar đã mở
+
+        var cashier = Client(f);
+        await cashier.GetAsync("/demo/switch-role?role=cashier&returnUrl=%2Fpos");
+        var denied = await cashier.GetAsync("/admin/settings");
+        Assert.Equal(HttpStatusCode.Redirect, denied.StatusCode);
+        Assert.Contains("/Home/AccessDenied", denied.Headers.Location!.OriginalString);
+    }
 }
 
 /// <summary>Demo:ClockOffsetMinutes (CONTRACTS C7-09): lệch đồng hồ ứng dụng chỉ khi bật công cụ demo.</summary>
@@ -291,5 +314,43 @@ public class Phase8ClockTests
         var diff = real.Now - shifted.Now;
         Assert.InRange(diff.TotalMinutes, 299.9, 300.1);
         Assert.Equal(TimeSpan.Zero, real.Offset);
+    }
+}
+
+/// <summary>Trang Cấu hình rạp (UI A10): danh mục tham số CinemaRules đủ mọi khóa, định dạng giá trị, nhãn "Đã đổi"; trang chỉ quản lý rạp xem được.</summary>
+public class Phase8SettingsTests
+{
+    [Fact]
+    public void Catalog_ListsEveryCinemaRulesKeyExactlyOnce()
+    {
+        var props = typeof(CinemaRules).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance)
+            .Where(p => p.CanWrite).Select(p => p.Name).OrderBy(x => x).ToList();
+        var keys = FPolyCinema.Web.Domain.Rules.CinemaRulesCatalog.Keys;
+        Assert.Equal(keys.Count, keys.Distinct().Count());
+        Assert.Equal(props, keys.OrderBy(x => x).ToList());
+        Assert.Equal(7, FPolyCinema.Web.Domain.Rules.CinemaRulesCatalog.Describe(new CinemaRules()).Count);
+    }
+
+    [Fact]
+    public void Describe_FormatsValues_AndMarksOnlyChangedSettings()
+    {
+        var defaults = FPolyCinema.Web.Domain.Rules.CinemaRulesCatalog.Describe(new CinemaRules()).SelectMany(g => g.Settings).ToDictionary(s => s.Key);
+        Assert.DoesNotContain(defaults.Values, s => s.Changed);
+        Assert.Equal("10 phút", defaults[nameof(CinemaRules.SeatHoldMinutes)].Value);
+        Assert.Equal("08:00", defaults[nameof(CinemaRules.OperatingDayStart)].Value);
+        Assert.Equal("20%", defaults[nameof(CinemaRules.VietnameseFilmMinShare)].Value);
+        Assert.Equal("8%", defaults[nameof(CinemaRules.TicketVatPercent)].Value);
+        Assert.Equal("50.000 ₫", defaults[nameof(CinemaRules.CompensationVoucherAmount)].Value);
+        Assert.Equal("Thành viên 5% · VIP 7% · VVIP 10%", defaults[nameof(CinemaRules.PointEarnPercent)].Value);
+        Assert.Equal("75/100", defaults[nameof(CinemaRules.GoodClusterScore)].Value);
+        Assert.Equal("20 giây", defaults[nameof(CinemaRules.HoldSweepSeconds)].Value);
+
+        var changed = FPolyCinema.Web.Domain.Rules.CinemaRulesCatalog.Describe(new CinemaRules { SeatHoldMinutes = 12, VietnameseFilmTargetShare = 0.25m })
+            .SelectMany(g => g.Settings).Where(s => s.Changed).ToList();
+        Assert.Equal(2, changed.Count);
+        var hold = changed.Single(s => s.Key == nameof(CinemaRules.SeatHoldMinutes));
+        Assert.Equal("12 phút", hold.Value);
+        Assert.Equal("10 phút", hold.DefaultValue);
+        Assert.Equal("25%", changed.Single(s => s.Key == nameof(CinemaRules.VietnameseFilmTargetShare)).Value);
     }
 }
