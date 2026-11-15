@@ -1,4 +1,6 @@
 @* Nhóm mục sidebar (UI U4-07): Tổng quan; Bán hàng; Phim và lịch chiếu; Rạp và phòng; Kho bắp nước; Nhân sự; Báo cáo; Cấu hình.
+   Mỗi nhóm thu gọn được: tiêu đề nhóm là nút có mũi tên (aria-expanded), bấm thì mở hoặc gập danh sách mục. Nhóm chứa trang đang mở luôn mở sẵn,
+   các nhóm khác theo trạng thái đã lưu (ui.js, localStorage fpc.nav.{nhóm}), mặc định gập. Khi sidebar thu gọn còn 72px thì mọi icon đều hiện.
    Mục chưa có màn hình bị khóa, có lý do trong tooltip (UI U6-02). *@
 @{
     var path = Context.Request.Path.Value ?? "/";
@@ -17,6 +19,16 @@
         ("Báo cáo", new() { ("Thống kê", "bi-bar-chart", "/admin/reports", true), ("Đối soát nhà phát hành", "bi-file-earmark-spreadsheet", "/admin/reports/settlement", true) }),
         ("Cấu hình", new() { ("Cấu hình rạp", "bi-gear", null, true) }),
     };
+    // Mục đang mở: /admin chỉ khớp đúng /admin; /admin/reports không gồm trang đối soát; /ops không gồm phiếu hủy hàng
+    bool IsActive(string? url) => url != null && (url == "/admin" ? path.TrimEnd('/').Equals("/admin", StringComparison.OrdinalIgnoreCase)
+        : path.StartsWith(url, StringComparison.OrdinalIgnoreCase) && !(url == "/admin/reports" && path.StartsWith("/admin/reports/settlement", StringComparison.OrdinalIgnoreCase))
+          && !(url == "/ops" && path.StartsWith("/ops/wastage", StringComparison.OrdinalIgnoreCase)));
+    // Khóa nhóm (id phần tử, khóa lưu trạng thái gập/mở)
+    var groupKeys = new Dictionary<string, string>
+    {
+        ["Tổng quan"] = "tong-quan", ["Bán hàng"] = "ban-hang", ["Phim và lịch chiếu"] = "phim-lich-chieu", ["Rạp và phòng"] = "rap-phong",
+        ["Kho bắp nước"] = "kho-bap-nuoc", ["Nhân sự"] = "nhan-su", ["Báo cáo"] = "bao-cao", ["Cấu hình"] = "cau-hinh",
+    };
 }
 @if (isStaff)
 {
@@ -33,15 +45,23 @@
         };
         var items = g.Items.Where(i => (!i.ManagerOnly || isManager) && Allowed(i.Url)).ToList();
         if (items.Count == 0) { continue; }
-        <div class="nav-group">
-            <h2 class="nav-group-title">@g.Title</h2>
+        var key = groupKeys[g.Title];
+        var open = items.Any(i => IsActive(i.Url));
+        <section class="nav-group @(open ? "is-open" : null)" data-nav-group="@key" data-has-active="@(open ? "true" : null)">
+            <h2 class="nav-group-heading">
+                <button type="button" class="nav-group-toggle" data-nav-toggle aria-expanded="@(open ? "true" : "false")" aria-controls="nav-g-@key">
+                    <span class="nav-group-title">@g.Title</span>
+                    <span class="nav-group-count" aria-hidden="true">@items.Count</span>
+                    <i class="bi bi-chevron-down nav-group-chevron" aria-hidden="true"></i>
+                </button>
+            </h2>
+            <div class="nav-group-body" id="nav-g-@key">
+            <div class="nav-group-inner">
             @foreach (var i in items)
             {
                 if (i.Url != null)
                 {
-                    var active = i.Url == "/admin" ? path.TrimEnd('/').Equals("/admin", StringComparison.OrdinalIgnoreCase)
-                        : path.StartsWith(i.Url, StringComparison.OrdinalIgnoreCase) && !(i.Url == "/admin/reports" && path.StartsWith("/admin/reports/settlement", StringComparison.OrdinalIgnoreCase))
-                          && !(i.Url == "/ops" && path.StartsWith("/ops/wastage", StringComparison.OrdinalIgnoreCase));
+                    var active = IsActive(i.Url);
                     <a class="side-link @(active ? "active" : null)" href="@i.Url" aria-current="@(active ? "page" : null)" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-trigger="hover" title="@i.Label">
                         <i class="bi @i.Icon" aria-hidden="true"></i><span class="label">@i.Label</span>
                     </a>
@@ -53,14 +73,27 @@
                     </span>
                 }
             }
-        </div>
+            </div>
+            </div>
+        </section>
     }
-    <div class="nav-group">
-        <h2 class="nav-group-title">Tài khoản</h2>
-        <a class="side-link @(path.StartsWith("/me", StringComparison.OrdinalIgnoreCase) ? "active" : null)" href="/me" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-trigger="hover" title="Trang cá nhân">
-            <i class="bi bi-person-circle" aria-hidden="true"></i><span class="label">Trang cá nhân</span>
-        </a>
-    </div>
+    var meActive = path.StartsWith("/me", StringComparison.OrdinalIgnoreCase);
+    <section class="nav-group @(meActive ? "is-open" : null)" data-nav-group="tai-khoan" data-has-active="@(meActive ? "true" : null)">
+        <h2 class="nav-group-heading">
+            <button type="button" class="nav-group-toggle" data-nav-toggle aria-expanded="@(meActive ? "true" : "false")" aria-controls="nav-g-tai-khoan">
+                <span class="nav-group-title">Tài khoản</span>
+                <span class="nav-group-count" aria-hidden="true">1</span>
+                <i class="bi bi-chevron-down nav-group-chevron" aria-hidden="true"></i>
+            </button>
+        </h2>
+        <div class="nav-group-body" id="nav-g-tai-khoan">
+            <div class="nav-group-inner">
+                <a class="side-link @(meActive ? "active" : null)" href="/me" aria-current="@(meActive ? "page" : null)" data-bs-toggle="tooltip" data-bs-placement="right" data-bs-trigger="hover" title="Trang cá nhân">
+                    <i class="bi bi-person-circle" aria-hidden="true"></i><span class="label">Trang cá nhân</span>
+                </a>
+            </div>
+        </div>
+    </section>
 }
 else
 {

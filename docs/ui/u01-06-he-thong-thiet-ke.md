@@ -99,7 +99,7 @@ Chữ:
   - [U4-05 P2] Footer gồm thông tin rạp, liên hệ, điều khoản, chính sách hủy vé.
 - _LayoutAdmin (ops):
   - [U4-06 P2] Sidebar rộng 248px, thu gọn còn 72px (chỉ icon kèm tooltip); trên điện thoại là offcanvas.
-  - [U4-07 P2] Nhóm mục của sidebar: Tổng quan; Bán hàng; Phim và lịch chiếu; Rạp và phòng; Kho bắp nước; Nhân sự; Báo cáo; Cấu hình.
+  - [U4-07 P2] Nhóm mục của sidebar: Tổng quan; Bán hàng; Phim và lịch chiếu; Rạp và phòng; Kho bắp nước; Nhân sự; Báo cáo; Cấu hình. Mỗi nhóm thu gọn được: tiêu đề nhóm là nút có mũi tên và số mục, bấm thì mở hoặc gập; nhóm chứa trang đang mở luôn mở, nhóm khác nhớ trạng thái lần trước (mặc định gập). Khi sidebar thu gọn còn 72px thì hiện đủ icon, không có tiêu đề nhóm.
   - [U4-08 P2] Topbar cao 56px: breadcrumb, chọn rạp, chuông phê duyệt (kèm số yêu cầu đang chờ), menu người dùng.
   - [U4-09 P2] Vùng nội dung padding 24px; form rộng tối đa 960px.
 - _LayoutPos (ops; trang bếp và máy soát vé đổi sang cinema):

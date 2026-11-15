@@ -609,6 +609,12 @@
     tick(); setInterval(tick, 1000);
   }
 
+  // ---------------------------------------------------------------- nhóm mục sidebar mở hoặc gập (UI U4-07)
+  function setNavGroup(g, open) {
+    g.classList.toggle('is-open', open);
+    g.querySelector('[data-nav-toggle]')?.setAttribute('aria-expanded', String(open));
+  }
+
   // ---------------------------------------------------------------- lưu trạng thái thu gọn (sidebar, thanh demo)
   const store = {
     get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
@@ -644,6 +650,9 @@
     const retry = t.closest('[data-region-retry]'); if (retry) { reloadRegion(retry); return; }
     const link = t.closest('[data-region] a[data-region-link]');
     if (link && !e.ctrlKey && !e.metaKey) { e.preventDefault(); ui.loadRegion(link.closest('[data-region]'), link.getAttribute('href'), { push: 'push' }); return; }
+    // Nhóm mục sidebar (UI U4-07): bấm tiêu đề nhóm để mở hoặc gập, nhớ trạng thái theo nhóm
+    const ng = t.closest('[data-nav-toggle]');
+    if (ng) { const g = ng.closest('[data-nav-group]'); setNavGroup(g, !g.classList.contains('is-open')); store.set('fpc.nav.' + g.dataset.navGroup, g.classList.contains('is-open') ? '1' : '0'); return; }
     const sb = t.closest('[data-sidebar-toggle]');
     if (sb) { const shell = $('.admin-shell'); shell.classList.toggle('is-collapsed'); const c = shell.classList.contains('is-collapsed'); store.set('fpc.sidebar', c ? '1' : '0'); sb.setAttribute('aria-expanded', String(!c)); return; }
     const demo = t.closest('[data-demo-toggle]');
@@ -684,6 +693,10 @@
     // Trạng thái thu gọn đã lưu
     const shell = $('.admin-shell');
     if (shell && store.get('fpc.sidebar') === '1') shell.classList.add('is-collapsed');
+    // Nhóm mục sidebar: nhóm chứa trang đang mở luôn mở; nhóm khác theo trạng thái đã lưu. Bật hiệu ứng sau khi khôi phục để không nháy lúc tải trang.
+    $$('[data-nav-group]').forEach((g) => { if (g.dataset.hasActive) return; const saved = store.get('fpc.nav.' + g.dataset.navGroup); if (saved !== null) setNavGroup(g, saved === '1'); });
+    const sidebarEl = $('.sidebar');
+    if (sidebarEl) requestAnimationFrame(() => requestAnimationFrame(() => sidebarEl.classList.add('nav-ready')));
     const bar = $('.demo-bar');
     // Trung tâm demo (UI D4): thẻ kịch bản có nút "Mở các màn hình" ở cuối thẻ, nên thanh demo luôn thu gọn khi mở trang để không che nút (UI U4-16)
     const onDemoHub = !!document.querySelector('[data-open-scenario]');

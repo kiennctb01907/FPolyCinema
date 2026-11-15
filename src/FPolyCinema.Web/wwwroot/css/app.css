@@ -1631,3 +1631,34 @@ a.filter-chip:hover { background: var(--surface-2); color: var(--text); }
 a.filter-chip.is-active:hover { background: var(--info-bg); color: var(--info-fg); }
 /* Thẻ đổi mật khẩu khi đang đăng nhập (C6 trong layout của vai trò): căn giữa vùng nội dung thay vì lệch trái */
 .card-ui.auth-form { margin-inline: auto; }
+
+/* ---------------------------------------------------------------- Sidebar quản trị: nhóm mục thu gọn được (UI U4-07) */
+.sidebar .sidebar-body { scrollbar-width: thin; scrollbar-color: var(--border) transparent; }
+.sidebar .sidebar-body::-webkit-scrollbar { width: 6px; }
+.sidebar .sidebar-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: var(--radius-pill); }
+.sidebar .sidebar-body::-webkit-scrollbar-track { background: transparent; }
+.sidebar .nav-group { margin-bottom: var(--sp-1); }
+.sidebar .nav-group-heading { margin: 0; font-size: inherit; }
+.sidebar .nav-group-toggle { display: flex; align-items: center; gap: var(--sp-2); width: 100%; min-height: 36px; padding: var(--sp-1) var(--sp-3); border: 0; border-radius: var(--radius-sm); background: transparent; color: var(--text-muted); text-align: left; cursor: pointer; }
+.sidebar .nav-group-toggle:hover { background: var(--surface-2); color: var(--text); }
+.sidebar .nav-group-toggle:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; }
+.sidebar .nav-group-toggle .nav-group-title { flex: 1; padding: 0; text-transform: uppercase; letter-spacing: .04em; font-size: var(--fs-xs); font-weight: 600; color: inherit; }
+.sidebar .nav-group-count { min-width: 20px; height: 20px; padding: 0 var(--sp-1); border-radius: var(--radius-pill); background: var(--surface-2); color: var(--text-muted); font-size: 11px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; font-variant-numeric: tabular-nums; }
+.sidebar .nav-group.is-open .nav-group-count { visibility: hidden; }
+.sidebar .nav-group-chevron { font-size: 16px; transition: transform var(--dur-base) var(--ease); }
+.sidebar .nav-group.is-open .nav-group-chevron { transform: rotate(180deg); }
+/* Nhóm chứa trang đang mở: tiêu đề đậm màu để biết đang ở đâu kể cả khi gập */
+.sidebar .nav-group[data-has-active] .nav-group-toggle { color: var(--info-fg); }
+/* Mở, gập mượt bằng grid 0fr → 1fr; nhóm gập ẩn khỏi bàn phím và trình đọc màn hình (visibility) */
+.sidebar .nav-group-body { display: grid; grid-template-rows: 0fr; visibility: hidden; }
+.sidebar .nav-group.is-open .nav-group-body { grid-template-rows: 1fr; visibility: visible; }
+.sidebar .nav-group-inner { min-height: 0; overflow: hidden; padding-top: 2px; }
+.sidebar.nav-ready .nav-group-body { transition: grid-template-rows var(--dur-base) var(--ease), visibility 0s linear var(--dur-base); }
+.sidebar.nav-ready .nav-group.is-open .nav-group-body { transition: grid-template-rows var(--dur-base) var(--ease), visibility 0s; }
+@media (prefers-reduced-motion: reduce) { .sidebar.nav-ready .nav-group-body, .sidebar .nav-group-chevron { transition: none; } }
+/* Sidebar thu gọn 72px: không có tiêu đề nhóm, mọi icon đều hiện, các nhóm cách nhau bằng đường kẻ mảnh */
+@media (min-width: 992px) {
+  .admin-shell.is-collapsed .sidebar .nav-group-heading { display: none; }
+  .admin-shell.is-collapsed .sidebar .nav-group-body { grid-template-rows: 1fr; visibility: visible; }
+  .admin-shell.is-collapsed .sidebar .nav-group + .nav-group { border-top: 1px solid var(--border); padding-top: var(--sp-1); margin-top: var(--sp-1); }
+}
