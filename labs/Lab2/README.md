@@ -1,36 +1,47 @@
 # Lab 2 – ERD, bảng thực thể, luồng giao diện (FPolyCinema)
 
-- Tài liệu nộp: `TB01907_Lab2_ERD_GiaoDien.docx` (53 trang; mục lục tự động, đã cập nhật bằng Word).
+- Tài liệu nộp: `TB01907_Lab2_ERD_GiaoDien.docx` (60 trang; mục lục tự động, đã cập nhật bằng Word).
 - Ảnh sơ đồ: `diagrams/Hinh01…Hinh14*.png`, xuất từ Lucidchart.
-- Nguồn dữ kiện: `docs/generated` mã băm code 4e812462dfc7 (35 bảng, 60 khóa ngoại, 58 route).
+- Nguồn dữ kiện: `docs/generated` mã băm code a62c99432046 (35 bảng, 60 khóa ngoại, 30 controller, 221 route, 28 màn hình).
 - Gói nộp LMS: `TB01907_Lab2.zip` (docx + thư mục diagrams).
+
+## Lịch sử cập nhật
+
+- 08/11/2026: bản đầu, viết khi mới xong Phase 1 (luồng giao diện có khối xám cho màn hình chưa làm).
+- 15/11/2026: cập nhật theo code sau Phase 8.
+  - Vẽ lại Hình 1 (mô hình công nghệ: SignalR Hub, background service đã có) và Hình 11–14 (luồng giao diện: route và quyền thật, thêm A10, RoleRouting hiện tại).
+  - Vẽ lại ERD mức 2 trang P1, P3, P4, P5. Bản cũ có vài đường quan hệ gắn nhầm dòng cột. P4 thêm cột ShowtimeSeats.HoldAudienceType, P5 thêm cột Bills.HoldExtended. P4, P5 nối đường ở mức bảng.
+  - Mục 3.2: thêm 2 cột trên vào bảng thuộc tính.
+  - Bảng 4: chèn ảnh chụp thật của 28 màn hình (artifacts/ui/phase-8), thêm A10.
+  - Bảng 5: route và quyền theo routes.md, thêm A10.
+  - Số liệu ở mục 1, 2, 5 đã cập nhật.
 
 ## Sơ đồ gốc trên Lucidchart
 
 | Hình | Nội dung | Link sửa |
 |---|---|---|
-| 1 | Mô hình công nghệ | https://lucid.app/lucidchart/ead0fed6-5323-4a12-a10c-76db0b851c97/edit |
+| 1 | Mô hình công nghệ (trang 1) | https://lucid.app/lucidchart/d7ee25d1-ef06-4e46-b319-12feda24e855/edit |
 | 2 | ERD mức 1 – tổng quan | https://lucid.app/lucidchart/970fbca5-d53c-44a8-8d13-a6a724511018/edit |
-| 3 | ERD mức 2 – P1 Tài khoản và nhân sự | https://lucid.app/lucidchart/04aec04d-f163-4c20-b001-dbcc186e5637/edit |
+| 3 | ERD mức 2 – P1 Tài khoản và nhân sự | https://lucid.app/lucidchart/bceb7112-d8b3-4488-88c0-5b174138c34e/edit |
 | 4 | ERD mức 2 – P2 Bắp nước và kho | https://lucid.app/lucidchart/d9429208-f5a0-425b-ba47-895256fde3f6/edit |
-| 5 | ERD mức 2 – P3 Phim và nhà phát hành | https://lucid.app/lucidchart/ed3a81d3-1ee4-4d88-b8e7-bbb877cdbf49/edit |
-| 6 | ERD mức 2 – P4 Rạp, phòng, ghế, suất, giá | https://lucid.app/lucidchart/ec917fce-c763-4d52-91bb-931dab2f600b/edit |
-| 7 | ERD mức 2 – P5 Bán hàng và thanh toán | https://lucid.app/lucidchart/77d54fd9-d6a2-4b72-87dd-fab4d096f199/edit |
+| 5 | ERD mức 2 – P3 Phim và nhà phát hành | https://lucid.app/lucidchart/f953a7a9-e563-44ae-a8b2-82df673b9897/edit |
+| 6 | ERD mức 2 – P4 Rạp, phòng, ghế, suất, giá | https://lucid.app/lucidchart/6e32b96d-3992-4453-ae97-6d6e6c35a65a/edit |
+| 7 | ERD mức 2 – P5 Bán hàng và thanh toán | https://lucid.app/lucidchart/0723605e-a0de-4f16-b7e5-9a18962b614a/edit |
 | 8 | ERD mức 2 – P6 Khách hàng thân thiết | https://lucid.app/lucidchart/aa8b29ca-d13f-446b-beed-db0fa31362f5/edit |
 | 9 | ERD mức 2 – P7 Vận hành và phê duyệt | https://lucid.app/lucidchart/03dd0473-5327-44d3-9e78-157853621375/edit |
 | 10 | ERD mức 2 – P8 Hệ thống | https://lucid.app/lucidchart/50974733-0a49-484b-aa91-c9d4165b9d54/edit |
-| 11–14 | Luồng giao diện (4 trang: Web khách, Quầy và vận hành, Quản trị, Hệ thống) | https://lucid.app/lucidchart/850e6a7c-f775-4b87-9066-a21d99d8cdac/edit |
+| 11–14 | Luồng giao diện (trang 2–5: Web khách, Quầy và vận hành, Quản trị, Hệ thống) | https://lucid.app/lucidchart/d7ee25d1-ef06-4e46-b319-12feda24e855/edit |
 
-Mười ERD mức 2 nằm ở 8 tài liệu Lucid riêng (công cụ tạo ERD của Lucid mỗi lần tạo một tài liệu); có thể kéo gộp thành một tài liệu nhiều trang trong Lucidchart nếu giảng viên yêu cầu.
+Các tài liệu Lucid cũ của Hình 1, 3, 5, 6, 7, 11–14 (bản 08/11) vẫn còn trong tài khoản Lucid, không còn dùng. Trên Lucid còn hai bản nháp thừa (P4 95c62e63…, P5 fc19ac19…), có thể xóa.
 
 ## Việc sinh viên còn phải tự làm
 
 - Điền họ tên ở trang bìa.
-- Chèn ảnh chụp màn hình thật (C1, C6, A2, A3, A9, D1, D2, D3) ở mục 4.2.
 - Bài 4: hỏi AI theo hai prompt có sẵn, dán trả lời, chụp màn hình, điền Bảng 6 và bảng thông tin lần hỏi.
 - Sửa sơ đồ thì xuất PNG lại và thay trong Word; mở Word cập nhật mục lục.
 
 ## Điểm chưa đẹp của sơ đồ (đã biết)
 
 - ERD mức 1: Users, Cinemas, Bills là trung tâm nên nhiều đường đi gần bảng khác.
-- ERD mức 2 trang P3: một đường đi sát bảng Distributors.
+- ERD mức 2 trang P4, P5 nối ở mức bảng, không chỉ tới từng dòng cột khóa ngoại (cột FK vẫn được đánh dấu trong bảng).
+- Luồng Quản trị: đường "Xóa" và "Phòng chiếu" đi chung một đoạn dọc.
