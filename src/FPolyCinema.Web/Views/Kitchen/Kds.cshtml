@@ -14,7 +14,9 @@
         <h1 class="h5 mb-0">Bếp · @Model.CinemaName</h1>
         <form class="kds-pickup" data-pickup-form autocomplete="off">
             <label class="visually-hidden" for="kds-pickup-code">Quét QR đơn online để nhận bắp nước</label>
-            <input id="kds-pickup-code" name="code" class="form-control" placeholder="Quét QR đơn online (HD… / TK…)" />
+            <div class="kds-pickup-field">
+                <input id="kds-pickup-code" name="code" class="form-control" placeholder="Quét QR đơn online (HD… / TK…)" />
+            </div>
             <button type="submit" class="btn btn-primary"><i class="bi bi-upc-scan" aria-hidden="true"></i>Nhận đơn online</button>
         </form>
         <a class="btn btn-ghost" href="/pos/wastage"><i class="bi bi-trash3" aria-hidden="true"></i>Phiếu hủy hàng</a>

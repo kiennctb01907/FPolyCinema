@@ -104,6 +104,7 @@
     e.preventDefault();
     const form = e.currentTarget;
     const code = form.code.value.trim();
+    ui.clearFieldErrors(form);
     if (!code) { ui.showFieldErrors(form, { code: 'Bạn quét hoặc nhập mã hóa đơn, mã vé của đơn online.' }); return; }
     try {
       const r = await ui.api('/pos/fnb-kds/pickup', { method: 'POST', body: { code }, form, button: form.querySelector('button') });
@@ -112,6 +113,9 @@
     } catch { /* ui.api đã báo lỗi */ }
     form.code.focus();
   });
+
+  // Gõ lại thì bỏ báo lỗi cũ của ô quét
+  root.querySelector('[data-pickup-form]').addEventListener('input', (e) => ui.clearFieldErrors(e.currentTarget));
 
   if (window.realtime) {
     realtime.join('JoinKds', cinemaId, false);
