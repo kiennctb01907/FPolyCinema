@@ -23,7 +23,7 @@
             <div class="filter-item"><button type="submit" class="btn btn-secondary">Đổi rạp</button></div>
         </form>
     }
-    <form class="card-ui" method="post" action="/admin/materials/import" data-stock-form novalidate>
+    <form asp-antiforgery="true" class="card-ui" method="post" action="/admin/materials/import" data-stock-form novalidate>
         <input type="hidden" name="cinemaId" value="@Model.CinemaId" />
         <section class="card-section" aria-labelledby="imp-lines">
             <h2 class="card-section-title" id="imp-lines">Nguyên liệu nhập</h2>

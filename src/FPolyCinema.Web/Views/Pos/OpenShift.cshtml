@@ -22,7 +22,7 @@
         {
             <div class="alert alert-danger" role="alert">@general</div>
         }
-        <form method="post" action="/pos/open-shift" data-shift-wizard novalidate autocomplete="off">
+        <form asp-antiforgery="true" method="post" action="/pos/open-shift" data-shift-wizard novalidate autocomplete="off">
             <fieldset data-step="1">
                 <legend class="h6">Bước 1 · Chọn máy POS</legend>
                 <div class="terminal-grid" role="radiogroup" aria-label="Máy POS">

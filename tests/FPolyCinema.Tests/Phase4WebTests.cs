@@ -72,6 +72,28 @@ public class Phase4WebTests
         Assert.Equal("/hubs/cinema", CinemaHub.Path);
     }
 
+    /// <summary>BUG-073: form mở ca gửi bằng submit thường nên phải tự mang token; thiếu token thì bị trang "Phiên làm việc đã hết hạn".</summary>
+    [Fact]
+    public async Task OpenShift_FormCarriesAntiforgeryToken_PostIsNotRejected()
+    {
+        using var f = new WebAppFactory(_db.ConnectionString, tools: true);
+        var mgr = Client(f);
+        await mgr.GetAsync("/demo/switch-role?role=manager&returnUrl=%2Fme");
+        var page = await mgr.GetAsync("/pos/open-shift");
+        Assert.Equal(HttpStatusCode.OK, page.StatusCode);
+        var html = await page.Content.ReadAsStringAsync();
+        var form = Regex.Match(html, "<form[^>]*data-shift-wizard[\\s\\S]*?</form>").Value;
+        var token = Regex.Match(form, "name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"").Groups[1].Value;
+        Assert.False(string.IsNullOrEmpty(token), "Form mở ca không có token Anti-Forgery");
+        // Gửi như trình duyệt (token trong form, không qua header), thiếu tiền đầu ca: phải về lại form kèm lỗi, không phải 400
+        var post = await mgr.PostAsync("/pos/open-shift", new FormUrlEncodedContent(new Dictionary<string, string>
+        {
+            ["terminal"] = "POS-01", ["openingCashFloat"] = "", ["__RequestVerificationToken"] = token,
+        }));
+        Assert.Equal(HttpStatusCode.OK, post.StatusCode);
+        Assert.DoesNotContain("Phiên làm việc đã hết hạn", await post.Content.ReadAsStringAsync());
+    }
+
     [Fact]
     public async Task Pages_RoleAccess_PosForPosStaff_AdminForManager()
     {

@@ -9,7 +9,7 @@
     <partial name="_PageHeader" model="@(new PageHeaderVm { Title = "Lập phiếu hủy hàng hỏng", Description = $"{Model.CinemaName} · phiếu chờ quản lý ca duyệt rồi mới trừ tồn kho.", Crumbs = new() { new Crumb("Bán hàng", "/pos/index"), new Crumb("Bếp", "/pos/fnb-kds"), new Crumb("Phiếu hủy hàng") } })" />
     <div class="row g-4">
         <div class="col-12 col-xl-8">
-            <form class="card-ui card-ui-body" method="post" action="/pos/wastage" data-stock-form novalidate>
+            <form asp-antiforgery="true" class="card-ui card-ui-body" method="post" action="/pos/wastage" data-stock-form novalidate>
                 <partial name="_StockLines" model="Model" />
                 <div class="mt-3">
                     <label class="form-label" for="w-note">Ghi chú</label>

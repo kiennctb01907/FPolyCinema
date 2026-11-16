@@ -90,6 +90,21 @@ public class ArchitectureTests
         AssertNone(views, @"\bDBUtil\b|\w+DAL\.\w+\(|SqlConnection", "View không truy cập dữ liệu");
     }
 
+    /// <summary>
+    /// Form có thuộc tính action viết tay thì tag helper không tự chèn token Anti-Forgery; thiếu asp-antiforgery="true"
+    /// thì POST bị từ chối với trang "Phiên làm việc đã hết hạn" (BUG-073: mở ca ở máy POS).
+    /// </summary>
+    [Fact]
+    public void Views_EveryPostFormRendersAntiforgeryToken()
+    {
+        var bad = Directory.GetFiles(Path.Combine(RepoPaths.Web, "Views"), "*.cshtml", SearchOption.AllDirectories)
+            .SelectMany(f => Regex.Matches(System.IO.File.ReadAllText(f), @"<form\b[^>]*>", RegexOptions.IgnoreCase)
+                .Where(m => Regex.IsMatch(m.Value, @"method=""post""", RegexOptions.IgnoreCase) && !m.Value.Contains("asp-antiforgery=\"true\""))
+                .Select(m => $"{Path.GetFileName(f)}: {m.Value}"))
+            .ToList();
+        Assert.True(bad.Count == 0, "Form POST thiếu asp-antiforgery=\"true\": " + string.Join("; ", bad));
+    }
+
     [Fact]
     public void BillStatus_OnlyChangedThroughBillStatusService()
     {
