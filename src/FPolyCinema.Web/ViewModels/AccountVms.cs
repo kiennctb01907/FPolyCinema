@@ -49,7 +49,8 @@ public class RegisterVm
     [DataType(DataType.Password)]
     public string ConfirmPassword { get; set; } = string.Empty;
 
-    [Range(typeof(bool), "true", "true", ErrorMessage = "Bạn cần đồng ý với điều khoản sử dụng.")]
+    [Required(ErrorMessage = "Bạn cần đồng ý với điều khoản sử dụng.")]
+    [MustBeTrue(ErrorMessage = "Bạn cần đồng ý với điều khoản sử dụng.")]
     public bool AcceptTerms { get; set; }
 }
 

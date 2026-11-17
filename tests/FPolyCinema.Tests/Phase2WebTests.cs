@@ -190,6 +190,50 @@ public class Phase2WebTests
     }
 
     [Fact]
+    public async Task Register_TermsCheckboxValidatesOnClientAndServer()
+    {
+        // BUG-075: [Range(typeof(bool), "true", "true")] sinh data-val-range mà jQuery Validate luôn báo lỗi dù đã tích
+        var email = "dangky.web.test@gmail.com";
+        try
+        {
+            using var f = Factory();
+            var c = Client(f);
+            var html = await (await c.GetAsync("/Login/Register")).Content.ReadAsStringAsync();
+            var box = Regex.Match(html, "<input[^>]*name=\"AcceptTerms\"[^>]*type=\"checkbox\"[^>]*>|<input[^>]*type=\"checkbox\"[^>]*name=\"AcceptTerms\"[^>]*>").Value;
+            Assert.False(string.IsNullOrEmpty(box));
+            Assert.DoesNotContain("data-val-range", box);
+            Assert.Contains("data-val-required=\"Bạn cần đồng ý với điều khoản sử dụng.\"", box);
+            var t = Regex.Match(html, "name=\"__RequestVerificationToken\" type=\"hidden\" value=\"([^\"]+)\"").Groups[1].Value;
+
+            List<KeyValuePair<string, string>> Form(bool accept)
+            {
+                var form = new List<KeyValuePair<string, string>>
+                {
+                    new("FullName", "Khách Đăng Ký"), new("Email", email), new("Password", "Rapphim2026"),
+                    new("ConfirmPassword", "Rapphim2026"), new("__RequestVerificationToken", t),
+                };
+                if (accept) form.Add(new("AcceptTerms", "true"));
+                form.Add(new("AcceptTerms", "false"));   // ô ẩn do tag helper sinh ra, trình duyệt luôn gửi kèm
+                return form;
+            }
+
+            var refused = await c.PostAsync("/Login/Register", new FormUrlEncodedContent(Form(accept: false)));
+            Assert.Equal(HttpStatusCode.OK, refused.StatusCode);
+            Assert.Contains("Bạn cần đồng ý với điều khoản sử dụng.", await refused.Content.ReadAsStringAsync());
+            Assert.Null(FPolyCinema.Web.DAL.UserDAL.GetByEmail(email));
+
+            var ok = await c.PostAsync("/Login/Register", new FormUrlEncodedContent(Form(accept: true)));
+            Assert.Equal(HttpStatusCode.Redirect, ok.StatusCode);
+            Assert.NotNull(FPolyCinema.Web.DAL.UserDAL.GetByEmail(email));
+        }
+        finally
+        {
+            var u = FPolyCinema.Web.DAL.UserDAL.GetByEmail(email);
+            if (u != null) FPolyCinema.Web.DAL.UserDAL.Delete(u.Id);
+        }
+    }
+
+    [Fact]
     public async Task MustChangePassword_RedirectsEveryPageToForcedChange()
     {
         var email = "batdoi.test@fpolycinema.vn";
