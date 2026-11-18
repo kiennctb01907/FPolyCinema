@@ -15,6 +15,7 @@
   - Bảng 4: chèn ảnh chụp thật của 28 màn hình (artifacts/ui/phase-8), thêm A10.
   - Bảng 5: route và quyền theo routes.md, thêm A10.
   - Số liệu ở mục 1, 2, 5 đã cập nhật.
+- 18/11/2026: vẽ lại Hình 2 (ERD mức 1) cho gọn: gom bảng theo 8 khung phân hệ, đi dây vuông góc, dùng ô bảng tham chiếu nét đứt (Users, Cinemas, Showtimes, CorporateBookings) thay cho đường dài; vẫn đủ 35 bảng, 57 đường, chỉ còn 1 chỗ cắt. Hình 2 giờ sinh bằng code: `diagrams/Hinh02_gen.mjs` -> `Hinh02_ERD_Muc1_TongQuan.svg/.png` (không còn dùng bản Lucid). Sửa đoạn mô tả ở mục 3.1.3, cập nhật mục lục.
 
 ## Sơ đồ gốc trên Lucidchart
 
@@ -42,6 +43,6 @@ Các tài liệu Lucid cũ của Hình 1, 3, 5, 6, 7, 11–14 (bản 08/11) vẫ
 
 ## Điểm chưa đẹp của sơ đồ (đã biết)
 
-- ERD mức 1: Users, Cinemas, Bills là trung tâm nên nhiều đường đi gần bảng khác.
+- ERD mức 1: Bills vẫn là trung tâm nên có nhiều đường đi vào cạnh phải; còn một chỗ cắt (Bills–ShowtimeSeats qua Showtimes–Tickets).
 - ERD mức 2 trang P4, P5 nối ở mức bảng, không chỉ tới từng dòng cột khóa ngoại (cột FK vẫn được đánh dấu trong bảng).
 - Luồng Quản trị: đường "Xóa" và "Phòng chiếu" đi chung một đoạn dọc.
