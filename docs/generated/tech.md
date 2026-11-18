@@ -35,9 +35,9 @@ Thư mục wwwroot/lib: be-vietnam-pro, bootstrap, bootstrap-icons, chart.js, ht
 
 ## Kiểm thử
 
-369 test trong 33 file.
+372 test trong 33 file.
 
-- tests/FPolyCinema.Tests/ArchitectureTests.cs: 8
+- tests/FPolyCinema.Tests/ArchitectureTests.cs: 9
 - tests/FPolyCinema.Tests/BillStateMachineTests.cs: 14
 - tests/FPolyCinema.Tests/BookingAgentTests.cs: 13
 - tests/FPolyCinema.Tests/ConventionTests.cs: 4
@@ -48,13 +48,13 @@ Thư mục wwwroot/lib: be-vietnam-pro, bootstrap, bootstrap-icons, chart.js, ht
 - tests/FPolyCinema.Tests/NlpParserTests.cs: 25
 - tests/FPolyCinema.Tests/Phase2RulesTests.cs: 19
 - tests/FPolyCinema.Tests/Phase2ServiceTests.cs: 9
-- tests/FPolyCinema.Tests/Phase2WebTests.cs: 10
+- tests/FPolyCinema.Tests/Phase2WebTests.cs: 11
 - tests/FPolyCinema.Tests/Phase3RulesTests.cs: 26
 - tests/FPolyCinema.Tests/Phase3ServiceTests.cs: 6
 - tests/FPolyCinema.Tests/Phase3WebTests.cs: 3
 - tests/FPolyCinema.Tests/Phase4RulesTests.cs: 18
 - tests/FPolyCinema.Tests/Phase4ServiceTests.cs: 15
-- tests/FPolyCinema.Tests/Phase4WebTests.cs: 3
+- tests/FPolyCinema.Tests/Phase4WebTests.cs: 4
 - tests/FPolyCinema.Tests/Phase5RulesTests.cs: 12
 - tests/FPolyCinema.Tests/Phase5ServiceTests.cs: 12
 - tests/FPolyCinema.Tests/Phase5WebTests.cs: 6
@@ -132,6 +132,7 @@ src/
       AccountVms.cs
       AdminVms.cs
       CustomerVms.cs
+      MustBeTrueAttribute.cs
       Phase3Vms.cs
       Phase4AdminVms.cs
       Phase6Vms.cs
@@ -300,6 +301,8 @@ tests/
   FPolyCinema.Tests/
     (35 file: ArchitectureTests.cs, BillStateMachineTests.cs, BookingAgentTests.cs, ConventionTests.cs, DatabaseTests.cs, FileUtilTests.cs, …)
 tools/
+  deploy/
+    monsterasp.ps1
   spec-check/
     check.mjs
     scope.json

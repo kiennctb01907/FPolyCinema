@@ -2,7 +2,7 @@
 
 - Tài liệu nộp: `TB01907_Lab2_ERD_GiaoDien.docx` (60 trang; mục lục tự động, đã cập nhật bằng Word).
 - Ảnh sơ đồ: `diagrams/Hinh01…Hinh14*.png`, xuất từ Lucidchart.
-- Nguồn dữ kiện: `docs/generated` mã băm code a62c99432046 (35 bảng, 60 khóa ngoại, 30 controller, 221 route, 28 màn hình).
+- Nguồn dữ kiện: `docs/generated` mã băm code 4788f79b97b4 (đối chiếu lại 18/11/2026, chỉ số test đổi 369 → 372) (35 bảng, 60 khóa ngoại, 30 controller, 221 route, 28 màn hình).
 - Gói nộp LMS: `TB01907_Lab2.zip` (docx + thư mục diagrams).
 
 ## Lịch sử cập nhật
