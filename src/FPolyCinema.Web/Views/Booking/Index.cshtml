@@ -25,6 +25,10 @@
     {
         <div class="alert-ui tone-warning mb-4" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i>Suất @Fmt.Time(s.StartTime) đã hết giờ bán online. Bạn chọn suất khác ở trang phim.</div>
     }
+    @if (Model.UnderAgeMessage != null)
+    {
+        <div class="alert-ui tone-danger mb-4" role="alert"><i class="bi bi-person-x" aria-hidden="true"></i>@Model.UnderAgeMessage Bạn chọn phim khác phù hợp độ tuổi.</div>
+    }
     @if (Model.LoggedIn && !Model.IsCustomer)
     {
         <div class="alert-ui tone-info mb-4" role="status"><i class="bi bi-info-circle" aria-hidden="true"></i>Đặt vé online dành cho tài khoản khách hàng. Bạn đang đăng nhập bằng tài khoản nhân viên nên chỉ xem được sơ đồ ghế.</div>
@@ -81,7 +85,7 @@
                             <span class="qty" aria-live="polite"><span data-qty-value>@Model.Quantity</span> vé</span>
                             <button type="button" class="btn btn-secondary" data-qty-step="1" aria-label="Thêm một vé"><i class="bi bi-plus-lg" aria-hidden="true"></i></button>
                         </div>
-                        <button type="button" class="btn btn-secondary" data-pick-for-me disabled="@(!Model.SalesOpen)"><i class="bi bi-magic" aria-hidden="true"></i>Chọn giúp tôi</button>
+                        <button type="button" class="btn btn-secondary" data-pick-for-me disabled="@(!Model.CanBook)"><i class="bi bi-magic" aria-hidden="true"></i>Chọn giúp tôi</button>
                     </div>
                 </div>
 
@@ -89,7 +93,7 @@
                     <i class="bi bi-stars" aria-hidden="true"></i>
                     <span class="ai-banner-text" data-ai-text></span>
                     <div class="ai-banner-alts" data-ai-alts></div>
-                    <button type="button" class="btn btn-primary btn-sm" data-ai-pick disabled="@(!Model.SalesOpen)">Chọn nhanh</button>
+                    <button type="button" class="btn btn-primary btn-sm" data-ai-pick disabled="@(!Model.CanBook)">Chọn nhanh</button>
                 </div>
                 <div class="ai-banner is-switch" data-switch-banner hidden role="status">
                     <i class="bi bi-arrow-left-right" aria-hidden="true"></i>
@@ -185,7 +189,7 @@
                 <p class="small text-muted">Bằng việc thanh toán, bạn đồng ý với <a href="/policies/terms">điều khoản sử dụng</a> và <a href="/policies/cancellation">chính sách hủy vé</a>.</p>
                 <div class="booking-nav">
                     <button type="button" class="btn btn-ghost" data-go="3"><i class="bi bi-arrow-left" aria-hidden="true"></i>Bắp nước</button>
-                    <button type="button" class="btn btn-primary btn-lg" data-pay-btn disabled="@(!Model.SalesOpen)"><i class="bi bi-lock" aria-hidden="true"></i><span data-pay-label>Thanh toán</span></button>
+                    <button type="button" class="btn btn-primary btn-lg" data-pay-btn disabled="@(!Model.CanBook)"><i class="bi bi-lock" aria-hidden="true"></i><span data-pay-label>Thanh toán</span></button>
                 </div>
             </section>
         </div>
@@ -242,6 +246,7 @@
     persona = Model.Persona,
     quantity = Model.Quantity,
     salesOpen = Model.SalesOpen,
+    underAge = Model.UnderAgeMessage,
     loyaltyPoints = Model.LoyaltyPoints,
     pointValue = Model.PointValueVnd,
     walletBalance = Model.WalletBalance,

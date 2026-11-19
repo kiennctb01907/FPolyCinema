@@ -234,13 +234,21 @@ public class OnlineBookingService
     {
         var info = OnlineInfo(showtimeId) ?? throw CategoryService.NotFound("Không tìm thấy suất chiếu.");
         var customer = UserDAL.GetById(userId);
-        if (customer?.BirthDate is DateTime bd && seatIds.Count > 0 && !AgeRules.CanWatch(info.Movie.AgeRating, AgeRules.AgeOn(bd, _clock.Now)))
-            throw new BusinessRuleException(ErrorCodes.AgeRestricted,
-                $"Phim {info.Movie.AgeRating} dành cho khán giả từ đủ {AgeRules.MinimumAge(info.Movie.AgeRating)} tuổi. Theo ngày sinh trong tài khoản, bạn chưa đủ tuổi xem phim này.");
+        if (seatIds.Count > 0 && UnderAgeMessage(customer, info.Movie.AgeRating, _clock.Now) is string under)
+            throw new BusinessRuleException(ErrorCodes.AgeRestricted, under);
         var bill = await Ensure(userId, showtimeId);
         var res = await _holds.Hold(bill.Id, showtimeId, seatIds, new HoldOptions(BillChannel.Online, Roles.Customer, userId, WheelchairConfirmed: wheelchairConfirmed));
         return _bills.BuildCart(res.Bill, new List<string>());
     }
+
+    /// <summary>
+    /// Tài khoản có ngày sinh mà chưa đủ tuổi xem phim (SPEC 3.1-04): trả câu báo để trang đặt vé hiện ngay từ đầu và để chặn khi giữ ghế; null nếu được xem
+    /// hoặc tài khoản không có ngày sinh.
+    /// </summary>
+    public static string? UnderAgeMessage(User? customer, string rating, DateTime now) =>
+        customer?.BirthDate is DateTime bd && !AgeRules.CanWatch(rating, AgeRules.AgeOn(bd, now))
+            ? $"Phim {rating} dành cho khán giả từ đủ {AgeRules.MinimumAge(rating)} tuổi. Theo ngày sinh trong tài khoản, bạn chưa đủ tuổi xem phim này."
+            : null;
 
     // ------------------------------------------------------------------ bước 3: bắp nước và ưu đãi
 

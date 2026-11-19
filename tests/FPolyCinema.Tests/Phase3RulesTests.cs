@@ -45,7 +45,10 @@ public class Phase3RulesTests
     public void AgeRules_ChildTicketsRestrictedByRating()
     {
         var start = At(14, 0); var end = At(16, 0);
-        Assert.Equal(ErrorCodes.AgeRestricted, AgeRules.CheckTicket(AudienceType.ChildU13, AgeRating.T13, start, end, Rules).ErrorCode);
+        var t13 = AgeRules.CheckTicket(AudienceType.ChildU13, AgeRating.T13, start, end, Rules);
+        Assert.Equal(ErrorCodes.AgeRestricted, t13.ErrorCode);
+        // Phim T13 vẫn bán vé trẻ em 13–15 tuổi nên câu báo chỉ nói vé dưới 13 tuổi
+        Assert.Equal("Phim T13 dành cho khán giả từ đủ 13 tuổi. Vé trẻ em dưới 13 tuổi không áp dụng cho phim này.", t13.Message);
         Assert.Equal(ErrorCodes.AgeRestricted, AgeRules.CheckTicket(AudienceType.ChildU13, AgeRating.T18, start, end, Rules).ErrorCode);
         Assert.True(AgeRules.CheckTicket(AudienceType.ChildU13, AgeRating.K, start, end, Rules).Ok);
         Assert.True(AgeRules.CheckTicket(AudienceType.ChildU13, AgeRating.P, start, end, Rules).Ok);

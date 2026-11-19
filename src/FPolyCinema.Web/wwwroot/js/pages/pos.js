@@ -17,6 +17,7 @@
   let showtimeId = cart.showtime ? cart.showtime.id : null;
   let seatMap = null;
   let stopTimer = null;
+  let lastOrphanReason = '';
   const audiences = $$('[data-aud-all] option').filter((o) => o.value).map((o) => ({ value: o.value, label: o.textContent }));
 
   // ---------------------------------------------------------------- gọi API
@@ -30,6 +31,9 @@
   function renderCart(c) {
     cart = c || {};
     const hasBill = !!cart.billId;
+    // Lý do bỏ qua luật ghế mồ côi chỉ nhớ trong hóa đơn đang bán: hóa đơn kết thúc (thanh toán, hủy, hết hạn) thì quên.
+    // Lần giữ ghế đầu tiên mới tạo hóa đơn nên không so mã hóa đơn, chỉ xét giỏ còn hóa đơn hay không.
+    if (!hasBill) lastOrphanReason = '';
     const tickets = cart.tickets || [], items = cart.items || [];
     const empty = tickets.length === 0 && items.length === 0;
     $('[data-cart-code]').textContent = hasBill ? cart.code : '';
@@ -66,8 +70,14 @@
 
     // Vé
     $('[data-cart-tickets-wrap]').hidden = tickets.length === 0;
+    // Đối tượng vé không hợp nhãn phim hoặc giờ chiếu cho trẻ em bị khóa sẵn (server vẫn kiểm lại, SPEC 3.1)
+    const audBlocked = (cart.showtime && cart.showtime.blockedAudiences) || {};
+    $$('[data-aud-all] option').forEach((o) => { if (o.value) { o.disabled = !!audBlocked[o.value]; o.title = audBlocked[o.value] || ''; } });
     $('[data-cart-tickets]').innerHTML = tickets.map((t) => {
-      const opts = audiences.map((a) => `<option value="${esc(a.value)}" ${a.value === t.audienceType ? 'selected' : ''}>${esc(a.label)}</option>`).join('');
+      const opts = audiences.map((a) => {
+        const why = audBlocked[a.value];
+        return `<option value="${esc(a.value)}" ${a.value === t.audienceType ? 'selected' : ''} ${why && a.value !== t.audienceType ? `disabled title="${esc(why)}"` : ''}>${esc(a.label)}${why ? ' (không áp dụng)' : ''}</option>`;
+      }).join('');
       const warn = t.warning ? `<p class="line-warning" role="alert"><i class="bi bi-exclamation-triangle" aria-hidden="true"></i>${esc(t.warning)}</p>` : '';
       return `<li class="pos-line ${t.warning ? 'has-warning' : ''}" data-seat="${t.seatId}">` +
         `<div class="pos-line-main"><span class="seat-chip">${esc(t.label)}</span><span class="small text-muted">${esc(t.seatTypeLabel)}</span>` +
@@ -177,24 +187,25 @@
     try {
       await call('/pos/hold-seats', body, { silent: true });
     } catch (e) {
-      await onHoldError(e, seatIds, changed);
+      await onHoldError(e, seatIds, changed, extra);
     } finally {
       seatMap?.setPending(changed, false);
     }
   }
 
-  async function onHoldError(e, seatIds, changed) {
+  // extra: các xác nhận đã có của lần gửi này (xe lăn, bỏ qua luật ghế mồ côi) – gửi lại phải giữ nguyên, nếu không hai hộp xác nhận bật luân phiên mãi
+  async function onHoldError(e, seatIds, changed, extra = {}) {
     const d = e.details || {};
     switch (e.code) {
       case 'WHEELCHAIR_CONFIRM_REQUIRED': {
         const ok = await ui.confirm({ title: 'Vị trí dành cho khách dùng xe lăn', message: e.message + ' Chỉ bán chỗ này cho khách dùng xe lăn hoặc người đi cùng.', confirmText: 'Xác nhận khách dùng xe lăn', tone: 'primary' });
-        if (ok) await holdSeats(seatIds, changed, { wheelchairConfirmed: 'true' });
+        if (ok) await holdSeats(seatIds, changed, { ...extra, wheelchairConfirmed: 'true' });
         return;
       }
       case 'ORPHAN_SEAT': {
         seatMap.violate([...(d.orphanSeatIds || []), ...changed]);
         ui.toast.error(e.message);
-        if (d.canOverride) openOrphan(e.message, seatIds, changed);
+        if (d.canOverride) openOrphan(e.message, seatIds, changed, extra);
         return;
       }
       case 'SWEETBOX_PAIR':
@@ -217,19 +228,22 @@
   }
 
   let orphanRetry = null;
-  function openOrphan(message, seatIds, changed) {
+  // Thêm ghế vào lựa chọn vẫn để lẻ ghế thì luật được xét lại (SPEC 3.5.1): điền sẵn lý do đã nhập của hóa đơn này (lastOrphanReason) để thu ngân chỉ cần xác nhận lại
+  function openOrphan(message, seatIds, changed, extra = {}) {
     const m = $('#orphan-override');
     $('[data-orphan-message]', m).textContent = message;
-    $('#orphan-reason').value = '';
-    orphanRetry = { seatIds, changed };
+    $('#orphan-reason').value = lastOrphanReason;
+    ui.clearFieldErrors($('[data-orphan-form]'));
+    orphanRetry = { seatIds, changed, extra };
     bootstrap.Modal.getOrCreateInstance(m).show();
   }
   $('[data-orphan-form]').addEventListener('submit', async (e) => {
     e.preventDefault();
     const reason = $('#orphan-reason').value.trim();
     if (reason.length < 5) { ui.showFieldErrors(e.target, { reason: 'Bạn ghi lý do (ít nhất 5 ký tự).' }); return; }
+    lastOrphanReason = reason;
     bootstrap.Modal.getOrCreateInstance($('#orphan-override')).hide();
-    if (orphanRetry) await holdSeats(orphanRetry.seatIds, orphanRetry.changed, { overrideOrphan: 'true', overrideReason: reason });
+    if (orphanRetry) await holdSeats(orphanRetry.seatIds, orphanRetry.changed, { ...orphanRetry.extra, overrideOrphan: 'true', overrideReason: reason });
   });
 
   async function refreshSeatMap() { if (showtimeId) await loadSeatMap(showtimeId); }

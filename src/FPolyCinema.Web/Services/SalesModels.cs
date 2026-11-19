@@ -19,7 +19,11 @@ public sealed record CartMember(int Id, string FullName, string? MemberCode, str
 
 /// <summary>Suất của hóa đơn.</summary>
 public sealed record CartShowtime(int Id, string MovieTitle, string AgeRating, string AgeExplanation, DateTime StartTime, DateTime EndTime,
-    string AuditoriumName, string Format, string LanguageLabel);
+    string AuditoriumName, string Format, string LanguageLabel)
+{
+    /// <summary>Đối tượng vé không bán được cho suất này (nhãn phim hoặc giờ chiếu cho trẻ em, SPEC 3.1) kèm lý do; POS khóa các lựa chọn đó.</summary>
+    public Dictionary<string, string> BlockedAudiences { get; init; } = new();
+}
 
 /// <summary>Hóa đơn tạm tính của POS (UI P1 cột 3), trả về sau mỗi thao tác.</summary>
 public sealed class Cart

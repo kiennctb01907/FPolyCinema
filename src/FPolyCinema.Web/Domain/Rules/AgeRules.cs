@@ -89,7 +89,10 @@ public static class AgeRules
             var min = MinimumAge(rating);
             return AgeCheck.Fail(ErrorCodes.AgeRestricted, rating == AgeRating.C
                 ? "Phim nhãn C không được phép phổ biến nên không bán vé."
-                : $"Phim {rating} dành cho khán giả từ đủ {min} tuổi. Vé trẻ em không áp dụng cho phim này.");
+                : min <= 15
+                    // Phim T13: vé trẻ em từ 13 đến dưới 16 tuổi vẫn dùng được, nên nói rõ chỉ vé dưới 13 tuổi bị chặn
+                    ? $"Phim {rating} dành cho khán giả từ đủ {min} tuổi. Vé trẻ em dưới 13 tuổi không áp dụng cho phim này."
+                    : $"Phim {rating} dành cho khán giả từ đủ {min} tuổi. Vé trẻ em không áp dụng cho phim này.");
         }
 
         var latest = under13 ? rules.ChildU13LatestEnd : rules.ChildU16LatestEnd;

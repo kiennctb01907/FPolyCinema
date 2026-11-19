@@ -580,7 +580,12 @@ public class BillService
         {
             var info = SeatMapService.Info(sid)!;
             show = new CartShowtime(sid, info.Movie.Title, info.Movie.AgeRating, StatusDisplay.AgeExplanation(info.Movie.AgeRating), info.Showtime.StartTime,
-                info.Showtime.EndTime, info.Auditorium.Name, info.Auditorium.Format, StatusDisplay.Of(StatusDisplay.Language, info.Showtime.LanguageFormat).Label);
+                info.Showtime.EndTime, info.Auditorium.Name, info.Auditorium.Format, StatusDisplay.Of(StatusDisplay.Language, info.Showtime.LanguageFormat).Label)
+            {
+                BlockedAudiences = new[] { AudienceType.ChildU13, AudienceType.Child13To15 }
+                    .Select(a => (a, c: AgeRules.CheckTicket(a, info.Movie.AgeRating, info.Showtime.StartTime, info.Showtime.EndTime, _rules)))
+                    .Where(x => !x.c.Ok).ToDictionary(x => x.a, x => x.c.Message!),
+            };
             var pricer = new TicketPricer(info, _rules);
             var held = ShowtimeSeatDAL.GetStates(sid).Where(s => s.Status == ShowtimeSeatStatus.Held && s.HoldBillId == bill.Id).ToList();
             var audiences = held.Select(s => s.HoldAudienceType ?? AudienceType.Adult).ToList();

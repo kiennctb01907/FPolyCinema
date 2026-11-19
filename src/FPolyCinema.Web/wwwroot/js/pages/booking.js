@@ -206,6 +206,7 @@
     if (!loggedIn) { loginModal().show(); return; }
     if (!isCustomer) { ui.toast.info('Đặt vé online dành cho tài khoản khách hàng.'); return; }
     if (!state.salesOpen) { ui.toast.warning('Suất này đã hết giờ bán online.'); return; }
+    if (state.underAge) { ui.toast.error(state.underAge); return; }
     holdWithRules(e.detail.seatIds, e.detail.changed);
   });
 
@@ -225,7 +226,7 @@
       $('[data-ai-alts]', banner).innerHTML = cs.length > 1
         ? cs.map((x, i) => `<button type="button" class="filter-chip ${i === chosen ? 'is-active' : ''}" data-ai-alt="${i}" aria-pressed="${i === chosen}">${esc(x.range)} · ${x.score}</button>`).join('')
         : '';
-      $('[data-ai-pick]', banner).disabled = !state.salesOpen;
+      $('[data-ai-pick]', banner).disabled = !state.salesOpen || !!state.underAge;
       if (seatMap) seatMap.highlight(c.seatIds, `AI đề xuất ${c.score}/100`);
     } else {
       $('[data-ai-text]', banner).textContent = `Không còn ${qty} ghế liền nhau phù hợp ở suất này.`;

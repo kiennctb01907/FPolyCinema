@@ -115,8 +115,15 @@ else if (CheckInRules.IsCompleted(b.Status, b.CheckInStatus, b.FnbStatus) && b.C
                 <dt>Giảm giá</dt><dd class="money">@(b.DiscountTotal > 0 ? "−" : null)@Fmt.Money(b.DiscountTotal)</dd>
                 <dt>Tổng cộng</dt><dd class="money fw-500">@Fmt.Money(b.Total)</dd>
                 <dt>Đã trả</dt><dd class="money">@Fmt.Money(Model.Paid)</dd>
+                @foreach (var (method, amount) in Model.Refunds)
+                {
+                    <dt>Đã hoàn (@method)</dt><dd class="money">@Fmt.Money(amount)</dd>
+                }
             </dl>
         </section>
+        @* Đơn đã hủy (mọi lý do) thì không còn gì để hủy: ẩn khối điều kiện, câu "Đơn này đã hủy" ở đầu trang đã nói đủ *@
+        @if (!cancelled)
+        {
         <section class="card-ui card-ui-body" aria-labelledby="cancel-title" data-self-cancel data-code="@b.Code">
             <h2 class="card-ui-title" id="cancel-title">Hủy vé</h2>
             <ul class="small text-muted ps-3 mb-3">
@@ -135,6 +142,7 @@ else if (CheckInRules.IsCompleted(b.Status, b.CheckInStatus, b.FnbStatus) && b.C
                 <p class="field-error mt-2 mb-0" id="cancel-reason">@(Model.Cancel?.Reason)</p>
             }
         </section>
+        }
     </div>
 </div>
 

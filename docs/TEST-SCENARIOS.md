@@ -154,3 +154,25 @@ Mỗi dòng ghi kết quả lần chạy lại; mô tả, dữ liệu và các b
 | TC-P7-02 | 15/11/2026 | "Bạn muốn xem ngày nào và đi mấy người?" → "Bạn đi mấy người?" → suất 19:05 F4–F6 → "Đã thêm 2 × Nước suối…" → "Đã đổi sang suất kế tiếp 19:10…" → "Mình đã xóa thẻ đặt vé…" | Pass |
 | TC-P7-03 | 15/11/2026 | AI xếp 22–23/11 rạp 1: 40 suất nháp, phim Việt 35%; "Áp dụng" lưu 40/40 suất IsAiGenerated = 1 | Pass |
 | TC-P7-04 | 15/11/2026 | Kéo suất 1353 sang 10:10: lỗi chặn "Phòng 3 – 2D đã có suất 11:00–14:00…"; sang 08:30 hợp lệ, "Lưu thay đổi" thành công | Pass |
+
+### Kiểm thử toàn diện giao diện và nghiệp vụ (20/11/2026)
+
+CSDL tạo lại bằng `--reset-db --init-only --Demo:ClockOffsetMinutes=-300`, app chạy cấu hình `web-lech-gio` (giờ ứng dụng 19:17–19:50 ngày 19/11) để có suất đang bán. Thao tác bằng trình duyệt trong Claude Code, đối chiếu kết quả với CSDL bằng truy vấn SQL.
+
+| Test case ID | Chức năng | Các bước chính | Kết quả thực tế | Pass/Fail |
+|---|---|---|---|---|
+| TC-FULL-01 | Quét mọi màn hình (UI mục 13) | `node tools/ui-snapshots/snap.mjs --phase 8` | 266 ảnh, 0 lỗi HTTP 5xx, 0 cuộn ngang, 0 ảnh vỡ, 0 lỗi JS | Pass |
+| TC-FULL-02 | Khách tự hủy vé (SPEC 3.9) | khach@ hủy HD20261118171314SAXA (suất 20/11 17:15, có combo) | Hộp xác nhận nêu hậu quả; cancel CANCELLED_BY_USER; ví 389.000 → 808.000 ₫; thu hồi 29 điểm; 2 ghế AVAILABLE; bắp nước "Đã hủy"; còn 0 lượt trong tháng | Pass |
+| TC-FULL-03 | Chặn độ tuổi online (SPEC 3.1-04) | Đổi ngày sinh khach@ thành 10/03/2011, "Chọn nhanh" ở suất T18 1118 | "Phim T18 dành cho khán giả từ đủ 18 tuổi. Theo ngày sinh trong tài khoản, bạn chưa đủ tuổi xem phim này.", không giữ ghế; trả ngày sinh về 20/05/1998 | Pass |
+| TC-FULL-04 | Đặt vé online đủ bước (UC07–UC09) | Suất 1117 (T13): Chọn nhanh F5–F6, 1 Combo Couple, mã SAIMA123 rồi BUTHUONG-HA01, dùng điểm, bấm thanh toán khi chưa tích xác nhận tuổi rồi tích; VietQR: "Thất bại" rồi "Thanh toán thành công" | Mã sai "Không tìm thấy voucher mã SAIMA123."; đổi tối đa 124 điểm (50% của 249.000); chưa tích bị chặn; thất bại: trang QR báo ngay; thành công: tự chuyển vé điện tử; FinalPrice 39.716 × 2 + combo 45.568 = 125.000 ₫; −124 +8 điểm; voucher +1 lượt; kho RESERVE | Pass (sau sửa BUG-079) |
+| TC-FULL-05 | Luật ghế tại quầy (SPEC 3.5.1, 3.2-04) | Suất 1117: chọn G4 (để lẻ G3), bỏ qua luật không lý do rồi có lý do; thêm ghế xe lăn H1 | ORPHAN_SEAT gợi ý G3; thiếu lý do báo "Bạn ghi lý do (ít nhất 5 ký tự)."; giữ được G4 + H1, AuditLogs ORPHAN_SEAT_OVERRIDE | Pass (sau sửa BUG-078) |
+| TC-FULL-06 | Đối tượng vé tại quầy (SPEC 3.1-03) | Vé G4 phim T13: chọn "Trẻ em dưới 13 tuổi" rồi "Trẻ em từ 13 đến dưới 16 tuổi" | Dưới 13 bị chặn AGE_RESTRICTED, giữ "Người lớn"; 13–15 tuổi được, giá 64.000 ₫ (giảm 20%) | Pass (câu báo sửa ở BUG-081) |
+| TC-FULL-07 | Đổi điểm, tiền mặt, hủy bằng PIN (UC15, UC18) | Tra TV00000001, đổi 500 rồi 100 rồi 50 điểm, tiền mặt 200.000; hủy ở /pos/my-bills, PIN sai rồi đúng | "Thành viên chỉ còn 125 điểm."; "…tối đa 72 điểm (không quá 50% giá trị hóa đơn)."; tổng 94.000 ₫; PIN sai "Mã PIN chưa đúng. Còn 4 lần thử."; đúng: VOIDED_BY_POS, hoàn 94.000 ₫ CASH vào ca 31, trả 50 điểm, thu hồi 6 điểm, G4 H1 AVAILABLE | Pass (sau sửa BUG-080) |
+| TC-FULL-08 | Đổi ghế (SPEC 3.10-01..04) | /pos/swap-seat HD20261119191916JAIU: F5, F6 → D5, D6 | "Đổi ngang, không thu thêm và không hoàn tiền."; F5 F6 SWAPPED, D5 D6 vé mới có SwappedFromTicketId; AuditLogs SEAT_SWAPPED; vé điện tử hiện vé cũ "Đã đổi ghế", không có QR | Pass |
+| TC-FULL-09 | Soát vé từ chối (SPEC 3.8) | Quét QR cũ của F5, HD20261119191916JAIU (suất 20:20, lúc 19:35), hóa đơn đã vào đủ, mã sai | "Vé ghế F5 đã đổi sang ghế khác, mã cũ hết hiệu lực."; "Chưa tới giờ vào. Mở cửa lúc 20:10."; "Mọi vé của hóa đơn đã vào cửa."; "Mã không tồn tại…" | Pass |
+| TC-FULL-10 | Bếp (SPEC 3.11-04..07) | Quầy bán 2 vé + 2 Combo Couple suất 1114; /pos/fnb-kds "Sẵn sàng giao", "Đã giao"; khách bấm "Tôi đã tới rạp" ở HD20261119191916JAIU | Đơn quầy hiện ngay (số 019), FULFILLED, CONSUME; đơn online PREPARING số 020, RELEASE + CONSUME | Pass |
+| TC-FULL-11 | Phòng chưa dọn, vào cửa từng phần (SPEC 3.3-21, 3.8) | 19:45 quét HD20261119193307LOCK; "Đã dọn xong"; quét lại, bỏ A2, bấm cho vào khi chưa và khi đã tích xác nhận | "Phòng đang dọn vệ sinh, chưa thể đón khách"; 3 cảnh báo vàng (T13, giờ chiếu trẻ em, giấy tờ vé 13–15); chưa tích bị chặn; A1 CHECKED_IN, hóa đơn PARTIALLY_CHECKED_IN, "Sĩ số 1/5"; bảng sảnh "Mời vào rạp" | Pass |
+| TC-FULL-12 | Ghế nội bộ (SPEC 3.2-07) | Quản lý ca /ops giải phóng ghế nội bộ suất 20:20 | Chỉ suất 19:55 có nhãn "Sắp chiếu"; E4–E7 AVAILABLE; AuditLogs HOUSE_SEAT_RELEASED | Pass |
+| TC-FULL-13 | Phân quyền (CONTRACTS mục 2) | Khách, thu ngân, soát vé, quản lý ca mở các trang ngoài quyền | Chuyển về /Home/AccessDenied (403); quản lý ca vào /pos được chuyển sang mở ca; quản lý rạp tự khóa, tự xóa: server trả lỗi | Pass |
+| TC-FULL-14 | Dashboard (SPEC 3.12-02) | So KPI hôm nay ở /admin với truy vấn SQL | 35.084.000 ₫ = vé 30.180.130 + bắp nước 4.903.870; 273 vé (bỏ SWAPPED, VOIDED) | Pass |
+| TC-FULL-15 | Unit test, test tích hợp | `dotnet test` sau khi sửa | 455/455 đạt | Pass |

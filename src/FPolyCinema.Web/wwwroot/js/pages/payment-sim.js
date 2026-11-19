@@ -25,6 +25,8 @@
         ? (ok ? 'Cổng thanh toán đã gửi kết quả thành công. Bạn quay lại màn hình chờ, vé sẽ tự hiện.' : 'Cổng thanh toán đã báo thất bại. Bạn có thể thử lại trước khi hết giờ giữ ghế.')
         : (json && json.error && json.error.message) || 'Cổng thanh toán không gửi được kết quả.';
       out.className = 'small mt-3 mb-0 ' + (res.ok ? 'text-success-fg' : 'text-danger-fg');
+      // Báo thất bại (hoặc cổng không gửi được) thì khách được thử lại ngay trên trang này (SPEC 3.7-07); mã giao dịch thành công vẫn chưa dùng
+      if (!ok || !res.ok) root.querySelectorAll('[data-sim-send]').forEach((x) => { x.disabled = false; });
     } catch {
       out.textContent = 'Mất kết nối tới máy chủ. Bạn thử lại.';
       out.className = 'small mt-3 mb-0 text-danger-fg';

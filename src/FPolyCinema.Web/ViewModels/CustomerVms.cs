@@ -116,6 +116,10 @@ public class BookingVm
     public int Quantity { get; set; } = 2;
     public List<CustomerShowtimeRow> OtherTimes { get; set; } = new();
     public bool SalesOpen { get; set; }
+    /// <summary>Tài khoản chưa đủ tuổi xem phim theo ngày sinh (SPEC 3.1-04): câu báo hiện ngay đầu trang; null nếu được đặt.</summary>
+    public string? UnderAgeMessage { get; set; }
+    /// <summary>Được chọn ghế và thanh toán: suất còn mở bán online và tài khoản đủ tuổi.</summary>
+    public bool CanBook => SalesOpen && UnderAgeMessage == null;
     public int GoodClusterScore { get; set; }
     /// <summary>Số phút giữ ghế (CinemaRules.SeatHoldMinutes) cho câu hướng dẫn và hộp hết giờ.</summary>
     public int SeatHoldMinutes { get; set; }
@@ -156,6 +160,8 @@ public class TicketPageVm
     public int MaxPerMonth { get; set; }
     public int MinMinutesBeforeStart { get; set; }
     public long Paid { get; set; }
+    /// <summary>Các khoản đã hoàn theo phương thức (tự hủy vào ví, hủy suất, quầy hủy hóa đơn…).</summary>
+    public List<(string Method, long Amount)> Refunds { get; set; } = new();
     public DateTime Now { get; set; }
     public int ImHereWindowMinutes { get; set; }
 

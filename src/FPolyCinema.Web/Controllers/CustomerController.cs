@@ -124,6 +124,7 @@ public class BookingController : AppControllerBase
             Quantity = Math.Clamp(qty ?? 2, 1, 10),
             OtherTimes = _catalog.OtherTimes(info),
             SalesOpen = SeatHoldRules.IsSalesOpen(info.Showtime.FeatureStartTime, info.Showtime.OperationalStatus, BillChannel.Online, now, _rules),
+            UnderAgeMessage = OnlineBookingService.UnderAgeMessage(user, info.Movie.AgeRating, now),
             GoodClusterScore = _rules.GoodClusterScore,
             SeatHoldMinutes = _rules.SeatHoldMinutes,
         };
@@ -292,6 +293,8 @@ public class TicketsController : AppControllerBase
             Tickets = FPolyCinema.Web.DAL.TicketDAL.RowsByBill(bill.Id), Lines = FPolyCinema.Web.DAL.BillDetailDAL.RowsByBill(bill.Id),
             Cancel = _booking.SelfCancelCheck(bill, CurrentUserId), MaxPerMonth = _rules.SelfCancelMaxPerMonth, MinMinutesBeforeStart = _rules.SelfCancelMinMinutesBeforeStart,
             Paid = payments.Where(p => p.Direction == PaymentDirection.In).Sum(p => p.Amount),
+            Refunds = payments.Where(p => p.Direction == PaymentDirection.Refund).GroupBy(p => p.Method)
+                .Select(g => (StatusDisplay.Of(StatusDisplay.Payment, g.Key).Label, g.Sum(p => p.Amount))).ToList(),
             Now = _clock.Now, ImHereWindowMinutes = _rules.ImHereWindowMinutesBeforeStart,
         });
     }

@@ -217,4 +217,18 @@ public class Phase5RulesTests
         var top = TierProgressCalculator.Of(9_000_000, Rules.TierVipSpend12Months, Rules.TierVvipSpend12Months);
         Assert.Equal((LoyaltyTier.Vvip, (string?)null, 100), (top.Tier, top.NextTier, top.Percent));
     }
+
+    /// <summary>Trang đặt vé báo trước khi tài khoản chưa đủ tuổi (SPEC 3.1-04); cùng câu với lỗi khi giữ ghế.</summary>
+    [Fact]
+    public void UnderAgeMessage_ByBirthDateAndRating()
+    {
+        var now = new DateTime(2026, 11, 19, 19, 0, 0);
+        var teen = new FPolyCinema.Web.Entities.User { BirthDate = new DateTime(2011, 3, 10) };   // 15 tuổi
+        Assert.Equal("Phim T18 dành cho khán giả từ đủ 18 tuổi. Theo ngày sinh trong tài khoản, bạn chưa đủ tuổi xem phim này.",
+            FPolyCinema.Web.Services.OnlineBookingService.UnderAgeMessage(teen, AgeRating.T18, now));
+        Assert.NotNull(FPolyCinema.Web.Services.OnlineBookingService.UnderAgeMessage(teen, AgeRating.T16, now));
+        Assert.Null(FPolyCinema.Web.Services.OnlineBookingService.UnderAgeMessage(teen, AgeRating.T13, now));
+        Assert.Null(FPolyCinema.Web.Services.OnlineBookingService.UnderAgeMessage(new FPolyCinema.Web.Entities.User(), AgeRating.T18, now));   // không có ngày sinh
+        Assert.Null(FPolyCinema.Web.Services.OnlineBookingService.UnderAgeMessage(null, AgeRating.T18, now));
+    }
 }
