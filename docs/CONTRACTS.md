@@ -93,6 +93,8 @@ Lưu trong DB đúng chuỗi ở đây. Trong C# khai báo ở Domain/Constants 
 
 Căn cứ: Điều 10 Nghị định 131/2022/NĐ-CP; "trẻ em" là người dưới 16 tuổi theo Luật Trẻ em. Được tăng mức giảm nhưng không được thấp hơn cột tối thiểu.
 
+Ghi chú (19/11/2026): cột "Bán online" của U22 là "Có" nhưng trang đặt vé online chưa có chỗ chọn đối tượng vé, nên online hiện chỉ bán ADULT. Chờ người dùng chốt hướng xử lý (xem PROGRESS.md mục "Lỗi biết trước và việc còn lại").
+
 - [C4-01 P1 auto:enum-table] Các giá trị ở cột đầu bảng trên là hằng AudienceType trong Domain/Constants và là CHECK của các cột (cột: Tickets.AudienceType, AudienceDiscounts.AudienceType).
 - [C4-02 P1] DbSeeder nạp bảng AudienceDiscounts đúng các cột giảm mặc định, mức tối thiểu, bán online (PosOnly) và cần giấy tờ (RequiresDocument) của bảng trên.
 
@@ -188,7 +190,7 @@ Khóa nào chứa bí mật thì để chuỗi rỗng trong appsettings.json và
 | ImHereWindowMinutesBeforeStart | 60 | |
 | CrossShowtimeWindowMinutes | 60 | |
 | GoodClusterScore | 75 | |
-| TicketVatPercent | 8 | Mức 10% giảm còn 8% theo Nghị quyết 204/2025/QH15 đến 31/12/2026; kiểm tra lại trước khi dùng thật |
+| TicketVatPercent | 8 | Mức 10% giảm còn 8% theo Nghị quyết 204/2025/QH15 đến 31/12/2026; kiểm tra lại trước khi dùng thật. Thuế suất của chiếu phim theo Luật 48/2024/QH15 chưa xác minh với văn bản gốc; từ 01/01/2027 phải xem lại (PROGRESS.md, quyết định 89) |
 | FnbVatPercent | 8 | Như trên |
 | PointEarnPercent | MEMBER 5, VIP 7, VVIP 10 | Đối tượng JSON theo hạng |
 | PointValueVnd | 1000 | |

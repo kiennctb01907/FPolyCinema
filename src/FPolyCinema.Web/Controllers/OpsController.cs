@@ -131,12 +131,13 @@ public class OpsController : AppControllerBase
             var summary = await _mgmt.CancelShowtime(sid, reason, confirmCode, CurrentUserId, CurrentRole ?? string.Empty, _cinema.BoundCinemaId);
             return View(new IncidentVm { Showtimes = IncidentShowtimes(), Summary = summary, Cancelled = row });
         }
-        catch (BusinessRuleException ex) when (ex.Code == ErrorCodes.ValidationFailed)
+        catch (BusinessRuleException ex) when (ex.HttpStatus < 500)
         {
+            // Lỗi theo ô (VALIDATION_FAILED) hiện dưới từng ô; lỗi nghiệp vụ khác (ví dụ SHIFT_NOT_OPEN khi cần hoàn tiền mặt) hiện ở đầu form, giữ nguyên dữ liệu đã nhập
             return View(new IncidentVm
             {
                 Showtimes = IncidentShowtimes(), ShowtimeId = sid, Reason = reason,
-                Errors = ex.Details as Dictionary<string, string> ?? new Dictionary<string, string> { [""] = ex.Message },
+                Errors = ex.Code == ErrorCodes.ValidationFailed && ex.Details is Dictionary<string, string> fields ? fields : new Dictionary<string, string> { [""] = ex.Message },
             });
         }
     }

@@ -114,6 +114,8 @@ Mẫu PROGRESS.md:
 <!-- spec-check: không gắn mã -->
 - Cổng thanh toán thật.
 - Kết nối hóa đơn điện tử với cơ quan thuế: chỉ in hóa đơn có mã và đủ thông tin.
+- Kết nối dữ liệu và báo cáo cho cơ quan quản lý điện ảnh (Luật Điện ảnh 2022 Điều 19 khoản 3): chỉ có báo cáo trong hệ thống và xuất CSV.
+- Khách tự xóa tài khoản hoặc yêu cầu xóa dữ liệu cá nhân (Luật Bảo vệ dữ liệu cá nhân 91/2025/QH15).
 - Gửi SMS. Email chỉ gửi thật khi đã cấu hình SMTP.
 - Giải mã KDM và điều khiển máy chiếu thật.
 - Ứng dụng di động.

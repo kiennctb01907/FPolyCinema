@@ -132,6 +132,10 @@ public class OpsManagementService
                 {
                     long amount = p.Where(x => x.Direction == PaymentDirection.In).Sum(x => x.Amount) - p.Where(x => x.Direction == PaymentDirection.Refund).Sum(x => x.Amount);
                     if (amount <= 0) continue;
+                    // BUG-077: tiền mặt hoàn trừ vào két của ca đang mở (như hủy hóa đơn, SPEC 3.6-23), để biên bản đóng ca tính đúng ExpectedCash
+                    if (p.Key == PaymentMethod.Cash && shiftId == null)
+                        throw new BusinessRuleException(ErrorCodes.ShiftNotOpen,
+                            $"Suất có hóa đơn {b0.Code} trả bằng tiền mặt. Hoàn tiền mặt cần trừ vào két của ca đang mở: bạn mở ca tại một máy POS của rạp này rồi hủy suất lại.");
                     PaymentDAL.Insert(new Payment
                     {
                         BillId = b0.Id, PosShiftId = p.Key == PaymentMethod.Cash ? shiftId : null, Method = p.Key, Direction = PaymentDirection.Refund, Amount = amount,

@@ -469,8 +469,28 @@ public class OnlineBookingService
                 {
                     var snap = JsonSerializer.Deserialize<List<TicketSnapshot>>(pending.RawPayload) ?? new List<TicketSnapshot>();
                     var ids = snap.Select(t => t.SeatId).ToList();
-                    ShowtimeSeatDAL.LockForShowtime(sid, conn, tx);
-                    int held = ids.Count == 0 ? 0 : ShowtimeSeatDAL.Hold(sid, b.Id, now.AddMinutes(_rules.SeatHoldMinutes), now, ids, conn, tx);
+                    var lateInfo = SeatMapService.Info(sid, conn, tx)!;
+                    if (!SeatHoldRules.IsSalesOpen(lateInfo.Showtime.FeatureStartTime, lateInfo.Showtime.OperationalStatus, BillChannel.Online, now, _rules))
+                    {
+                        // BUG-076: suất đã hủy hoặc đã hết giờ bán online – không giữ lại ghế, ghi nhận khoản thu rồi hoàn về phương thức gốc
+                        bool cancelled = lateInfo.Showtime.OperationalStatus == OperationalStatus.Cancelled;
+                        pending.Status = PaymentStatus.Succeeded;
+                        pending.ProviderTxnId = p.ProviderTxnId;
+                        pending.Amount = p.Amount;
+                        pending.RawPayload = body;
+                        PaymentDAL.Update(pending, conn, tx);
+                        RefundVietQr(b.Id, p.Amount, now, conn, tx);
+                        var why = cancelled ? "suất chiếu đã bị hủy" : "suất chiếu đã hết giờ bán vé online";
+                        var msg = $"Thanh toán cho đơn {b.Code} đến sau khi hết giờ giữ ghế và {why}, nên không xuất được vé. Đã hoàn {Fmt.Money(p.Amount)} về phương thức gốc.";
+                        if (b.CustomerId is int lc)
+                            NotificationDAL.Insert(new Notification { UserId = lc, Title = "Đã hoàn tiền giao dịch", Body = msg, Link = TicketUrl(b.Code), CreatedAt = now }, conn, tx);
+                        evt = (b.Id, b.Code, BillStatus.Cancel, CancelReason.Expired, msg, null);
+                        return;
+                    }
+                    var lockedStates = ShowtimeSeatDAL.LockForShowtime(sid, conn, tx);
+                    // Ghế vừa chuyển sang bảo trì thì không giữ lại được (câu UPDATE giữ ghế không xét IsMaintenance)
+                    bool anyMaintenance = lockedStates.Any(s => s.IsMaintenance && ids.Contains(s.SeatId));
+                    int held = ids.Count == 0 || anyMaintenance ? 0 : ShowtimeSeatDAL.Hold(sid, b.Id, now.AddMinutes(_rules.SeatHoldMinutes), now, ids, conn, tx);
                     if (ids.Count > 0 && held == ids.Count)
                     {
                         // S3.7-05: giữ lại được đủ ghế cũ → finish

@@ -21,7 +21,7 @@
                 <partial name="_KpiCard" model="@(new KpiCardVm("bi-cash-stack", "Tổng tiền đã hoàn", Fmt.Money(sum.Refunded), null, "success"))" />
                 <partial name="_KpiCard" model="@(new KpiCardVm("bi-gift", "Voucher bồi thường", Fmt.Number(sum.Vouchers), null, "info"))" />
             </section>
-            <p class="small text-muted mt-3 mb-0">@sum.ExpiredWaiting hóa đơn đang chờ thanh toán đã chuyển hết hạn. Tiền mặt hoàn ghi vào ca đang mở của bạn (nếu có); chuyển khoản và ví hoàn theo phương thức gốc.</p>
+            <p class="small text-muted mt-3 mb-0">@sum.ExpiredWaiting hóa đơn đang chờ thanh toán đã chuyển hết hạn. Tiền mặt hoàn ghi vào ca đang mở của bạn; chuyển khoản và ví hoàn theo phương thức gốc.</p>
             <a class="btn btn-secondary mt-3" href="/ops"><i class="bi bi-arrow-left" aria-hidden="true"></i>Về trang Vận hành ca</a>
         </section>
     }
@@ -33,7 +33,7 @@
         <section class="card-section" aria-labelledby="inc-show">
             <h2 class="card-section-title" id="inc-show">Suất cần hủy</h2>
             <ul class="consequences">
-                <li>Mọi hóa đơn đã thanh toán của suất được hoàn toàn bộ theo phương thức gốc; vé bị hủy.</li>
+                <li>Mọi hóa đơn đã thanh toán của suất được hoàn toàn bộ theo phương thức gốc; vé bị hủy. Suất có khách trả tiền mặt thì bạn cần mở ca tại máy POS của rạp trước, tiền hoàn trừ vào két của ca đó.</li>
                 <li>Khách có tài khoản nhận voucher bồi thường và thông báo.</li>
                 <li>Bắp nước chưa làm được trả lại kho; ghế được giải phóng. Không hoàn tác được.</li>
             </ul>

@@ -147,6 +147,52 @@ public class Phase6ServiceTests : IClassFixture<Phase6DatabaseFixture>
         Assert.True(Sent(CinemaHub.OpsGroup(show.CinemaId), RealtimeEvents.ShowtimeOpsChanged));
     }
 
+    /// <summary>
+    /// BUG-077: hủy suất có hóa đơn trả tiền mặt mà người hủy không có ca OPEN tại rạp thì khoản hoàn tiền mặt không thuộc két nào. Phải chặn
+    /// SHIFT_NOT_OPEN (không đổi gì); có ca mở thì khoản hoàn tiền mặt ghi vào ca đó và được trừ khi tính ExpectedCash.
+    /// </summary>
+    [Fact]
+    public async Task Incident_WithCashBills_RequiresOpenShift_AndRefundGoesToThatShift()
+    {
+        var day = Phase6DatabaseFixture.Now.Date;
+        var clock = new FakeClock(Phase6DatabaseFixture.Now.AddMinutes(5));
+        var cashier = UserDAL.GetByEmail("cashier@fpolycinema.vn")!;
+        var show = ShowtimeDAL.ForClock(day.AddDays(4).AddHours(8), day.AddDays(4).AddHours(24))
+            .Where(r => r.OperationalStatus == OperationalStatus.Scheduled && r.CinemaId == cashier.CinemaId).OrderByDescending(r => r.StartTime).First();
+        string FreeTerminal() => ShiftService.Terminals().First(t => PosShiftDAL.GetOpenByTerminal(show.CinemaId, t) == null);
+
+        // Thu ngân bán một hóa đơn tiền mặt cho suất (dữ liệu mẫu chỉ có tiền mặt ở suất đã qua)
+        var bills = Bills(clock);
+        var shifts = new ShiftService(clock, bills);
+        var existingShift = PosShiftDAL.GetOpenByUser(cashier.Id);
+        var cashierShift = existingShift ?? shifts.Open(cashier.Id, show.CinemaId, FreeTerminal(), 0);
+        var ctx = new PosContext(cashier.Id, cashier.Role, show.CinemaId, cashierShift);
+        var posBill = await bills.Ensure(ctx);
+        var seats = new SeatSuggestService(clock, _rules).Suggest(show.Id, SeatPersona.BestViewAudio, 2, posBill.Id).Clusters.First().SeatIds;
+        await new SeatHoldService(clock, _rules, bills, Notifier()).Hold(posBill.Id, show.Id, seats, new HoldOptions(BillChannel.Pos, cashier.Role, cashier.Id));
+        await bills.Checkout(ctx, PaymentMethod.Cash, 1_000_000);
+
+        var mgmt = Mgmt(clock);
+        var manager = UserDAL.GetByEmail("manager@fpolycinema.vn")!;
+        Assert.Null(PosShiftDAL.GetOpenByUser(manager.Id));
+        var code = IncidentRules.ConfirmCode(show.Id);
+
+        var ex = await Assert.ThrowsAsync<BusinessRuleException>(() => mgmt.CancelShowtime(show.Id, "Máy chiếu hỏng", code, manager.Id, manager.Role, null));
+        Assert.Equal(ErrorCodes.ShiftNotOpen, ex.Code);
+        Assert.Equal(OperationalStatus.Scheduled, ShowtimeDAL.GetById(show.Id)!.OperationalStatus);
+        Assert.True(TicketDAL.CountActiveForShowtime(show.Id) > 0);
+
+        var shift = shifts.Open(manager.Id, show.CinemaId, FreeTerminal(), 0);
+        var cashPaid = FinishBills(show.Id).Sum(b => PaymentDAL.RowsByBill(b.Id)
+            .Where(p => p.Method == PaymentMethod.Cash && p.Status == PaymentStatus.Succeeded).Sum(p => p.Direction == PaymentDirection.In ? p.Amount : -p.Amount));
+        await mgmt.CancelShowtime(show.Id, "Máy chiếu hỏng", code, manager.Id, manager.Role, null);
+        var (cashIn, cashRefund) = DBUtil.InTransaction((c, tx) => PaymentDAL.CashOfShift(shift.Id, c, tx));
+        Assert.Equal((0L, cashPaid), (cashIn, cashRefund));
+        var drop = shifts.Close(new PosContext(manager.Id, manager.Role, show.CinemaId, PosShiftDAL.GetOpenByUser(manager.Id)!), new Dictionary<long, int>());
+        Assert.Equal(-cashPaid, drop.Expected);
+        if (existingShift == null) shifts.Close(ctx, new Dictionary<long, int>());
+    }
+
     // ------------------------------------------------------------------ kho: nhập kho, phiếu hủy hàng (SPEC 3.11-14, 3.11-15)
 
     [Fact]

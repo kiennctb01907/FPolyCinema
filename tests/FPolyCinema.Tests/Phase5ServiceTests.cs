@@ -207,6 +207,50 @@ public class Phase5ServiceTests : IClassFixture<Phase5DatabaseFixture>
         Assert.Equal(seats.OrderBy(x => x), TicketDAL.RowsByBill(bill.Id).Select(t => t.SeatId).OrderBy(x => x));
     }
 
+    /// <summary>
+    /// BUG-076: suất bị hủy do sự cố khi khách đang ở màn hình QR (hóa đơn chuyển EXPIRED, ghế về AVAILABLE). Webhook thành công đến sau đó
+    /// không được giữ lại ghế và chốt vé cho suất đã hủy; tiền được hoàn về phương thức gốc, khoản PENDING được ghi nhận rồi hoàn.
+    /// </summary>
+    [Fact]
+    public async Task Online_LateWebhook_AfterShowtimeCancelled_RefundsWithoutBooking()
+    {
+        var u = Customer();
+        ResetWaiting(u.Id);
+        var online = Online();
+        var (bill, show, seats) = await Booked(online, u, 2);
+        await online.Checkout(u.Id, show.ShowtimeId, PaymentMethod.VietQrSim);
+        var (ok, okSig, _, _) = online.SimPayloads(BillDAL.GetById(bill.Id)!);
+
+        var manager = UserDAL.GetByEmail("manager@fpolycinema.vn")!;
+        var shifts = new ShiftService(_clock, Bills());
+        var terminal = ShiftService.Terminals().First(t => DBUtil.InTransaction((c, tx) => PosShiftDAL.GetOpenByTerminal(show.CinemaId, t, c, tx)) == null);
+        var shift = shifts.Open(manager.Id, show.CinemaId, terminal, 0);
+        try
+        {
+            var mgmt = new OpsManagementService(_clock, _rules, Notifier(), new BillStatusService(_clock), new InventoryService(), new LoyaltyService(_rules));
+            await mgmt.CancelShowtime(show.ShowtimeId, "Mất điện toàn rạp", IncidentRules.ConfirmCode(show.ShowtimeId), manager.Id, manager.Role, null);
+        }
+        finally
+        {
+            shifts.Close(new PosContext(manager.Id, manager.Role, show.CinemaId, PosShiftDAL.GetOpenByUser(manager.Id)!), new Dictionary<long, int>());
+        }
+        Assert.Equal((BillStatus.Cancel, CancelReason.Expired), (BillDAL.GetById(bill.Id)!.Status, BillDAL.GetById(bill.Id)!.CancelReason));
+
+        Assert.Equal(200, (await online.HandleWebhook(ok, okSig)).Status);
+        var b = BillDAL.GetById(bill.Id)!;
+        Assert.Equal((BillStatus.Cancel, CancelReason.Expired), (b.Status, b.CancelReason));
+        Assert.Empty(TicketDAL.RowsByBill(bill.Id));
+        Assert.All(seats, id => Assert.Equal(ShowtimeSeatStatus.Available, ShowtimeSeatDAL.GetById(show.ShowtimeId, id)!.Status));
+        var pays = PaymentDAL.RowsByBill(bill.Id);
+        Assert.DoesNotContain(pays, p => p.Status == PaymentStatus.Pending);
+        long paidIn = pays.Where(p => p.Status == PaymentStatus.Succeeded && p.Direction == PaymentDirection.In).Sum(p => p.Amount);
+        long refunded = pays.Where(p => p.Status == PaymentStatus.Succeeded && p.Direction == PaymentDirection.Refund).Sum(p => p.Amount);
+        Assert.True(paidIn > 0);
+        Assert.Equal(paidIn, refunded);
+        Assert.Contains(NotificationDAL.ForUser(u.Id), n => n.Body.Contains(b.Code) && n.Body.Contains("hoàn"));
+        Assert.Contains(_hub.Sent, s => s.Group == $"bill_{bill.Id}" && s.Method == RealtimeEvents.PaymentStatusChanged);
+    }
+
     [Fact]
     public async Task Online_LateWebhook_SeatsResold_OverbookedRefunded_WithVoucherAndNotification()
     {
