@@ -3,6 +3,7 @@
 - Báo cáo: `TB01907_Lab3_NET108.docx`
 - Script tạo CSDL và dữ liệu mẫu (Bài 1): `sql/TB01907_Lab3_CSDL.sql` (mở bằng SSMS rồi Execute; tạo CSDL FPolyCinema, 35 bảng, dữ liệu mẫu cho Categories, Drinks, Users, Bills, BillDetails)
 - Hình trong báo cáo: `hinh/`
+- Video đăng nhập vào các vai trò (1 phút 57 giây): [video/TB01907_Lab3_DangNhapCacVaiTro.mp4](video/TB01907_Lab3_DangNhapCacVaiTro.mp4) – bấm vào rồi chọn "View raw" hoặc nút tải xuống để xem
 - Mã nguồn phiên bản nộp: tag `lab-3` trên https://github.com/kiennctb01907/FPolyCinema
 
 | Bài trong đề | Ở đâu trong mã nguồn |
